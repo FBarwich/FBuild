@@ -13,7 +13,7 @@ I'm using NTFS-Streams for Caching.
 I'm using multithreading whereever possible (even or the dependency check).
 I'm using batch compiliation instead of invoking the compiler for every file.
 
-The "Makefile" is a lua script.
+The "Makefile" is a lua script (http://www.lua.org)
 
 There is no way to state dependencies between projects. The single
 projects are just built in the order they are stated in the script.
