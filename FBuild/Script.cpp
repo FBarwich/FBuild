@@ -15,18 +15,66 @@
 
 #include "../lua-5.2.0/src/lua.hpp"
 
+#include <Shlwapi.h>
 
 
 
 namespace Impl {
-   static std::string PopString (lua_State* luaState)
+   // Helper functions for Lua-API
+   static std::string PopString (lua_State* L)
    {
       size_t len;
-      const char* ret = lua_tolstring(luaState, -1, &len);
-      lua_pop(luaState, 1);
+      const char* ret = lua_tolstring(L, -1, &len);
+      lua_pop(L, 1);
 
       if (ret) return std::string(ret, len);
       else return std::string();
+   }
+
+   // Functions that are callable from lua code
+
+   static int Glob (lua_State* L)
+   {
+      std::string path = ".";
+      std::string pattern = "*";
+
+      if (lua_gettop(L) == 2) {
+         pattern = PopString(L);
+         path = PopString(L);
+      }
+      else if (lua_gettop(L) == 1) {
+         pattern = PopString(L);
+      }
+      else {
+         luaL_error(L, "Expected one or two arguments for FBuild.Glob()");
+      }
+
+      int idx = 0;
+      lua_newtable(L);
+
+      std::for_each(boost::filesystem::directory_iterator(path), boost::filesystem::directory_iterator(), [&] (const boost::filesystem::directory_entry& entry) {
+         if (boost::filesystem::is_regular_file(entry.path())) {
+            if (PathMatchSpec(entry.path().filename().string().c_str(), pattern.c_str())) {
+               lua_pushnumber(L, idx++);
+               lua_pushstring(L, boost::filesystem::canonical(entry.path()).make_preferred().string().c_str());
+               lua_settable(L, -3);
+            }
+         }
+      });
+
+      return 1;
+   }
+
+   // Register the avove Lua-Callable functions. All Functions are in the table "FBuild".
+   static void RegisterMyFuncs (lua_State* L)
+   {
+      lua_newtable(L);
+
+      lua_pushstring(L, "Glob");
+      lua_pushcfunction(L, &Glob);
+      lua_settable(L, -3);
+
+      lua_setglobal(L, "FBuild");
    }
 }
 
@@ -38,6 +86,7 @@ Script::Script (int argc, char** argv)
    luaState = luaL_newstate();
    if (!luaState) throw std::runtime_error("Unable to create Lua-VM");
    luaL_openlibs(luaState);
+   Impl::RegisterMyFuncs(luaState);
 
    std::string cmdline;
    cmdline.reserve(1000);
