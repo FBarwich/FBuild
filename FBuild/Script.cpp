@@ -6,6 +6,7 @@
  */
 
 #include "Script.h"
+#include "CppDepends.h"
 
 #include <string>
 #include <iostream>
@@ -29,6 +30,27 @@ namespace Impl {
 
       if (ret) return std::string(ret, len);
       else return std::string();
+   }
+
+   static double PopNumber (lua_State* L)
+   {
+      double number = lua_tonumber(L, -1);
+      lua_pop(L, 1);
+      return number;
+   }
+
+   static int PopInt (lua_State* L)
+   {
+      int integer = lua_tointeger(L, -1);
+      lua_pop(L, 1);
+      return integer;
+   }
+
+   static bool PopBool (lua_State* L)
+   {
+      bool b = lua_toboolean(L, -1) != 0;
+      lua_pop(L, 1);
+      return b;
    }
 
    // Functions that are callable from lua code
@@ -55,11 +77,65 @@ namespace Impl {
       std::for_each(boost::filesystem::directory_iterator(path), boost::filesystem::directory_iterator(), [&] (const boost::filesystem::directory_entry& entry) {
          if (boost::filesystem::is_regular_file(entry.path())) {
             if (PathMatchSpec(entry.path().filename().string().c_str(), pattern.c_str())) {
-               lua_pushnumber(L, idx++);
+               lua_pushinteger(L, ++idx);
                lua_pushstring(L, boost::filesystem::canonical(entry.path()).make_preferred().string().c_str());
                lua_settable(L, -3);
             }
          }
+      });
+
+      return 1;
+   }
+
+   static int CppDepends (lua_State* L)
+   {
+      if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for CppDepends()");
+      if (!lua_istable(L, -1)) luaL_error(L, "Expected table as argument for CppDepends()");
+
+      CppDependencyChecker checker;
+
+      lua_getfield(L, -1, "Outdir");      checker.OutDir(PopString(L));
+      lua_getfield(L, -1, "IgnoreCache"); checker.IgnoreCache(PopBool(L));
+      lua_getfield(L, -1, "Threads");     checker.Threads(PopInt(L));
+
+
+      lua_getfield(L, -1, "Includes");
+      if (!lua_istable(L, -1)) luaL_error(L, "Expected table for 'Includes'");
+      int top = lua_gettop(L);
+      lua_pushnil(L);
+      while (lua_next(L, top) != 0) {
+         if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'Includes'");
+         checker.AddIncludePath(lua_tostring(L, -1));
+         lua_pop(L, 1);
+      }
+      lua_pop(L, 1);
+
+
+      lua_getfield(L, -1, "Files");
+      if (!lua_istable(L, -1)) luaL_error(L, "Expected table for 'Files'");
+      top = lua_gettop(L);
+      lua_pushnil(L);
+      while (lua_next(L, top) != 0) {
+         if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'Files'");
+         checker.AddFile(lua_tostring(L, -1));
+         lua_pop(L, 1);
+      }
+      lua_pop(L, 1);
+
+
+      lua_pop(L, 1);
+
+      checker.Go();
+
+      const std::vector<std::string>& outOfDate = checker.OutOfDate();
+      int idx = 0;
+
+      lua_newtable(L);
+
+      std::for_each(outOfDate.begin(), outOfDate.end(), [&] (const std::string& s) {
+         lua_pushinteger(L, ++idx);
+         lua_pushstring(L, s.c_str());
+         lua_settable(L, -3);
       });
 
       return 1;
@@ -72,6 +148,10 @@ namespace Impl {
 
       lua_pushstring(L, "Glob");
       lua_pushcfunction(L, &Glob);
+      lua_settable(L, -3);
+
+      lua_pushstring(L, "CppDepends");
+      lua_pushcfunction(L, &CppDepends);
       lua_settable(L, -3);
 
       lua_setglobal(L, "FBuild");
