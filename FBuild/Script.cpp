@@ -7,6 +7,7 @@
 
 #include "Script.h"
 #include "CppOutOfDate.h"
+#include "Compile.h"
 
 #include <string>
 #include <iostream>
@@ -141,6 +142,55 @@ namespace Impl {
       return 1;
    }
 
+   static int Compile (lua_State* L)
+   {
+      if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for Compile()");
+      if (!lua_istable(L, -1)) luaL_error(L, "Expected table as argument for Compile()");
+
+      ::Compile compile;
+
+      lua_getfield(L, -1, "Outdir");  compile.OutDir(PopString(L));
+      lua_getfield(L, -1, "Threads"); compile.Threads(PopInt(L));
+
+      lua_getfield(L, -1, "Includes");
+      if (!lua_istable(L, -1)) luaL_error(L, "Expected table for 'Includes'");
+      int top = lua_gettop(L);
+      lua_pushnil(L);
+      while (lua_next(L, top) != 0) {
+         if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'Includes'");
+         compile.AddInclude(lua_tostring(L, -1));
+         lua_pop(L, 1);
+      }
+      lua_pop(L, 1);
+
+
+      lua_getfield(L, -1, "Files");
+      if (!lua_istable(L, -1)) luaL_error(L, "Expected table for 'Files'");
+      top = lua_gettop(L);
+      lua_pushnil(L);
+      while (lua_next(L, top) != 0) {
+         if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'Files'");
+         compile.AddFile(lua_tostring(L, -1));
+         lua_pop(L, 1);
+      }
+      lua_pop(L, 1);
+
+      compile.Go();
+
+      const std::vector<std::string>& obj = compile.ObjectFiles();
+      int idx = 0;
+
+      lua_newtable(L);
+
+      std::for_each(obj.begin(), obj.end(), [&] (const std::string& s) {
+         lua_pushinteger(L, ++idx);
+         lua_pushstring(L, s.c_str());
+         lua_settable(L, -3);
+      });
+
+      return 1;
+   }
+
    // Register the avove Lua-Callable functions. All Functions are in the table "FBuild".
    static void RegisterMyFuncs (lua_State* L)
    {
@@ -152,6 +202,10 @@ namespace Impl {
 
       lua_pushstring(L, "CppOutOfDate");
       lua_pushcfunction(L, &CppOutOfDate);
+      lua_settable(L, -3);
+
+      lua_pushstring(L, "Compile");
+      lua_pushcfunction(L, &Compile);
       lua_settable(L, -3);
 
       lua_setglobal(L, "FBuild");
