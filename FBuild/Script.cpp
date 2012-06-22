@@ -144,24 +144,49 @@ namespace Impl {
 
    static void CompileOptions (lua_State* L, ::Compile& compile)
    {
-      lua_getfield(L, -1, "Outdir");  compile.OutDir(PopString(L));
-      lua_getfield(L, -1, "Threads"); compile.Threads(PopInt(L));
+      lua_getfield(L, -1, "Config");
+      std::string tmp = PopString(L);
+      if (tmp.size() && tmp != "Debug" && tmp != "Release") luaL_error(L, "'Config' must be 'Release' or 'Debug' (Or empty for default, which is Release)");
+      compile.Debug(tmp == "Debug");
+
+      lua_getfield(L, -1, "CRT");
+      tmp = PopString(L);
+      if (tmp.size() && tmp != "Static" && tmp != "Dynamic") luaL_error(L, "'CRT' must be 'Static' or 'Dynamic' (Or empty for default, which is Dynamic)");
+      compile.CrtStatic(tmp == "Static");
+
+      lua_getfield(L, -1, "CC");
+      tmp = PopString(L);
+      if (tmp.size()) compile.CC(tmp);
+
+      lua_getfield(L, -1, "Outdir");
+      if (lua_isnil(L, -1)) {
+         lua_pop(L, 1);
+         luaL_error(L, "Missing 'Outdir'");
+      }
+      else {
+         compile.OutDir(PopString(L));
+      }
+
+      lua_getfield(L, -1, "Threads"); 
+      compile.Threads(PopInt(L));
 
       lua_getfield(L, -1, "Includes");
-      if (!lua_istable(L, -1)) luaL_error(L, "Expected table for 'Includes'");
-      int top = lua_gettop(L);
-      lua_pushnil(L);
-      while (lua_next(L, top) != 0) {
-         if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'Includes'");
-         compile.AddInclude(lua_tostring(L, -1));
-         lua_pop(L, 1);
+      if (!lua_isnil(L, -1)) {
+         if (!lua_istable(L, -1)) luaL_error(L, "Expected table for 'Includes'");
+         int top = lua_gettop(L);
+         lua_pushnil(L);
+         while (lua_next(L, top) != 0) {
+            if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'Includes'");
+            compile.AddInclude(lua_tostring(L, -1));
+            lua_pop(L, 1);
+         }
       }
       lua_pop(L, 1);
 
 
       lua_getfield(L, -1, "Files");
       if (!lua_istable(L, -1)) luaL_error(L, "Expected table for 'Files'");
-      top = lua_gettop(L);
+      int top = lua_gettop(L);
       lua_pushnil(L);
       while (lua_next(L, top) != 0) {
          if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'Files'");
@@ -181,18 +206,7 @@ namespace Impl {
 
       compile.Go();
 
-      const std::vector<std::string>& obj = compile.ObjectFiles();
-      int idx = 0;
-
-      lua_newtable(L);
-
-      std::for_each(obj.begin(), obj.end(), [&] (const std::string& s) {
-         lua_pushinteger(L, ++idx);
-         lua_pushstring(L, s.c_str());
-         lua_settable(L, -3);
-      });
-
-      return 1;
+      return 0;
    }
 
    // Register the avove Lua-Callable functions. All Functions are in the table "FBuild".
