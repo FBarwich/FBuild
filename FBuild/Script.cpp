@@ -6,7 +6,7 @@
  */
 
 #include "Script.h"
-#include "CppDepends.h"
+#include "CppOutOfDate.h"
 
 #include <string>
 #include <iostream>
@@ -87,12 +87,12 @@ namespace Impl {
       return 1;
    }
 
-   static int CppDepends (lua_State* L)
+   static int CppOutOfDate (lua_State* L)
    {
       if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for CppDepends()");
       if (!lua_istable(L, -1)) luaL_error(L, "Expected table as argument for CppDepends()");
 
-      CppDependencyChecker checker;
+      ::CppOutOfDate checker;
 
       lua_getfield(L, -1, "Outdir");      checker.OutDir(PopString(L));
       lua_getfield(L, -1, "IgnoreCache"); checker.IgnoreCache(PopBool(L));
@@ -150,8 +150,8 @@ namespace Impl {
       lua_pushcfunction(L, &Glob);
       lua_settable(L, -3);
 
-      lua_pushstring(L, "CppDepends");
-      lua_pushcfunction(L, &CppDepends);
+      lua_pushstring(L, "CppOutOfDate");
+      lua_pushcfunction(L, &CppOutOfDate);
       lua_settable(L, -3);
 
       lua_setglobal(L, "FBuild");

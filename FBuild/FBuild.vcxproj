@@ -111,6 +111,7 @@
   <ItemGroup>
     <ClInclude Include="BinaryStream.h" />
     <ClInclude Include="CppDepends.h" />
+    <ClInclude Include="CppOutOfDate.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Script.h" />
   </ItemGroup>
