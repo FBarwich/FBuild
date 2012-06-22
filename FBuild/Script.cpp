@@ -142,13 +142,8 @@ namespace Impl {
       return 1;
    }
 
-   static int Compile (lua_State* L)
+   static void CompileOptions (lua_State* L, ::Compile& compile)
    {
-      if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for Compile()");
-      if (!lua_istable(L, -1)) luaL_error(L, "Expected table as argument for Compile()");
-
-      ::Compile compile;
-
       lua_getfield(L, -1, "Outdir");  compile.OutDir(PopString(L));
       lua_getfield(L, -1, "Threads"); compile.Threads(PopInt(L));
 
@@ -174,6 +169,15 @@ namespace Impl {
          lua_pop(L, 1);
       }
       lua_pop(L, 1);
+   }
+
+   static int Compile (lua_State* L)
+   {
+      if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for Compile()");
+      if (!lua_istable(L, -1)) luaL_error(L, "Expected table as argument for Compile()");
+
+      ::Compile compile;
+      CompileOptions(L, compile);
 
       compile.Go();
 
