@@ -29,6 +29,14 @@ inline std::string Fo (const std::string& outDir)
    return "-Fo\"" + out.string() + "\" ";
 }
 
+inline std::string Fp (const std::string& outDir)
+{
+   boost::filesystem::path out(outDir);
+   if (!boost::filesystem::exists(out)) boost::filesystem::create_directory(out);
+
+   return "-Fp\"" + out.string() + "\"/PrecompiledHeader.pch ";
+}
+
 inline std::string I (const std::vector<std::string>& includes)
 {
    std::string ret;
@@ -66,10 +74,29 @@ inline std::string Z (bool debug)
    else return "";
 }
 
+static std::string Yu (const std::string& precompiledHeader)
+{
+   std::string ret;
+   if (precompiledHeader.size()) ret += "-Yu\"" + precompiledHeader + "\" ";
+   return ret;
+}
+
+static std::string FI (const std::string& precompiledHeader)
+{
+   std::string ret;
+   if (precompiledHeader.size()) ret += "-FI\"" + precompiledHeader + "\" ";
+   return ret;
+}
+
+
 void Compile::Go ()
 {
-   if (files.empty()) return;
+   CompilePrecompiledHeaders();
+   CompileFiles();
+}
 
+std::string Compile::CommandLine () const
+{
    std::string command = "cl.exe -nologo -c -EHa -GF -Gm- -DWIN32 ";
    command += MP(threads);
    command += MT(debug, crtStatic);
@@ -78,7 +105,40 @@ void Compile::Go ()
    command += I(includes);
    command += cc;
    command += Fo(outDir);
-   command += Sources(files);
+   command += Fp(outDir);
+
+   return command;
+}
+
+void Compile::CompilePrecompiledHeaders ()
+{
+   if (files.empty()) return;
+
+   if (!precompiledCpp.size()) return;
+
+   boost::filesystem::path cpp(precompiledCpp);
+
+   auto it = std::find_if(files.cbegin(), files.cend(), [&cpp] (const std::string& f) -> bool {
+      return boost::filesystem::equivalent(cpp, f);
+   });
+
+   if (it == files.cend()) return;
+
+   files.erase(it);
+
+   std::string command =  CommandLine();
+   command += "-Yc\"" + precompiledHeader + "\" ";
+   command += cpp.string();
+
+   int rc = std::system(command.c_str());
+   if (rc != 0) throw std::runtime_error("Compile Error");
+}
+
+void Compile::CompileFiles ()
+{
+   if (files.empty()) return;
+
+   std::string command =  CommandLine() + FI(precompiledHeader) + Yu(precompiledHeader) + Sources(files);
 
    int rc = std::system(command.c_str());
    if (rc != 0) throw std::runtime_error("Compile Error");

@@ -101,7 +101,7 @@ namespace Impl {
 
 
       lua_getfield(L, -1, "Includes");
-      if (!lua_istable(L, -1)) luaL_error(L, "Expected table for 'Includes'");
+      if (!lua_istable(L, -1)) luaL_error(L, "Expected array for 'Includes'");
       int top = lua_gettop(L);
       lua_pushnil(L);
       while (lua_next(L, top) != 0) {
@@ -113,7 +113,7 @@ namespace Impl {
 
 
       lua_getfield(L, -1, "Files");
-      if (!lua_istable(L, -1)) luaL_error(L, "Expected table for 'Files'");
+      if (!lua_istable(L, -1)) luaL_error(L, "Expected array for 'Files'");
       top = lua_gettop(L);
       lua_pushnil(L);
       while (lua_next(L, top) != 0) {
@@ -172,7 +172,7 @@ namespace Impl {
 
       lua_getfield(L, -1, "Includes");
       if (!lua_isnil(L, -1)) {
-         if (!lua_istable(L, -1)) luaL_error(L, "Expected table for 'Includes'");
+         if (!lua_istable(L, -1)) luaL_error(L, "Expected array for 'Includes'");
          int top = lua_gettop(L);
          lua_pushnil(L);
          while (lua_next(L, top) != 0) {
@@ -185,7 +185,7 @@ namespace Impl {
 
 
       lua_getfield(L, -1, "Files");
-      if (!lua_istable(L, -1)) luaL_error(L, "Expected table for 'Files'");
+      if (!lua_istable(L, -1)) luaL_error(L, "Expected array for 'Files'");
       int top = lua_gettop(L);
       lua_pushnil(L);
       while (lua_next(L, top) != 0) {
@@ -194,6 +194,20 @@ namespace Impl {
          lua_pop(L, 1);
       }
       lua_pop(L, 1);
+
+
+      lua_getfield(L, -1, "PrecompiledHeader");
+      if (!lua_isnil(L, -1)) {
+         if (!lua_istable(L, -1)) luaL_error(L, "Expected table for 'PrecompiledHeader'");
+
+         lua_getfield(L, -1, "Header");
+         compile.PrecompiledHeader(PopString(L));
+
+         lua_getfield(L, -1, "Cpp");
+         compile.PrecompiledCpp(PopString(L));
+      }
+      lua_pop(L, 1);
+
    }
 
    static int Compile (lua_State* L)
