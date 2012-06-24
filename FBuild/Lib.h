@@ -19,6 +19,8 @@ public:
    void Output (const std::string& v)        { output = v; }
    void Files (std::vector<std::string>&& v) { files = std::move(v); }
 
+   void AutoFilesFromCpp (const std::string& outdir, const std::vector<std::string>& cppFiles);
+
    void Go ();
 };
 
