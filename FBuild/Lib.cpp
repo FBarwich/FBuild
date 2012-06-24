@@ -16,6 +16,7 @@
 void Lib::Go ()
 {
    if (files.empty()) return;
+   if (output.empty()) throw std::runtime_error("Mising 'Output'");
 
    boost::filesystem::create_directories(boost::filesystem::path(output).remove_filename());
 

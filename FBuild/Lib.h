@@ -16,8 +16,8 @@ class Lib {
 
 public:
 
-   void Output (const std::string& v) { output = v; }
-   void AddFile (const std::string& v) { files.push_back(v); }
+   void Output (const std::string& v)        { output = v; }
+   void Files (std::vector<std::string>&& v) { files = std::move(v); }
 
    void Go ();
 };

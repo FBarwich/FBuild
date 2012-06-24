@@ -30,16 +30,16 @@ class Compile {
 public:
    Compile () : threads(0), debug(false), crtStatic(false) { }
 
-   void Debug (bool debug)                       { this->debug = debug; }
+   void Config (const std::string& v);
+   void CRT (const std::string& v);
    void OutDir (const std::string& outDir)       { this->outDir = outDir; }
-   void AddInclude (const std::string& include)  { includes.push_back(include); }
-   void AddDefine (const std::string& define)    { defines.push_back(define); }
-   void AddFile (const std::string& file)        { files.push_back(file); }
    void Threads (int threads)                    { this->threads = threads; }
-   void CrtStatic (bool crtStatic)               { this->crtStatic = crtStatic; }
    void CC (const std::string& cc)               { this->cc += cc + " "; }
    void PrecompiledHeader (const std::string& v) { precompiledHeader = v; }
    void PrecompiledCpp (const std::string& v)    { precompiledCpp = v; }
+   void Include (std::vector<std::string>&& v)   { includes = std::move(v); }
+   void Define (std::vector<std::string>&& v)    { defines = std::move(v); }
+   void Files (std::vector<std::string>&& v)     { files = std::move(v); }
 
    void Go ();
 };

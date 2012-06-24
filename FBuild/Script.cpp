@@ -24,7 +24,6 @@
 
 
 namespace Impl {
-   // Helper functions for Lua-API
    static std::string PopString (lua_State* L)
    {
       size_t len;
@@ -56,7 +55,8 @@ namespace Impl {
       return b;
    }
 
-   // Functions that are callable from lua code
+
+
 
    static int Glob (lua_State* L)
    {
@@ -90,42 +90,56 @@ namespace Impl {
       return 1;
    }
 
-   static int CppOutOfDate (lua_State* L)
+   inline std::vector<std::string> StringArray (lua_State* L, const std::string& name)
    {
-      if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for CppDepends()");
-      if (!lua_istable(L, -1)) luaL_error(L, "Expected table as argument for CppDepends()");
+      std::vector<std::string> ret;
 
-      ::CppOutOfDate checker;
-
-      lua_getfield(L, -1, "Outdir");      checker.OutDir(PopString(L));
-      lua_getfield(L, -1, "IgnoreCache"); checker.IgnoreCache(PopBool(L));
-      lua_getfield(L, -1, "Threads");     checker.Threads(PopInt(L));
-
-
-      lua_getfield(L, -1, "Includes");
+      lua_getfield(L, -1, name.c_str());
       if (!lua_isnil(L, -1)) {
-         if (!lua_istable(L, -1)) luaL_error(L, "Expected array for 'Includes'");
+         if (!lua_istable(L, -1)) luaL_error(L, "Expected array for '%s'", name.c_str());
          int top = lua_gettop(L);
          lua_pushnil(L);
          while (lua_next(L, top) != 0) {
-            if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'Includes'");
-            checker.AddIncludePath(lua_tostring(L, -1));
+            if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for '%s'", name.c_str());
+            ret.push_back(lua_tostring(L, -1));
             lua_pop(L, 1);
          }
       }
       lua_pop(L, 1);
 
-      lua_getfield(L, -1, "Files");
-      if (!lua_istable(L, -1)) luaL_error(L, "Expected array for 'Files'");
-      int top = lua_gettop(L);
-      lua_pushnil(L);
-      while (lua_next(L, top) != 0) {
-         if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'Files'");
-         checker.AddFile(lua_tostring(L, -1));
-         lua_pop(L, 1);
-      }
-      lua_pop(L, 1);
+      return ret;
+   }
 
+   inline std::string String (lua_State* L, const std::string& name)
+   {
+      lua_getfield(L, -1, name.c_str());
+      return PopString(L);
+   }
+
+   inline int Int (lua_State* L, const std::string& name)
+   {
+      lua_getfield(L, -1, name.c_str());
+      return PopInt(L);
+   }
+
+   inline bool Bool (lua_State* L, const std::string& name)
+   {
+      lua_getfield(L, -1, name.c_str());
+      return PopBool(L);
+   }
+
+   static int CppOutOfDate (lua_State* L)
+   {
+      if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for CppOutOfDate()");
+      if (!lua_istable(L, -1)) luaL_error(L, "Expected table as argument for CppOutOfDate()");
+
+      ::CppOutOfDate checker;
+
+      checker.OutDir(String(L, "Outdir"));
+      checker.IgnoreCache(Bool(L, "IgnoreCache"));
+      checker.Threads(Int(L, "Threads"));
+      checker.Files(StringArray(L, "Files"));
+      checker.Include(StringArray(L, "Includes"));
 
       lua_pop(L, 1);
 
@@ -145,74 +159,20 @@ namespace Impl {
       return 1;
    }
 
-   static void CompileOptions (lua_State* L, ::Compile& compile)
+   static int Compile (lua_State* L)
    {
-      lua_getfield(L, -1, "Config");
-      std::string tmp = PopString(L);
-      if (tmp.size() && tmp != "Debug" && tmp != "Release") luaL_error(L, "'Config' must be 'Release' or 'Debug' (Or empty for default, which is Release)");
-      compile.Debug(tmp == "Debug");
+      if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for Compile()");
+      if (!lua_istable(L, -1)) luaL_error(L, "Expected table as argument for Compile()");
 
-      lua_getfield(L, -1, "CRT");
-      tmp = PopString(L);
-      if (tmp.size() && tmp != "Static" && tmp != "Dynamic") luaL_error(L, "'CRT' must be 'Static' or 'Dynamic' (Or empty for default, which is Dynamic)");
-      compile.CrtStatic(tmp == "Static");
-
-      lua_getfield(L, -1, "CC");
-      tmp = PopString(L);
-      if (tmp.size()) compile.CC(tmp);
-
-      lua_getfield(L, -1, "Outdir");
-      if (lua_isnil(L, -1)) {
-         lua_pop(L, 1);
-         luaL_error(L, "Missing 'Outdir'");
-      }
-      else {
-         compile.OutDir(PopString(L));
-      }
-
-      lua_getfield(L, -1, "Threads"); 
-      compile.Threads(PopInt(L));
-
-
-      lua_getfield(L, -1, "Includes");
-      if (!lua_isnil(L, -1)) {
-         if (!lua_istable(L, -1)) luaL_error(L, "Expected array for 'Includes'");
-         int top = lua_gettop(L);
-         lua_pushnil(L);
-         while (lua_next(L, top) != 0) {
-            if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'Includes'");
-            compile.AddInclude(lua_tostring(L, -1));
-            lua_pop(L, 1);
-         }
-      }
-      lua_pop(L, 1);
-
-
-      lua_getfield(L, -1, "Defines");
-      if (!lua_isnil(L, -1)) {
-         if (!lua_istable(L, -1)) luaL_error(L, "Expected array for 'Defines'");
-         int top = lua_gettop(L);
-         lua_pushnil(L);
-         while (lua_next(L, top) != 0) {
-            if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'Defines'");
-            compile.AddDefine(lua_tostring(L, -1));
-            lua_pop(L, 1);
-         }
-      }
-      lua_pop(L, 1);
-
-
-      lua_getfield(L, -1, "Files");
-      if (!lua_istable(L, -1)) luaL_error(L, "Expected array for 'Files'");
-      int top = lua_gettop(L);
-      lua_pushnil(L);
-      while (lua_next(L, top) != 0) {
-         if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'Files'");
-         compile.AddFile(lua_tostring(L, -1));
-         lua_pop(L, 1);
-      }
-      lua_pop(L, 1);
-
+      ::Compile compile;
+      compile.Config(String(L, "Config"));
+      compile.CRT(String(L, "CRT"));
+      compile.CC(String(L, "CC"));
+      compile.OutDir(String(L, "Outdir"));
+      compile.Threads(Int(L, "Threads"));
+      compile.Include(StringArray(L, "Includes"));
+      compile.Define(StringArray(L, "Defines"));
+      compile.Files(StringArray(L, "Files"));
 
       lua_getfield(L, -1, "PrecompiledHeader");
       if (!lua_isnil(L, -1)) {
@@ -226,16 +186,6 @@ namespace Impl {
       }
       lua_pop(L, 1);
 
-   }
-
-   static int Compile (lua_State* L)
-   {
-      if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for Compile()");
-      if (!lua_istable(L, -1)) luaL_error(L, "Expected table as argument for Compile()");
-
-      ::Compile compile;
-      CompileOptions(L, compile);
-
       compile.Go();
 
       return 0;
@@ -247,24 +197,8 @@ namespace Impl {
       if (!lua_istable(L, -1)) luaL_error(L, "Expected table as argument for Lib()");
 
       ::Lib lib;
-
-      lua_getfield(L, -1, "Output");
-      std::string output = PopString(L);
-      if (output.empty()) luaL_error(L, "Missing 'Output'");
-      lib.Output(output);
-
-      lua_getfield(L, -1, "Files");
-      if (!lua_istable(L, -1)) luaL_error(L, "Expected array for 'Files'");
-      int top = lua_gettop(L);
-      lua_pushnil(L);
-      while (lua_next(L, top) != 0) {
-         if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'Files'");
-         lib.AddFile(lua_tostring(L, -1));
-         lua_pop(L, 1);
-      }
-      lua_pop(L, 1);
-
-
+      lib.Output(String(L, "Output"));
+      lib.Files(StringArray(L, "Files"));
       lib.Go();
 
       return 0;
@@ -324,6 +258,9 @@ namespace Impl {
       lua_setglobal(L, "FBuild");
    }
 }
+
+
+
 
 
 

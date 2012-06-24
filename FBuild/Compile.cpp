@@ -99,8 +99,31 @@ inline std::string D (bool debug, const std::vector<std::string>& defines)
    return ret;
 }
 
+
+
+
+void Compile::Config (const std::string& v)
+{
+   if (v.empty()) debug = false;
+   else {
+      if (v != "Debug" && v != "Release") throw std::runtime_error("'Config' must be 'Release' or 'Debug' (Or empty for default, which is Release)");
+      debug = v == "Debug";
+   }
+}
+
+void Compile::CRT (const std::string& v)
+{
+   if (v.empty()) crtStatic = false;
+   else {
+      if (v != "Static" && v != "Dynamic") throw std::runtime_error("'CRT' must be 'Dynamic' or 'Static' (Or empty for default, which is Dynamic)");
+      crtStatic = v == "Static";
+   }
+}
+
 void Compile::Go ()
 {
+   if (outDir.empty()) throw std::runtime_error("Missing 'Outdir'");
+
    CompilePrecompiledHeaders();
    CompileFiles();
 }
