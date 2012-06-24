@@ -9,6 +9,7 @@
 #include "CppOutOfDate.h"
 #include "Compile.h"
 #include "Lib.h"
+#include "FileOutOfDate.h"
 
 #include <string>
 #include <iostream>
@@ -253,6 +254,32 @@ namespace Impl {
       return 0;
    }
 
+   static int FileOutOfDate (lua_State* L)
+   {
+      if (lua_gettop(L) != 2) luaL_error(L, "Expected two arguments for FileOutOfDate()");
+
+      ::FileOutOfDate outOfDate;
+
+      if (lua_istable(L, -1)) {
+         int top = lua_gettop(L);
+         lua_pushnil(L);
+         while (lua_next(L, top) != 0) {
+            if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'FileOutOfDate'");
+            outOfDate.AddFile(lua_tostring(L, -1));
+            lua_pop(L, 1);
+         }
+         lua_pop(L, 1);
+      }
+      else {
+         outOfDate.AddFile(PopString(L));
+      }
+
+      outOfDate.Parent(PopString(L));
+
+      lua_pushboolean(L, outOfDate.Go());
+      return 1;
+   }
+
    // Register the avove Lua-Callable functions. All Functions are in the table "FBuild".
    static void RegisterMyFuncs (lua_State* L)
    {
@@ -272,6 +299,10 @@ namespace Impl {
 
       lua_pushstring(L, "Lib");
       lua_pushcfunction(L, &Lib);
+      lua_settable(L, -3);
+
+      lua_pushstring(L, "FileOutOfDate");
+      lua_pushcfunction(L, &FileOutOfDate);
       lua_settable(L, -3);
 
       lua_setglobal(L, "FBuild");

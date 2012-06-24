@@ -105,6 +105,7 @@
     <ClCompile Include="Compile.cpp" />
     <ClCompile Include="CppDepends.cpp" />
     <ClCompile Include="FBuild.cpp" />
+    <ClCompile Include="FileOutOfDate.cpp" />
     <ClCompile Include="Lib.cpp" />
     <ClCompile Include="Script.cpp" />
   </ItemGroup>
@@ -118,6 +119,7 @@
     <ClInclude Include="Compile.h" />
     <ClInclude Include="CppDepends.h" />
     <ClInclude Include="CppOutOfDate.h" />
+    <ClInclude Include="FileOutOfDate.h" />
     <ClInclude Include="Lib.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Script.h" />
