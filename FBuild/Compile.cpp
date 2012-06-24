@@ -7,7 +7,6 @@
 
 #include "Compile.h"
 
-#include <iostream>
 #include <algorithm>
 #include <cstdlib>
 
@@ -74,14 +73,14 @@ inline std::string Z (bool debug)
    else return "";
 }
 
-static std::string Yu (const std::string& precompiledHeader)
+inline std::string Yu (const std::string& precompiledHeader)
 {
    std::string ret;
    if (precompiledHeader.size()) ret += "-Yu\"" + precompiledHeader + "\" ";
    return ret;
 }
 
-static std::string FI (const std::string& precompiledHeader)
+inline std::string FI (const std::string& precompiledHeader)
 {
    std::string ret;
    if (precompiledHeader.size()) ret += "-FI\"" + precompiledHeader + "\" ";
