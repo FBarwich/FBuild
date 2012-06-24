@@ -103,20 +103,22 @@ namespace Impl {
 
 
       lua_getfield(L, -1, "Includes");
-      if (!lua_istable(L, -1)) luaL_error(L, "Expected array for 'Includes'");
-      int top = lua_gettop(L);
-      lua_pushnil(L);
-      while (lua_next(L, top) != 0) {
-         if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'Includes'");
-         checker.AddIncludePath(lua_tostring(L, -1));
-         lua_pop(L, 1);
+      if (!lua_isnil(L, -1)) {
+         if (!lua_istable(L, -1)) luaL_error(L, "Expected array for 'Includes'");
+         int top = lua_gettop(L);
+         lua_pushnil(L);
+         while (lua_next(L, top) != 0) {
+            if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'Includes'");
+            checker.AddIncludePath(lua_tostring(L, -1));
+            lua_pop(L, 1);
+         }
       }
       lua_pop(L, 1);
 
 
       lua_getfield(L, -1, "Files");
       if (!lua_istable(L, -1)) luaL_error(L, "Expected array for 'Files'");
-      top = lua_gettop(L);
+      int top = lua_gettop(L);
       lua_pushnil(L);
       while (lua_next(L, top) != 0) {
          if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'Files'");

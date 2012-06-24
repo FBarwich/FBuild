@@ -25,7 +25,7 @@ inline std::string Fo (const std::string& outDir)
    boost::filesystem::path out(outDir);
    if (!boost::filesystem::exists(out)) boost::filesystem::create_directory(out);
 
-   return "-Fo\"" + out.string() + "\" ";
+   return "-Fo\"" + out.string() + "/\" ";
 }
 
 inline std::string Fp (const std::string& outDir)
