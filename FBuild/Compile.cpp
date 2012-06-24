@@ -87,6 +87,17 @@ inline std::string FI (const std::string& precompiledHeader)
    return ret;
 }
 
+inline std::string D (bool debug, const std::vector<std::string>& defines)
+{
+   std::string ret;
+
+   if (debug) ret = "-D_DEBUG -D_SCL_SECURE_NO_WARNINGS ";
+   else ret = "-DNDEBUG ";
+
+   std::for_each(defines.begin(), defines.end(), [&ret] (const std::string& s) { ret += "-D" + s + " "; });
+
+   return ret;
+}
 
 void Compile::Go ()
 {
@@ -97,6 +108,7 @@ void Compile::Go ()
 std::string Compile::CommandLine () const
 {
    std::string command = "cl.exe -nologo -c -EHa -GF -Gm- -DWIN32 ";
+   command += D(debug, defines);
    command += MP(threads);
    command += MT(debug, crtStatic);
    command += O(debug);

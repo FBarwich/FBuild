@@ -115,7 +115,6 @@ namespace Impl {
       }
       lua_pop(L, 1);
 
-
       lua_getfield(L, -1, "Files");
       if (!lua_istable(L, -1)) luaL_error(L, "Expected array for 'Files'");
       int top = lua_gettop(L);
@@ -174,6 +173,7 @@ namespace Impl {
       lua_getfield(L, -1, "Threads"); 
       compile.Threads(PopInt(L));
 
+
       lua_getfield(L, -1, "Includes");
       if (!lua_isnil(L, -1)) {
          if (!lua_istable(L, -1)) luaL_error(L, "Expected array for 'Includes'");
@@ -182,6 +182,20 @@ namespace Impl {
          while (lua_next(L, top) != 0) {
             if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'Includes'");
             compile.AddInclude(lua_tostring(L, -1));
+            lua_pop(L, 1);
+         }
+      }
+      lua_pop(L, 1);
+
+
+      lua_getfield(L, -1, "Defines");
+      if (!lua_isnil(L, -1)) {
+         if (!lua_istable(L, -1)) luaL_error(L, "Expected array for 'Defines'");
+         int top = lua_gettop(L);
+         lua_pushnil(L);
+         while (lua_next(L, top) != 0) {
+            if (!lua_isstring(L, -1)) luaL_error(L, "Only strings are permitted for 'Defines'");
+            compile.AddDefine(lua_tostring(L, -1));
             lua_pop(L, 1);
          }
       }

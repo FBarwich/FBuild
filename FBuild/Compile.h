@@ -14,6 +14,7 @@ class Compile {
    bool                     debug;
    std::string              outDir;
    std::vector<std::string> includes;
+   std::vector<std::string> defines;
    std::vector<std::string> files;
    bool                     crtStatic;
    int                      threads;
@@ -32,6 +33,7 @@ public:
    void Debug (bool debug)                       { this->debug = debug; }
    void OutDir (const std::string& outDir)       { this->outDir = outDir; }
    void AddInclude (const std::string& include)  { includes.push_back(include); }
+   void AddDefine (const std::string& define)    { defines.push_back(define); }
    void AddFile (const std::string& file)        { files.push_back(file); }
    void Threads (int threads)                    { this->threads = threads; }
    void CrtStatic (bool crtStatic)               { this->crtStatic = crtStatic; }
