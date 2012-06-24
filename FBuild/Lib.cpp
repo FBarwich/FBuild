@@ -10,10 +10,14 @@
 #include <cstdlib>
 #include <algorithm>
 
+#include <boost/filesystem.hpp>
+
 
 void Lib::Go ()
 {
    if (files.empty()) return;
+
+   boost::filesystem::create_directories(boost::filesystem::path(output).remove_filename());
 
    std::string command = "Lib -NOLOGO ";
    command += "-OUT:\"" + output + "\" ";
