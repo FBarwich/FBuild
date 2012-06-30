@@ -9,6 +9,8 @@
 
 #include "CppDepends.h"
 
+#include <algorithm>
+
 #include <boost/thread.hpp>
 
 
@@ -75,14 +77,17 @@ public:
       CppDepends::ClearIncludePath();
    }
 
-   void OutDir (std::string v)                   { outdir = std::move(v); }
-   void IgnoreCache (bool v)                     { ignoreCache = v; }
-   void Threads (size_t v)                       { threads = v; }
-   void AddIncludePath (const std::string& path) { CppDepends::AddIncludePath(path); }
-   void AddFile (std::string file)               { files.push_back(std::move(file)); }
+   void OutDir (std::string v)                      { outdir = std::move(v); }
+   void IgnoreCache (bool v)                        { ignoreCache = v; }
+   void Threads (size_t v)                          { threads = v; }
+   void AddIncludePath (const std::string& path)    { CppDepends::AddIncludePath(path); }
+   void Files (std::vector<std::string>&& v)        { files = std::move(v); }
+   void Include (const std::vector<std::string>& v) { std::for_each(v.begin(), v.end(), [] (const std::string& s) { CppDepends::AddIncludePath(s); }); }
 
    void Go ()
    {
+      if (outdir.empty()) throw std::runtime_error("Missing 'Outdir'");
+
       size_t cpus = boost::thread::hardware_concurrency();
       if (!cpus) cpus = 2;
       if (threads) cpus = threads;

@@ -7,7 +7,6 @@
 
 #include "Compile.h"
 
-#include <iostream>
 #include <algorithm>
 #include <cstdlib>
 
@@ -26,7 +25,7 @@ inline std::string Fo (const std::string& outDir)
    boost::filesystem::path out(outDir);
    if (!boost::filesystem::exists(out)) boost::filesystem::create_directory(out);
 
-   return "-Fo\"" + out.string() + "\" ";
+   return "-Fo\"" + out.string() + "/\" ";
 }
 
 inline std::string Fp (const std::string& outDir)
@@ -74,23 +73,57 @@ inline std::string Z (bool debug)
    else return "";
 }
 
-static std::string Yu (const std::string& precompiledHeader)
+inline std::string Yu (const std::string& precompiledHeader)
 {
    std::string ret;
    if (precompiledHeader.size()) ret += "-Yu\"" + precompiledHeader + "\" ";
    return ret;
 }
 
-static std::string FI (const std::string& precompiledHeader)
+inline std::string FI (const std::string& precompiledHeader)
 {
    std::string ret;
    if (precompiledHeader.size()) ret += "-FI\"" + precompiledHeader + "\" ";
    return ret;
 }
 
+inline std::string D (bool debug, const std::vector<std::string>& defines)
+{
+   std::string ret;
+
+   if (debug) ret = "-D_DEBUG -D_SCL_SECURE_NO_WARNINGS ";
+   else ret = "-DNDEBUG ";
+
+   std::for_each(defines.begin(), defines.end(), [&ret] (const std::string& s) { ret += "-D" + s + " "; });
+
+   return ret;
+}
+
+
+
+
+void Compile::Config (const std::string& v)
+{
+   if (v.empty()) debug = false;
+   else {
+      if (v != "Debug" && v != "Release") throw std::runtime_error("'Config' must be 'Release' or 'Debug' (Or empty for default, which is Release)");
+      debug = v == "Debug";
+   }
+}
+
+void Compile::CRT (const std::string& v)
+{
+   if (v.empty()) crtStatic = false;
+   else {
+      if (v != "Static" && v != "Dynamic") throw std::runtime_error("'CRT' must be 'Dynamic' or 'Static' (Or empty for default, which is Dynamic)");
+      crtStatic = v == "Static";
+   }
+}
 
 void Compile::Go ()
 {
+   if (outDir.empty()) throw std::runtime_error("Missing 'Outdir'");
+
    CompilePrecompiledHeaders();
    CompileFiles();
 }
@@ -98,6 +131,7 @@ void Compile::Go ()
 std::string Compile::CommandLine () const
 {
    std::string command = "cl.exe -nologo -c -EHa -GF -Gm- -DWIN32 ";
+   command += D(debug, defines);
    command += MP(threads);
    command += MT(debug, crtStatic);
    command += O(debug);
