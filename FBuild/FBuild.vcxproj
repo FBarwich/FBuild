@@ -107,6 +107,7 @@
     <ClCompile Include="FBuild.cpp" />
     <ClCompile Include="FileOutOfDate.cpp" />
     <ClCompile Include="Lib.cpp" />
+    <ClCompile Include="Link.cpp" />
     <ClCompile Include="Script.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -116,7 +117,9 @@
     <ClInclude Include="CppOutOfDate.h" />
     <ClInclude Include="FileOutOfDate.h" />
     <ClInclude Include="Lib.h" />
+    <ClInclude Include="Link.h" />
     <ClInclude Include="Parser.h" />
+    <ClInclude Include="Precompiled.h" />
     <ClInclude Include="Script.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

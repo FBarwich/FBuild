@@ -23,7 +23,7 @@ inline std::string MP (int threads)
 inline std::string Fo (const std::string& outDir)
 {
    boost::filesystem::path out(outDir);
-   if (!boost::filesystem::exists(out)) boost::filesystem::create_directory(out);
+   if (!boost::filesystem::exists(out)) boost::filesystem::create_directories(out);
 
    return "-Fo\"" + out.string() + "/\" ";
 }
@@ -31,7 +31,7 @@ inline std::string Fo (const std::string& outDir)
 inline std::string Fp (const std::string& outDir)
 {
    boost::filesystem::path out(outDir);
-   if (!boost::filesystem::exists(out)) boost::filesystem::create_directory(out);
+   if (!boost::filesystem::exists(out)) boost::filesystem::create_directories(out);
 
    return "-Fp\"" + out.string() + "\"/PrecompiledHeader.pch ";
 }

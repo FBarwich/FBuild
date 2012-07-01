@@ -9,7 +9,6 @@
 
 #include "Script.h"
 
-
 int main (int argc, char** argv)
 {
    try {

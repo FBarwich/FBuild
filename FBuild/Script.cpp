@@ -10,9 +10,9 @@
 #include "Compile.h"
 #include "Lib.h"
 #include "FileOutOfDate.h"
+#include "Link.h"
 
 #include <string>
-#include <iostream>
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
@@ -77,15 +77,17 @@ namespace Impl {
       int idx = 0;
       lua_newtable(L);
 
-      std::for_each(boost::filesystem::directory_iterator(path), boost::filesystem::directory_iterator(), [&] (const boost::filesystem::directory_entry& entry) {
-         if (boost::filesystem::is_regular_file(entry.path())) {
-            if (PathMatchSpec(entry.path().filename().string().c_str(), pattern.c_str())) {
-               lua_pushinteger(L, ++idx);
-               lua_pushstring(L, boost::filesystem::canonical(entry.path()).make_preferred().string().c_str());
-               lua_settable(L, -3);
+      if (boost::filesystem::exists(path)) {
+         std::for_each(boost::filesystem::directory_iterator(path), boost::filesystem::directory_iterator(), [&] (const boost::filesystem::directory_entry& entry) {
+            if (boost::filesystem::is_regular_file(entry.path())) {
+               if (PathMatchSpec(entry.path().filename().string().c_str(), pattern.c_str())) {
+                  lua_pushinteger(L, ++idx);
+                  lua_pushstring(L, boost::filesystem::canonical(entry.path()).make_preferred().string().c_str());
+                  lua_settable(L, -3);
+               }
             }
-         }
-      });
+         });
+      }
 
       return 1;
    }
@@ -276,37 +278,47 @@ namespace Impl {
       lib.AutoFilesFromCpp(String(L, "Outdir"), StringArray(L, "Files"));
       lib.Go();
 
+
       return 0;
    }
 
+   static int Link (lua_State* L)
+   {
+      if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for Link()");
+      if (!lua_istable(L, -1)) luaL_error(L, "Expected table as argument for Link()");
+
+      ::Link link;
+      link.Output(String(L, "Output"));
+      link.ImportLib(String(L, "ImportLib"));
+      link.Libpath(StringArray(L, "Libpath"));
+      link.Libs(StringArray(L, "Libs"));
+      link.Files(StringArray(L, "Files"));
+      link.Go();
+
+      return 0;
+   }
+
+
    // Register the avove Lua-Callable functions. All Functions are in the table "FBuild".
+
+   inline void RegisterFunc (lua_State* L, const char* funcname, int (*func) (lua_State* L))
+   {
+      lua_pushstring(L, funcname);
+      lua_pushcfunction(L, func);
+      lua_settable(L, -3);
+   }
+
    static void RegisterMyFuncs (lua_State* L)
    {
       lua_newtable(L);
 
-      lua_pushstring(L, "Glob");
-      lua_pushcfunction(L, &Glob);
-      lua_settable(L, -3);
-
-      lua_pushstring(L, "CppOutOfDate");
-      lua_pushcfunction(L, &CppOutOfDate);
-      lua_settable(L, -3);
-
-      lua_pushstring(L, "Compile");
-      lua_pushcfunction(L, &Compile);
-      lua_settable(L, -3);
-
-      lua_pushstring(L, "Lib");
-      lua_pushcfunction(L, &Lib);
-      lua_settable(L, -3);
-
-      lua_pushstring(L, "FileOutOfDate");
-      lua_pushcfunction(L, &FileOutOfDate);
-      lua_settable(L, -3);
-
-      lua_pushstring(L, "BuildStaticLib");
-      lua_pushcfunction(L, &BuildStaticLib);
-      lua_settable(L, -3);
+      RegisterFunc(L, "Glob", &Glob);
+      RegisterFunc(L, "CppOutOfDate", &CppOutOfDate);
+      RegisterFunc(L, "Compile", &Compile);
+      RegisterFunc(L, "Lib", &Lib);
+      RegisterFunc(L, "FileOutOfDate", &FileOutOfDate);
+      RegisterFunc(L, "BuildStaticLib", &BuildStaticLib);
+      RegisterFunc(L, "Link", &Link);
 
       lua_setglobal(L, "FBuild");
    }

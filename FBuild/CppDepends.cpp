@@ -10,7 +10,6 @@
 #include "BinaryStream.h"
 
 #include <fstream>
-#include <stdexcept>
 #include <iostream>
 #include <algorithm>
 #include <vector>
@@ -18,8 +17,7 @@
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-#include <boost/thread/mutex.hpp>
-#include "boost/thread/locks.hpp"
+#include <boost/thread.hpp>
 
 
 
