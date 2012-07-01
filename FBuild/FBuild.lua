@@ -8,7 +8,7 @@ if Build ~= "Release" and Build ~= "Debug" then
 end;
 
 local dep = {
-   Outdir      = Build .. "/Test";  
+   Outdir      = Build;  
    Includes    = { "/boost_1_49_0" };
    Files       = FBuild.Glob("*.cpp");
 };
@@ -17,7 +17,7 @@ local outOfDate = FBuild.CppOutOfDate(dep);
 
 local compileOptions = {
    Config            = Build;                
-   Outdir            = Build .. "/Test"; 
+   Outdir            = Build; 
    Includes          = { "/boost_1_49_0" };
    CRT               = 'Static';
    Files             = outOfDate;
@@ -32,13 +32,13 @@ FBuild.Compile(compileOptions);
 
 
 local linkOptions = {
-   Output = Build .. "/Test/FBuild.exe";
+   Output = "../" .. Build .. "/FBuild.exe";
    Libpath = { "/boost_1_49_0/stage/lib", "../" .. Build };
    Libs = { 
       "Lua.lib",
       "Shlwapi.lib",
    };
-   Files = FBuild.Glob(Build .. "/Test", "*.obj");
+   Files = FBuild.Glob(Build, "*.obj");
    
 };
 
