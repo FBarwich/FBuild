@@ -13,6 +13,16 @@
 #include <boost/algorithm/string.hpp>
 
 
+void Link::Config (const std::string& v)
+{
+   if (v.empty()) debug = false;
+   else {
+      if (v != "Debug" && v != "Release") throw std::runtime_error("'Config' must be 'Release' or 'Debug' (Or empty for default, which is Release)");
+      debug = v == "Debug";
+   }
+}
+
+
 inline bool Exe (const std::string& filename)
 {
    boost::filesystem::path file(filename);
@@ -31,6 +41,7 @@ void Link::Go ()
    boost::filesystem::create_directories(boost::filesystem::path(output).remove_filename());
 
    std::string command = "Link -NOLOGO -INCREMENTAL:NO ";
+   if (debug) command += "-DEBUG ";
    if (!Exe(output)) command += "-DLL ";
    command += "-OUT:\"" + output + "\" ";
    if (!importLib.empty()) command += "-IMPLIB:\"" + importLib + "\" ";

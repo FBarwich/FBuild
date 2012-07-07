@@ -288,6 +288,7 @@ namespace Impl {
       if (!lua_istable(L, -1)) luaL_error(L, "Expected table as argument for Link()");
 
       ::Link link;
+      link.Config(String(L, "Config"));
       link.Output(String(L, "Output"));
       link.ImportLib(String(L, "ImportLib"));
       link.Libpath(StringArray(L, "Libpath"));

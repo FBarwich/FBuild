@@ -12,6 +12,7 @@
 
 
 class Link {
+   bool                     debug;
    std::string              output;
    std::string              importLib;
    std::vector<std::string> libpath;
@@ -19,7 +20,9 @@ class Link {
    std::vector<std::string> files;
 
 public:
+   Link () : debug(false) { }
 
+   void Config (const std::string& v);
    void Output (const std::string& v)          { output = v; }
    void ImportLib (const std::string& v)       { importLib = v; }
    void Libpath (std::vector<std::string>&& v) { libpath = std::move(v); }

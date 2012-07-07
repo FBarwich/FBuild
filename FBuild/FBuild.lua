@@ -32,6 +32,7 @@ FBuild.Compile(compileOptions);
 
 
 local linkOptions = {
+   Config = Build;                
    Output = "../" .. Build .. "/FBuild.exe";
    Libpath = { "/boost_1_49_0/stage/lib", "../" .. Build };
    Libs = { 
