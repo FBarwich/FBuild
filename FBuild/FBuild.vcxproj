@@ -42,11 +42,13 @@
     <LinkIncremental>true</LinkIncremental>
     <NMakeBuildCommandLine>..\FBuild.exe Build='Debug'</NMakeBuildCommandLine>
     <NMakeOutput>$(SolutionDir)$(Configuration)\FBuild.exe</NMakeOutput>
+    <IncludePath>/boost_1_49_0;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <NMakeBuildCommandLine>..\FBuild.exe Build='Release'</NMakeBuildCommandLine>
     <NMakeOutput>$(SolutionDir)$(Configuration)\FBuild.exe</NMakeOutput>
+    <IncludePath>/boost_1_49_0;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
