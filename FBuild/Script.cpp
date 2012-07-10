@@ -411,6 +411,17 @@ namespace Impl {
       return 0;
    }
 
+   static int System (lua_State* L)
+   {
+      if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for System()");
+
+      std::string command = PopString(L);
+      int rc = std::system(command.c_str());
+      lua_pushinteger(L, rc);
+
+      return 1;
+   }
+
 
    // Register the avove Lua-Callable functions. All Functions are in the table "FBuild".
 
@@ -435,6 +446,7 @@ namespace Impl {
       RegisterFunc(L, "BuildExe", &BuildExe);
       RegisterFunc(L, "BuildDynamicLib", &BuildExe);
       RegisterFunc(L, "Build", &Build);
+      RegisterFunc(L, "System", &System);
 
       lua_setglobal(L, "FBuild");
    }
