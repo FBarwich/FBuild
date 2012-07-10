@@ -29,6 +29,8 @@ public:
    void Libs (std::vector<std::string>&& v)    { libs = std::move(v); }
    void Files (std::vector<std::string>&& v)   { files = std::move(v); }
 
+   void AutoFilesFromCpp (const std::string& outdir, const std::vector<std::string>& cppFiles);
+
    void Go ();
 };
 

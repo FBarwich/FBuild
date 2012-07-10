@@ -54,3 +54,35 @@ void Link::Go ()
    if (rc != 0) throw std::runtime_error("Link-Error");
 }
 
+
+void Link::AutoFilesFromCpp (const std::string& outdir, const std::vector<std::string>& cppFiles)
+{
+   boost::filesystem::path objdir(outdir);
+   boost::filesystem::path file;
+
+   std::for_each(cppFiles.begin(), cppFiles.end(), [&] (const std::string& s) {
+      file = s;
+      auto obj = objdir / file.filename();
+      obj.replace_extension(".obj");
+      files.push_back(obj.string());
+   });
+
+   bool doIt = false;
+
+   if (boost::filesystem::exists(output)) {
+      std::time_t outputTime = boost::filesystem::last_write_time(output);
+
+      for (size_t i = 0; i < files.size(); ++i) {
+         if (boost::filesystem::last_write_time(files[i]) > outputTime) {
+            doIt = true;
+            break;
+         }
+      }
+   }
+   else {
+      doIt = true;
+   }
+
+   if (!doIt) files.clear();
+}
+

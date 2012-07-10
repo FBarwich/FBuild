@@ -299,6 +299,59 @@ namespace Impl {
       return 0;
    }
 
+   static int BuildExe (lua_State* L)
+   {
+      if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for BuildExe()/BuildDynamicLib()");
+      if (!lua_istable(L, -1)) luaL_error(L, "Expected table as argument for BuildExe()/BuildDynamicLib()");
+
+      ::CppOutOfDate checker;
+      checker.OutDir(String(L, "Outdir"));
+      checker.IgnoreCache(Bool(L, "IgnoreCache"));
+      checker.Threads(Int(L, "Threads"));
+      checker.Files(StringArray(L, "Files"));
+      checker.Include(StringArray(L, "Includes"));
+      checker.Go();
+
+      std::vector<std::string> outOfDate = checker.OutOfDate();
+
+      if (!outOfDate.empty()) {
+         ::Compile compile;
+         compile.Config(String(L, "Config"));
+         compile.CRT(String(L, "CRT"));
+         compile.CC(String(L, "CC"));
+         compile.OutDir(String(L, "Outdir"));
+         compile.Threads(Int(L, "Threads"));
+         compile.Include(StringArray(L, "Includes"));
+         compile.Define(StringArray(L, "Defines"));
+         compile.Files(std::move(outOfDate));
+
+         lua_getfield(L, -1, "PrecompiledHeader");
+         if (!lua_isnil(L, -1)) {
+            if (!lua_istable(L, -1)) luaL_error(L, "Expected table for 'PrecompiledHeader'");
+
+            lua_getfield(L, -1, "Header");
+            compile.PrecompiledHeader(PopString(L));
+
+            lua_getfield(L, -1, "Cpp");
+            compile.PrecompiledCpp(PopString(L));
+         }
+         lua_pop(L, 1);
+
+         compile.Go();
+      }
+
+      ::Link link;
+      link.Config(String(L, "Config"));
+      link.Output(String(L, "Output"));
+      link.ImportLib(String(L, "ImportLib"));
+      link.Libpath(StringArray(L, "Libpath"));
+      link.Libs(StringArray(L, "Libs"));
+      link.AutoFilesFromCpp(String(L, "Outdir"), StringArray(L, "Files"));
+      link.Go();
+
+      return 0;
+   }
+
 
    // Register the avove Lua-Callable functions. All Functions are in the table "FBuild".
 
@@ -320,6 +373,8 @@ namespace Impl {
       RegisterFunc(L, "FileOutOfDate", &FileOutOfDate);
       RegisterFunc(L, "BuildStaticLib", &BuildStaticLib);
       RegisterFunc(L, "Link", &Link);
+      RegisterFunc(L, "BuildExe", &BuildExe);
+      RegisterFunc(L, "BuildDynamicLib", &BuildExe);
 
       lua_setglobal(L, "FBuild");
    }
