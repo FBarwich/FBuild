@@ -19,6 +19,6 @@ FBuild.BuildExe({
                       Cpp    = 'Precompiled.cpp';
                    };
                    Libpath = { "/boost_1_50_0/stage/lib", "../" .. Build };
-                   Libs = { "Lua.lib", "Shlwapi.lib", };
+                   Libs = { "Lua.lib", "Shlwapi.lib" };
                 });
 
