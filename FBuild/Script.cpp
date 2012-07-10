@@ -16,6 +16,7 @@
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
+#include <boost/filesystem.hpp>
 
 #include "../lua-5.2.0/src/lua.hpp"
 
@@ -54,6 +55,50 @@ namespace Impl {
       lua_pop(L, 1);
       return b;
    }
+
+
+
+
+
+   static void ExecuteBuffer (lua_State* L, const char* source, size_t len, const std::string& name)
+   {
+      int rc = luaL_loadbuffer(L, source, len, name.c_str());
+      if (rc != LUA_OK) {
+         std::string msg = "Error compiling script " + name + ":\n";
+         if (rc == LUA_ERRSYNTAX) msg += "Syntax error\n";
+         else if (rc == LUA_ERRMEM) msg += "Memory error\n";
+
+         msg += Impl::PopString(L);
+
+         throw std::runtime_error(msg);
+      }
+
+      rc = lua_pcall(L, 0, LUA_MULTRET, 0);
+      if (rc != LUA_OK) {
+         std::string msg = "Error executing script " + name + ":\n";
+         if (rc == LUA_ERRRUN) msg += "Runtime error\n";
+         else if (rc == LUA_ERRMEM) msg += "Memory error\n";
+         else if (rc == LUA_ERRGCMM) msg += "Garbage collector error\n";
+
+         if (lua_gettop(L)) msg += Impl::PopString(L);
+
+         throw std::runtime_error(msg);
+      }            
+   }
+
+   static void ExecuteFile (lua_State* L, const boost::filesystem::path& f)
+   {
+      boost::filesystem::path file = boost::filesystem::canonical(f);
+      file.make_preferred();
+
+      size_t size = static_cast<size_t>(boost::filesystem::file_size(file));
+
+      boost::interprocess::file_mapping mapping(file.string().c_str(), boost::interprocess::read_only);
+      boost::interprocess::mapped_region region(mapping, boost::interprocess::read_only, 0, size);
+
+      ExecuteBuffer(L, static_cast<const char*>(region.get_address()), size, file.string());
+   }
+
 
 
 
@@ -352,6 +397,20 @@ namespace Impl {
       return 0;
    }
 
+   static int Build (lua_State* L)
+   {
+      if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for Build()");
+
+      auto current = boost::filesystem::current_path();
+      boost::filesystem::current_path(PopString(L));
+
+      ExecuteFile(L, "FBuild.lua");
+
+      boost::filesystem::current_path(current);
+
+      return 0;
+   }
+
 
    // Register the avove Lua-Callable functions. All Functions are in the table "FBuild".
 
@@ -375,6 +434,7 @@ namespace Impl {
       RegisterFunc(L, "Link", &Link);
       RegisterFunc(L, "BuildExe", &BuildExe);
       RegisterFunc(L, "BuildDynamicLib", &BuildExe);
+      RegisterFunc(L, "Build", &Build);
 
       lua_setglobal(L, "FBuild");
    }
@@ -411,39 +471,10 @@ Script::~Script ()
 
 void Script::ExecuteBuffer (const char* source, size_t len, const std::string& name)
 {
-   int rc = luaL_loadbuffer(luaState, source, len, name.c_str());
-   if (rc != LUA_OK) {
-      std::string msg = "Error compiling script " + name + ":\n";
-      if (rc == LUA_ERRSYNTAX) msg += "Syntax error\n";
-      else if (rc == LUA_ERRMEM) msg += "Memory error\n";
-
-      msg += Impl::PopString(luaState);
-
-      throw std::runtime_error(msg);
-   }
-
-   rc = lua_pcall(luaState, 0, LUA_MULTRET, 0);
-   if (rc != LUA_OK) {
-      std::string msg = "Error executing script " + name + ":\n";
-      if (rc == LUA_ERRRUN) msg += "Runtime error\n";
-      else if (rc == LUA_ERRMEM) msg += "Memory error\n";
-      else if (rc == LUA_ERRGCMM) msg += "Garbage collector error\n";
-
-      if (lua_gettop(luaState)) msg += Impl::PopString(luaState);
-
-      throw std::runtime_error(msg);
-   }            
+   Impl::ExecuteBuffer(luaState, source, len, name);
 }
 
 void Script::ExecuteFile (const boost::filesystem::path& f)
 {
-   boost::filesystem::path file = boost::filesystem::canonical(f);
-   file.make_preferred();
-
-   size_t size = static_cast<size_t>(boost::filesystem::file_size(file));
-
-   boost::interprocess::file_mapping mapping(file.string().c_str(), boost::interprocess::read_only);
-   boost::interprocess::mapped_region region(mapping, boost::interprocess::read_only, 0, size);
-
-   ExecuteBuffer(static_cast<const char*>(region.get_address()), size, file.string());
+   Impl::ExecuteFile(luaState, f);
 }
