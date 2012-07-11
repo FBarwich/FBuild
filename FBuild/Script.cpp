@@ -11,6 +11,7 @@
 #include "Lib.h"
 #include "FileOutOfDate.h"
 #include "Link.h"
+#include "Copy.h"
 
 #include <string>
 
@@ -422,6 +423,26 @@ namespace Impl {
       return 1;
    }
 
+   static int Copy (lua_State* L)
+   {
+      ::Copy copy;
+
+      std::string source;
+      std::string dest;
+      bool ignoreTimestamp = false;
+
+      if (lua_gettop(L) == 3) copy.IgnoreTimestamp(PopBool(L));
+      if (lua_gettop(L) != 2) luaL_error(L, "Expected two or three arguments for Copy()");
+      copy.Dest(PopString(L));
+      copy.Source(PopString(L));
+
+      int rc = copy.Go();
+
+      lua_pushinteger(L, rc);
+      return 1;
+   }
+
+
 
    // Register the avove Lua-Callable functions. All Functions are in the table "FBuild".
 
@@ -447,6 +468,7 @@ namespace Impl {
       RegisterFunc(L, "BuildDynamicLib", &BuildExe);
       RegisterFunc(L, "Build", &Build);
       RegisterFunc(L, "System", &System);
+      RegisterFunc(L, "Copy", &Copy);
 
       lua_setglobal(L, "FBuild");
    }

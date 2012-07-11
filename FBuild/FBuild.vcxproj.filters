@@ -32,6 +32,9 @@
     <ClCompile Include="Link.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Copy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Script.h">
@@ -62,6 +65,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Precompiled.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Copy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

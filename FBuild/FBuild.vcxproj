@@ -109,6 +109,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Compile.cpp" />
+    <ClCompile Include="Copy.cpp" />
     <ClCompile Include="CppDepends.cpp" />
     <ClCompile Include="FBuild.cpp" />
     <ClCompile Include="FileOutOfDate.cpp" />
@@ -119,6 +120,7 @@
   <ItemGroup>
     <ClInclude Include="BinaryStream.h" />
     <ClInclude Include="Compile.h" />
+    <ClInclude Include="Copy.h" />
     <ClInclude Include="CppDepends.h" />
     <ClInclude Include="CppOutOfDate.h" />
     <ClInclude Include="FileOutOfDate.h" />
