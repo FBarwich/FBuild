@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <fstream>
 
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
@@ -130,7 +131,7 @@ void Compile::Go ()
 
 std::string Compile::CommandLine () const
 {
-   std::string command = "cl.exe -nologo -c -EHa -GF -Gm- -DWIN32 ";
+   std::string command = "-nologo -c -EHa -GF -Gm- -DWIN32 ";
    command += D(debug, defines);
    command += MP(threads);
    command += MT(debug, crtStatic);
@@ -173,6 +174,15 @@ void Compile::CompileFiles ()
    if (files.empty()) return;
 
    std::string command =  CommandLine() + FI(precompiledHeader) + Yu(precompiledHeader) + Sources(files);
+
+   if (command.size() > 8000) {
+      std::ofstream responseFile(outDir + "/cl.rsp");
+      responseFile << command;
+      command = "cl.exe @" + outDir + "/cl.rsp";
+   }
+   else {
+      command.insert(0, "cl.exe ");
+   }
 
    int rc = std::system(command.c_str());
    if (rc != 0) throw std::runtime_error("Compile Error");
