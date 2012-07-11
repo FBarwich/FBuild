@@ -42,7 +42,7 @@ void Copy::DoFile (boost::filesystem::path source, boost::filesystem::path dest)
    source.make_preferred();
    dest.make_preferred();
 
-   if (!ignoreTimestamp) {
+   if (boost::filesystem::exists(dest) && !ignoreTimestamp) {
       std::time_t sourceTime = boost::filesystem::last_write_time(source);
       std::time_t destTime = boost::filesystem::last_write_time(dest);
 
@@ -65,6 +65,8 @@ void Copy::DoFile (boost::filesystem::path source, boost::filesystem::path dest)
 
 int Copy::Go ()
 {
+   boost::filesystem::create_directories(dest);
+
    auto sourceFiles = CollectSourceFiles(source);
 
    boost::filesystem::path destPath(dest);
