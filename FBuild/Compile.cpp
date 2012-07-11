@@ -176,7 +176,7 @@ void Compile::CompileFiles ()
    std::string command =  CommandLine() + FI(precompiledHeader) + Yu(precompiledHeader) + Sources(files);
 
    if (command.size() > 8000) {
-      std::ofstream responseFile(outDir + "/cl.rsp");
+      std::ofstream responseFile(outDir + "/cl.rsp", std::fstream::trunc);
       responseFile << command;
       command = "cl.exe @" + outDir + "/cl.rsp";
    }

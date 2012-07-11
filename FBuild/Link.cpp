@@ -8,6 +8,7 @@
 #include "Link.h"
 
 #include <algorithm>
+#include <fstream>
 
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
@@ -40,7 +41,7 @@ void Link::Go ()
 
    boost::filesystem::create_directories(boost::filesystem::path(output).remove_filename());
 
-   std::string command = "Link -NOLOGO -INCREMENTAL:NO ";
+   std::string command = "-NOLOGO -INCREMENTAL:NO ";
    if (debug) command += "-DEBUG ";
    if (!Exe(output)) command += "-DLL ";
    command += "-OUT:\"" + output + "\" ";
@@ -49,6 +50,18 @@ void Link::Go ()
    std::for_each(libpath.cbegin(), libpath.cend(), [&command] (const std::string& f) { command += "-LIBPATH:\"" + f + "\" "; });
    std::for_each(libs.cbegin(), libs.cend(), [&command] (const std::string& f) { command += "\"" + f + "\" "; });
    std::for_each(files.cbegin(), files.cend(), [&command] (const std::string& f) { command += "\"" + f + "\" "; });
+
+   if (command.size() > 8000) {
+      auto rsp = boost::filesystem::temp_directory_path() / boost::filesystem::path(output).filename();
+      rsp.replace_extension(".rsp");
+      std::ofstream responseFile(rsp.string(), std::fstream::trunc);
+      responseFile << command;
+      command = "link @" + rsp.string();
+   }
+   else {
+      command.insert(0, "link ");
+   }
+
 
    int rc = std::system(command.c_str());
    if (rc != 0) throw std::runtime_error("Link-Error");
