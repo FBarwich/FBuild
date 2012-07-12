@@ -442,6 +442,14 @@ namespace Impl {
       return 1;
    }
 
+   static int ChangeDirectory (lua_State* L)
+   {
+      if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for ChangeDirectory()");
+
+      boost::filesystem::current_path(PopString(L));
+
+      return 0;
+   }
 
 
    // Register the avove Lua-Callable functions. All Functions are in the table "FBuild".
@@ -469,6 +477,7 @@ namespace Impl {
       RegisterFunc(L, "Build", &Build);
       RegisterFunc(L, "System", &System);
       RegisterFunc(L, "Copy", &Copy);
+      RegisterFunc(L, "ChangeDirectory", &ChangeDirectory);
 
       lua_setglobal(L, "FBuild");
    }
