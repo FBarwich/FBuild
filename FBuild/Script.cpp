@@ -12,6 +12,7 @@
 #include "FileOutOfDate.h"
 #include "Link.h"
 #include "Copy.h"
+#include "FileToCpp.h"
 
 #include <string>
 
@@ -22,6 +23,8 @@
 #include "../lua-5.2.0/src/lua.hpp"
 
 #include <Shlwapi.h>
+
+
 
 
 
@@ -173,6 +176,16 @@ namespace Impl {
    inline bool Bool (lua_State* L, const std::string& name)
    {
       lua_getfield(L, -1, name.c_str());
+      return PopBool(L);
+   }
+
+   inline bool Bool (lua_State* L, const std::string& name, bool def)
+   {
+      lua_getfield(L, -1, name.c_str());
+      if (lua_isnil(L, -1)) {
+         lua_pop(L, 1);
+         return def;
+      }
       return PopBool(L);
    }
 
@@ -451,6 +464,27 @@ namespace Impl {
       return 0;
    }
 
+   static int FileToCpp (lua_State* L)
+   {
+      if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for FileToCpp()");
+
+      ::FileToCpp file2cpp;
+      file2cpp.CheckDependency(Bool(L, "CheckDependency", true));
+      file2cpp.Infile (String(L, "InFile"));
+      file2cpp.Outfile (String(L, "OutFile"));
+      file2cpp.Namespace (String(L, "Namespace"));
+      file2cpp.Arry (String(L, "VarNameArry"));
+      file2cpp.Ptr (String(L, "VarNamePointer"));
+      file2cpp.Intro (String(L, "Intro"));
+      file2cpp.Outro (String(L, "Outro"));
+      file2cpp.Additional (String(L, "Additional"));
+      file2cpp.Const(Bool(L, "Const", true));
+
+      file2cpp.Go();
+
+      return 0;
+   }
+
 
    // Register the avove Lua-Callable functions. All Functions are in the table "FBuild".
 
@@ -478,6 +512,7 @@ namespace Impl {
       RegisterFunc(L, "System", &System);
       RegisterFunc(L, "Copy", &Copy);
       RegisterFunc(L, "ChangeDirectory", &ChangeDirectory);
+      RegisterFunc(L, "FileToCpp", &FileToCpp);
 
       lua_setglobal(L, "FBuild");
    }
