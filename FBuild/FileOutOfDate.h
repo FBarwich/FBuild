@@ -16,9 +16,10 @@ class FileOutOfDate {
 
 public:
 
-   void Parent (const std::string& v) { parent = v; }
-   void AddFile (const std::string& v) { files.push_back(v); }
+   void Parent (const std::string& v)                { parent = v; }
+   void AddFile (const std::string& v)               { files.push_back(v); }
+   void AddFiles (const std::vector<std::string>& f) { std::copy(f.cbegin(), f.cend(), back_inserter(files)); }
 
-   bool Go ();
+   bool Go () const;
 };
 

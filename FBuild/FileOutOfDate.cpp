@@ -10,7 +10,7 @@
 #include <boost/filesystem.hpp>
 
 
-bool FileOutOfDate::Go ()
+bool FileOutOfDate::Go () const
 {
    if (!boost::filesystem::exists(parent)) return true;
 

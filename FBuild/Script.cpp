@@ -496,6 +496,7 @@ namespace Impl {
       ::RC rc;
       rc.Outdir(String(L, "Outdir"));
       rc.Files(StringArray(L, "Res"));
+      rc.DependencyCheck(Bool(L, "DependencyCheck", true));
       rc.Go();
 
       return 0;
