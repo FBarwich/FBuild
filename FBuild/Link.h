@@ -15,6 +15,7 @@ class Link {
    bool                     debug;
    std::string              output;
    std::string              importLib;
+   std::string              def;
    std::vector<std::string> libpath;
    std::vector<std::string> libs;
    std::vector<std::string> files;
@@ -25,6 +26,7 @@ public:
    void Config (const std::string& v);
    void Output (const std::string& v)          { output = v; }
    void ImportLib (const std::string& v)       { importLib = v; }
+   void Def (const std::string& v)             { def = v; }
    void Libpath (std::vector<std::string>&& v) { libpath = std::move(v); }
    void Libs (std::vector<std::string>&& v)    { libs = std::move(v); }
    void Files (std::vector<std::string>&& v)   { files = std::move(v); }

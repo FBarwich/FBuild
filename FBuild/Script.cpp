@@ -350,6 +350,7 @@ namespace Impl {
       link.Config(String(L, "Config"));
       link.Output(String(L, "Output"));
       link.ImportLib(String(L, "ImportLib"));
+      link.Def(String(L, "Def"));
       link.Libpath(StringArray(L, "Libpath"));
       link.Libs(StringArray(L, "Libs"));
       link.Files(StringArray(L, "Files"));
@@ -403,6 +404,7 @@ namespace Impl {
       link.Config(String(L, "Config"));
       link.Output(String(L, "Output"));
       link.ImportLib(String(L, "ImportLib"));
+      link.Def(String(L, "Def"));
       link.Libpath(StringArray(L, "Libpath"));
       link.Libs(StringArray(L, "Libs"));
       link.AutoFilesFromCpp(String(L, "Outdir"), StringArray(L, "Files"));

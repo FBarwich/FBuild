@@ -46,6 +46,7 @@ void Link::Go ()
    if (!Exe(output)) command += "-DLL ";
    command += "-OUT:\"" + output + "\" ";
    if (!importLib.empty()) command += "-IMPLIB:\"" + importLib + "\" ";
+   if (!def.empty()) command += "-DEF:\"" + def + "\" ";
 
    std::for_each(libpath.cbegin(), libpath.cend(), [&command] (const std::string& f) { command += "-LIBPATH:\"" + f + "\" "; });
    std::for_each(libs.cbegin(), libs.cend(), [&command] (const std::string& f) { command += "\"" + f + "\" "; });
