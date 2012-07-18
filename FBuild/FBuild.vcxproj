@@ -132,6 +132,9 @@
     <ClInclude Include="Precompiled.h" />
     <ClInclude Include="Script.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="FBuild.lua" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -72,6 +72,9 @@
     <ClInclude Include="src\lvm.h" />
     <ClInclude Include="src\lzio.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="FBuild.lua" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5BDA714A-736B-4C70-B21A-EB280135ECE0}</ProjectGuid>
     <Keyword>MakeFileProj</Keyword>

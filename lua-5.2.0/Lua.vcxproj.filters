@@ -188,4 +188,7 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="FBuild.lua" />
+  </ItemGroup>
 </Project>
