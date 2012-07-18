@@ -13,10 +13,27 @@
 #include <boost/filesystem.hpp>
 
 
-void Lib::Go ()
+
+bool Lib::NeedsRebuild () const
+{
+   if (!dependencyCheck) return true;
+   if (!boost::filesystem::exists(output)) return true;
+
+   std::time_t parentTime = boost::filesystem::last_write_time(output);
+
+   for (size_t i = 0; i < files.size(); ++i) {
+      if (boost::filesystem::last_write_time(files[i]) > parentTime) return true;
+   }
+
+   return false;
+}
+
+void Lib::Go () const
 {
    if (files.empty()) return;
    if (output.empty()) throw std::runtime_error("Mising 'Output'");
+
+   if (!NeedsRebuild()) return;
 
    boost::filesystem::create_directories(boost::filesystem::path(output).remove_filename());
 

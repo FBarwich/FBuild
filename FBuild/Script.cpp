@@ -264,6 +264,7 @@ namespace Impl {
       ::Lib lib;
       lib.Output(String(L, "Output"));
       lib.Files(StringArray(L, "Files"));
+      lib.DependencyCheck(Bool(L, "DependencyCheck", true));
       lib.Go();
 
       lua_pushstring(L, lib.Output().c_str());
@@ -340,6 +341,7 @@ namespace Impl {
       ::Lib lib;
       lib.Output(String(L, "Output"));
       lib.AutoFilesFromCpp(String(L, "Outdir"), StringArray(L, "Files"));
+      lib.DependencyCheck(Bool(L, "DependencyCheck", true));
       lib.Go();
 
       lua_pushstring(L, lib.Output().c_str());
