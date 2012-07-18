@@ -46,7 +46,7 @@ void Copy::DoFile (boost::filesystem::path source, boost::filesystem::path dest)
       std::time_t sourceTime = boost::filesystem::last_write_time(source);
       std::time_t destTime = boost::filesystem::last_write_time(dest);
 
-      if (destTime <= sourceTime) return;
+      if (destTime >= sourceTime) return;
    }
 
    std::cout << "Copy " << source << " to " << dest << "...";
