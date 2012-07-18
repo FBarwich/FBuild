@@ -6,6 +6,7 @@
  */
 
 #include "Compile.h"
+#include "CppOutOfDate.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -125,6 +126,8 @@ void Compile::Go ()
 {
    if (outDir.empty()) throw std::runtime_error("Missing 'Outdir'");
 
+   if (!NeedsRebuild()) return;
+
    CompilePrecompiledHeaders();
    CompileFiles();
 }
@@ -147,19 +150,19 @@ std::string Compile::CommandLine () const
 
 void Compile::CompilePrecompiledHeaders ()
 {
-   if (files.empty()) return;
+   if (outOfDate.empty()) return;
 
    if (!precompiledCpp.size()) return;
 
    boost::filesystem::path cpp(precompiledCpp);
 
-   auto it = std::find_if(files.cbegin(), files.cend(), [&cpp] (const std::string& f) -> bool {
+   auto it = std::find_if(outOfDate.cbegin(), outOfDate.cend(), [&cpp] (const std::string& f) -> bool {
       return boost::filesystem::equivalent(cpp, f);
    });
 
-   if (it == files.cend()) return;
+   if (it == outOfDate.cend()) return;
 
-   files.erase(it);
+   outOfDate.erase(it);
 
    std::string command =  CommandLine();
    command += "-Yc\"" + precompiledHeader + "\" ";
@@ -171,9 +174,9 @@ void Compile::CompilePrecompiledHeaders ()
 
 void Compile::CompileFiles ()
 {
-   if (files.empty()) return;
+   if (outOfDate.empty()) return;
 
-   std::string command =  CommandLine() + FI(precompiledHeader) + Yu(precompiledHeader) + Sources(files);
+   std::string command =  CommandLine() + FI(precompiledHeader) + Yu(precompiledHeader) + Sources(outOfDate);
 
    if (command.size() > 8000) {
       std::ofstream responseFile(outDir + "/cl.rsp", std::fstream::trunc);
@@ -186,4 +189,23 @@ void Compile::CompileFiles ()
 
    int rc = std::system(command.c_str());
    if (rc != 0) throw std::runtime_error("Compile Error");
+}
+
+bool Compile::NeedsRebuild ()
+{
+   if (!dependencyCheck) {
+      std::copy(allFiles.cbegin(), allFiles.cend(), std::back_inserter(outOfDate));
+   }
+   else {
+      ::CppOutOfDate checker;
+      checker.OutDir(outDir);
+      checker.Threads(threads);
+      checker.Files(allFiles);
+      checker.Include(includes);
+      checker.Go();
+
+      outOfDate = checker.OutOfDate();
+   }
+
+   return !outOfDate.empty();
 }

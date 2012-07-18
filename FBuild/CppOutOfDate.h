@@ -82,6 +82,7 @@ public:
    void Threads (size_t v)                          { threads = v; }
    void AddIncludePath (const std::string& path)    { CppDepends::AddIncludePath(path); }
    void Files (std::vector<std::string>&& v)        { files = std::move(v); }
+   void Files (const std::vector<std::string>& v)   { std::copy(v.begin(), v.end(), std::back_inserter(files)); }
    void Include (const std::vector<std::string>& v) { std::for_each(v.begin(), v.end(), [] (const std::string& s) { CppDepends::AddIncludePath(s); }); }
 
    void Go ()

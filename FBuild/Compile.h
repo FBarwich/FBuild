@@ -15,17 +15,21 @@ class Compile {
    std::string              outDir;
    std::vector<std::string> includes;
    std::vector<std::string> defines;
-   std::vector<std::string> files;
+   std::vector<std::string> allFiles;
+   std::vector<std::string> outOfDate;
    bool                     crtStatic;
    int                      threads;
    std::string              cc;
    std::string              precompiledHeader;
    std::string              precompiledCpp;
+   bool                     dependencyCheck;
 
    std::string CommandLine () const;
 
    void CompilePrecompiledHeaders ();
    void CompileFiles ();
+
+   bool NeedsRebuild ();
 
 public:
    Compile () : threads(0), debug(false), crtStatic(false) { }
@@ -39,7 +43,8 @@ public:
    void PrecompiledCpp (const std::string& v)    { precompiledCpp = v; }
    void Include (std::vector<std::string>&& v)   { includes = std::move(v); }
    void Define (std::vector<std::string>&& v)    { defines = std::move(v); }
-   void Files (std::vector<std::string>&& v)     { files = std::move(v); }
+   void Files (std::vector<std::string>&& v)     { allFiles = std::move(v); }
+   void DependencyCheck (bool v)                 { dependencyCheck = v; }
 
    void Go ();
 };

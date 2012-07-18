@@ -238,6 +238,7 @@ namespace Impl {
       compile.Include(StringArray(L, "Includes"));
       compile.Define(StringArray(L, "Defines"));
       compile.Files(StringArray(L, "Files"));
+      compile.DependencyCheck(Bool(L, "DependencyCheck", true));
 
       lua_getfield(L, -1, "PrecompiledHeader");
       if (!lua_isnil(L, -1)) {
@@ -302,41 +303,31 @@ namespace Impl {
       if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for BuildStaticLib()");
       if (!lua_istable(L, -1)) luaL_error(L, "Expected table as argument for BuildStaticLib()");
 
-      ::CppOutOfDate checker;
-      checker.OutDir(String(L, "Outdir"));
-      checker.IgnoreCache(Bool(L, "IgnoreCache"));
-      checker.Threads(Int(L, "Threads"));
-      checker.Files(StringArray(L, "Files"));
-      checker.Include(StringArray(L, "Includes"));
-      checker.Go();
+      ::Compile compile;
+      compile.Config(String(L, "Config"));
+      compile.CRT(String(L, "CRT"));
+      compile.CC(String(L, "CC"));
+      compile.OutDir(String(L, "Outdir"));
+      compile.Threads(Int(L, "Threads"));
+      compile.Include(StringArray(L, "Includes"));
+      compile.Define(StringArray(L, "Defines"));
+      compile.Files(StringArray(L, "Files"));
+      compile.DependencyCheck(Bool(L, "DependencyCheck", true));
 
-      std::vector<std::string> outOfDate = checker.OutOfDate();
+      lua_getfield(L, -1, "PrecompiledHeader");
+      if (!lua_isnil(L, -1)) {
+         if (!lua_istable(L, -1)) luaL_error(L, "Expected table for 'PrecompiledHeader'");
 
-      if (!outOfDate.empty()) {
-         ::Compile compile;
-         compile.Config(String(L, "Config"));
-         compile.CRT(String(L, "CRT"));
-         compile.CC(String(L, "CC"));
-         compile.OutDir(String(L, "Outdir"));
-         compile.Threads(Int(L, "Threads"));
-         compile.Include(StringArray(L, "Includes"));
-         compile.Define(StringArray(L, "Defines"));
-         compile.Files(std::move(outOfDate));
+         lua_getfield(L, -1, "Header");
+         compile.PrecompiledHeader(PopString(L));
 
-         lua_getfield(L, -1, "PrecompiledHeader");
-         if (!lua_isnil(L, -1)) {
-            if (!lua_istable(L, -1)) luaL_error(L, "Expected table for 'PrecompiledHeader'");
-
-            lua_getfield(L, -1, "Header");
-            compile.PrecompiledHeader(PopString(L));
-
-            lua_getfield(L, -1, "Cpp");
-            compile.PrecompiledCpp(PopString(L));
-         }
-         lua_pop(L, 1);
-
-         compile.Go();
+         lua_getfield(L, -1, "Cpp");
+         compile.PrecompiledCpp(PopString(L));
       }
+      lua_pop(L, 1);
+
+      compile.Go();
+
 
       ::Lib lib;
       lib.Output(String(L, "Output"));
@@ -372,41 +363,31 @@ namespace Impl {
       if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for BuildExe()/BuildDynamicLib()");
       if (!lua_istable(L, -1)) luaL_error(L, "Expected table as argument for BuildExe()/BuildDynamicLib()");
 
-      ::CppOutOfDate checker;
-      checker.OutDir(String(L, "Outdir"));
-      checker.IgnoreCache(Bool(L, "IgnoreCache"));
-      checker.Threads(Int(L, "Threads"));
-      checker.Files(StringArray(L, "Files"));
-      checker.Include(StringArray(L, "Includes"));
-      checker.Go();
+      ::Compile compile;
+      compile.Config(String(L, "Config"));
+      compile.CRT(String(L, "CRT"));
+      compile.CC(String(L, "CC"));
+      compile.OutDir(String(L, "Outdir"));
+      compile.Threads(Int(L, "Threads"));
+      compile.Include(StringArray(L, "Includes"));
+      compile.Define(StringArray(L, "Defines"));
+      compile.Files(StringArray(L, "Files"));
+      compile.DependencyCheck(Bool(L, "DependencyCheck", true));
 
-      std::vector<std::string> outOfDate = checker.OutOfDate();
+      lua_getfield(L, -1, "PrecompiledHeader");
+      if (!lua_isnil(L, -1)) {
+         if (!lua_istable(L, -1)) luaL_error(L, "Expected table for 'PrecompiledHeader'");
 
-      if (!outOfDate.empty()) {
-         ::Compile compile;
-         compile.Config(String(L, "Config"));
-         compile.CRT(String(L, "CRT"));
-         compile.CC(String(L, "CC"));
-         compile.OutDir(String(L, "Outdir"));
-         compile.Threads(Int(L, "Threads"));
-         compile.Include(StringArray(L, "Includes"));
-         compile.Define(StringArray(L, "Defines"));
-         compile.Files(std::move(outOfDate));
+         lua_getfield(L, -1, "Header");
+         compile.PrecompiledHeader(PopString(L));
 
-         lua_getfield(L, -1, "PrecompiledHeader");
-         if (!lua_isnil(L, -1)) {
-            if (!lua_istable(L, -1)) luaL_error(L, "Expected table for 'PrecompiledHeader'");
-
-            lua_getfield(L, -1, "Header");
-            compile.PrecompiledHeader(PopString(L));
-
-            lua_getfield(L, -1, "Cpp");
-            compile.PrecompiledCpp(PopString(L));
-         }
-         lua_pop(L, 1);
-
-         compile.Go();
+         lua_getfield(L, -1, "Cpp");
+         compile.PrecompiledCpp(PopString(L));
       }
+      lua_pop(L, 1);
+
+      compile.Go();
+
 
       ::RC rc;
       rc.Outdir(String(L, "Outdir"));
