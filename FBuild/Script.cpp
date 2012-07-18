@@ -418,7 +418,7 @@ namespace Impl {
       link.Libs(StringArray(L, "Libs"));
       link.DependencyCheck(Bool(L, "DependencyCheck", true));
       link.AutoFiles(String(L, "Outdir"), StringArray(L, "Files"), ".obj");
-      link.AutoFiles(String(L, "Outdir"), StringArray(L, "Res"), ".res");
+      link.AddFiles(rc.Outfiles());
       link.Go();
 
       return 0;

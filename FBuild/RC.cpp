@@ -25,9 +25,7 @@ std::string RC::Outfile (const std::string& infile) const
 bool RC::NeedsRebuild (const std::string& infile, const std::string& outfile) const
 {
    if (!dependencyCheck) return true;
-
    if (!boost::filesystem::exists(outfile)) return true;
-
    return boost::filesystem::last_write_time(infile) > boost::filesystem::last_write_time(outfile); 
 }
 
@@ -46,3 +44,15 @@ void RC::Go () const
       }
    });
 }
+
+std::vector<std::string> RC::Outfiles () const
+{
+   std::vector<std::string> result;
+
+   std::for_each(files.begin(), files.end(), [&] (const std::string& file) {
+      result.push_back(Outfile(file));
+   });
+
+   return result;
+}
+

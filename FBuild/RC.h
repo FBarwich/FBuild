@@ -26,5 +26,7 @@ public:
    void DependencyCheck (bool v)             { dependencyCheck = v; }
 
    void Go () const;
+
+   std::vector<std::string> Outfiles () const;
 };
 
