@@ -354,6 +354,7 @@ namespace Impl {
       link.Def(String(L, "Def"));
       link.Libpath(StringArray(L, "Libpath"));
       link.Libs(StringArray(L, "Libs"));
+      link.DependencyCheck(Bool(L, "DependencyCheck", true));
       link.Files(StringArray(L, "Files"));
       link.Go();
 
@@ -401,6 +402,13 @@ namespace Impl {
          compile.Go();
       }
 
+      ::RC rc;
+      rc.Outdir(String(L, "Outdir"));
+      rc.Files(StringArray(L, "Res"));
+      rc.DependencyCheck(Bool(L, "DependencyCheck", true));
+      rc.Go();
+
+
       ::Link link;
       link.Config(String(L, "Config"));
       link.Output(String(L, "Output"));
@@ -408,7 +416,9 @@ namespace Impl {
       link.Def(String(L, "Def"));
       link.Libpath(StringArray(L, "Libpath"));
       link.Libs(StringArray(L, "Libs"));
-      link.AutoFilesFromCpp(String(L, "Outdir"), StringArray(L, "Files"));
+      link.DependencyCheck(Bool(L, "DependencyCheck", true));
+      link.AutoFiles(String(L, "Outdir"), StringArray(L, "Files"), ".obj");
+      link.AutoFiles(String(L, "Outdir"), StringArray(L, "Res"), ".res");
       link.Go();
 
       return 0;

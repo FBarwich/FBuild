@@ -23,7 +23,6 @@ void Link::Config (const std::string& v)
    }
 }
 
-
 inline bool Exe (const std::string& filename)
 {
    boost::filesystem::path file(filename);
@@ -38,6 +37,8 @@ void Link::Go ()
 {
    if (files.empty()) return;
    if (output.empty()) throw std::runtime_error("Mising 'Output'");
+
+   if (!NeedsRebuild()) return;
 
    boost::filesystem::create_directories(boost::filesystem::path(output).remove_filename());
 
@@ -69,34 +70,30 @@ void Link::Go ()
 }
 
 
-void Link::AutoFilesFromCpp (const std::string& outdir, const std::vector<std::string>& cppFiles)
+void Link::AutoFiles (const std::string& outdir, const std::vector<std::string>& cppFiles, const std::string& outExtension)
 {
    boost::filesystem::path objdir(outdir);
    boost::filesystem::path file;
 
    std::for_each(cppFiles.begin(), cppFiles.end(), [&] (const std::string& s) {
       file = s;
-      auto obj = objdir / file.filename();
-      obj.replace_extension(".obj");
-      files.push_back(obj.string());
+      auto out = objdir / file.filename();
+      out.replace_extension(outExtension);
+      files.push_back(out.string());
    });
+}
 
-   bool doIt = false;
+bool Link::NeedsRebuild () const
+{
+   if (!dependencyCheck) return true;
+   if (!boost::filesystem::exists(output)) return true;
 
-   if (boost::filesystem::exists(output)) {
-      std::time_t outputTime = boost::filesystem::last_write_time(output);
+   std::time_t parentTime = boost::filesystem::last_write_time(output);
 
-      for (size_t i = 0; i < files.size(); ++i) {
-         if (boost::filesystem::last_write_time(files[i]) > outputTime) {
-            doIt = true;
-            break;
-         }
-      }
-   }
-   else {
-      doIt = true;
+   for (size_t i = 0; i < files.size(); ++i) {
+      if (boost::filesystem::last_write_time(files[i]) > parentTime) return true;
    }
 
-   if (!doIt) files.clear();
+   return false;
 }
 

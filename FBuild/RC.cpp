@@ -12,8 +12,6 @@
 
 #include <boost/filesystem.hpp>
 
-#include <iostream>
-
 
 std::string RC::Outfile (const std::string& infile) const
 {
@@ -41,9 +39,7 @@ void RC::Go () const
    std::for_each(files.cbegin(), files.cend(), [&] (const std::string& file) {
       std::string outfile = Outfile(file);
       if (NeedsRebuild(file, outfile)) {
-         std::string command = "RC -fo\"" + outfile + "\" " + file;
-
-         std::cout << command << std::endl;
+         std::string command = "RC -nologo -fo\"" + outfile + "\" " + file;
 
          int r = std::system(command.c_str());
          if (r != 0) throw std::runtime_error("Error compiling resources");
