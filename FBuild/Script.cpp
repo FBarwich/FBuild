@@ -254,7 +254,8 @@ namespace Impl {
 
       compile.Go();
 
-      return 0;
+      PushStringArray(L, compile.Outfiles());
+      return 1;
    }
 
    static int Lib (lua_State* L)
@@ -331,7 +332,7 @@ namespace Impl {
 
       ::Lib lib;
       lib.Output(String(L, "Output"));
-      lib.AutoFilesFromCpp(String(L, "Outdir"), StringArray(L, "Files"));
+      lib.AddFiles(compile.Outfiles());
       lib.DependencyCheck(Bool(L, "DependencyCheck", true));
       lib.Go();
 
@@ -355,7 +356,8 @@ namespace Impl {
       link.Files(StringArray(L, "Files"));
       link.Go();
 
-      return 0;
+      lua_pushstring(L, link.Output().c_str());
+      return 1;
    }
 
    static int BuildExe (lua_State* L)
@@ -404,7 +406,7 @@ namespace Impl {
       link.Libpath(StringArray(L, "Libpath"));
       link.Libs(StringArray(L, "Libs"));
       link.DependencyCheck(Bool(L, "DependencyCheck", true));
-      link.AutoFiles(String(L, "Outdir"), StringArray(L, "Files"), ".obj");
+      link.AddFiles(compile.Outfiles());
       link.AddFiles(rc.Outfiles());
       link.Go();
 

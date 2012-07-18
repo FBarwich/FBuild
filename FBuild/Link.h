@@ -9,7 +9,7 @@
 
 #include <string>
 #include <vector>
-
+#include <iterator>
 
 class Link {
    bool                     debug;
@@ -36,8 +36,6 @@ public:
    void AddFile (const std::string& file)            { files.push_back(file); }
    void AddFiles (const std::vector<std::string>& f) { std::copy(f.cbegin(), f.cend(), back_inserter(files)); }
    void DependencyCheck (bool v)                     { dependencyCheck = v; }
-
-   void AutoFiles (const std::string& outdir, const std::vector<std::string>& cppFiles, const std::string& outExtension);
 
    void Go ();
 

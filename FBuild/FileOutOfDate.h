@@ -9,6 +9,7 @@
 
 #include <string>
 #include <vector>
+#include <iterator>
 
 class FileOutOfDate {
    std::string              parent;

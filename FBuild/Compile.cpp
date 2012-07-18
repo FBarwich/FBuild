@@ -124,7 +124,7 @@ void Compile::CRT (const std::string& v)
 
 void Compile::Go ()
 {
-   if (outDir.empty()) throw std::runtime_error("Missing 'Outdir'");
+   if (outdir.empty()) throw std::runtime_error("Missing 'Outdir'");
 
    if (!NeedsRebuild()) return;
 
@@ -142,8 +142,8 @@ std::string Compile::CommandLine () const
    command += Z(debug);
    command += I(includes);
    command += cc;
-   command += Fo(outDir);
-   command += Fp(outDir);
+   command += Fo(outdir);
+   command += Fp(outdir);
 
    return command;
 }
@@ -164,7 +164,7 @@ void Compile::CompilePrecompiledHeaders ()
 
    outOfDate.erase(it);
 
-   std::string command =  CommandLine();
+   std::string command =  "CL " + CommandLine();
    command += "-Yc\"" + precompiledHeader + "\" ";
    command += cpp.string();
 
@@ -179,9 +179,9 @@ void Compile::CompileFiles ()
    std::string command =  CommandLine() + FI(precompiledHeader) + Yu(precompiledHeader) + Sources(outOfDate);
 
    if (command.size() > 8000) {
-      std::ofstream responseFile(outDir + "/cl.rsp", std::fstream::trunc);
+      std::ofstream responseFile(outdir + "/cl.rsp", std::fstream::trunc);
       responseFile << command;
-      command = "cl.exe @" + outDir + "/cl.rsp";
+      command = "cl.exe @" + outdir + "/cl.rsp";
    }
    else {
       command.insert(0, "cl.exe ");
@@ -198,7 +198,7 @@ bool Compile::NeedsRebuild ()
    }
    else {
       ::CppOutOfDate checker;
-      checker.OutDir(outDir);
+      checker.OutDir(outdir);
       checker.Threads(threads);
       checker.Files(allFiles);
       checker.Include(includes);
@@ -208,4 +208,20 @@ bool Compile::NeedsRebuild ()
    }
 
    return !outOfDate.empty();
+}
+
+std::vector<std::string> Compile::Outfiles () const
+{
+   boost::filesystem::path outpath(outdir);
+
+   std::vector<std::string> result;
+
+   std::for_each(allFiles.begin(), allFiles.end(), [&] (const std::string& file) {
+      boost::filesystem::path f(file);
+      auto outfile = outpath / f.filename();
+      outfile.replace_extension(".obj");
+      result.push_back(outfile.string());
+   });
+
+   return result;
 }

@@ -9,6 +9,7 @@
 
 #include <string>
 #include <vector>
+#include <iterator>
 
 class Lib {
    std::string              output;
@@ -19,11 +20,11 @@ class Lib {
 
 public:
 
-   void Output (const std::string& v)        { output = v; }
-   void Files (std::vector<std::string>&& v) { files = std::move(v); }
-   void DependencyCheck (bool v)             { dependencyCheck = v; }
-
-   void AutoFilesFromCpp (const std::string& outdir, const std::vector<std::string>& cppFiles);
+   void Output (const std::string& v)                { output = v; }
+   void Files (std::vector<std::string>&& v)         { files = std::move(v); }
+   void AddFile (const std::string& file)            { files.push_back(file); }
+   void AddFiles (const std::vector<std::string>& f) { std::copy(f.cbegin(), f.cend(), back_inserter(files)); }
+   void DependencyCheck (bool v)                     { dependencyCheck = v; }
 
    void Go () const;
 

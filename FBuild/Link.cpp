@@ -69,20 +69,6 @@ void Link::Go ()
    if (rc != 0) throw std::runtime_error("Link-Error");
 }
 
-
-void Link::AutoFiles (const std::string& outdir, const std::vector<std::string>& cppFiles, const std::string& outExtension)
-{
-   boost::filesystem::path objdir(outdir);
-   boost::filesystem::path file;
-
-   std::for_each(cppFiles.begin(), cppFiles.end(), [&] (const std::string& s) {
-      file = s;
-      auto out = objdir / file.filename();
-      out.replace_extension(outExtension);
-      files.push_back(out.string());
-   });
-}
-
 bool Link::NeedsRebuild () const
 {
    if (!dependencyCheck) return true;
