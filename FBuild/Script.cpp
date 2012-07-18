@@ -190,6 +190,19 @@ namespace Impl {
       return PopBool(L);
    }
 
+   static void PushStringArray (lua_State* L, const std::vector<std::string>& arr)
+   {
+      int idx = 0;
+
+      lua_newtable(L);
+
+      std::for_each(arr.begin(), arr.end(), [&] (const std::string& s) {
+         lua_pushinteger(L, ++idx);
+         lua_pushstring(L, s.c_str());
+         lua_settable(L, -3);
+      });
+   }
+
    static int CppOutOfDate (lua_State* L)
    {
       if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for CppOutOfDate()");
@@ -207,17 +220,7 @@ namespace Impl {
 
       checker.Go();
 
-      const std::vector<std::string>& outOfDate = checker.OutOfDate();
-      int idx = 0;
-
-      lua_newtable(L);
-
-      std::for_each(outOfDate.begin(), outOfDate.end(), [&] (const std::string& s) {
-         lua_pushinteger(L, ++idx);
-         lua_pushstring(L, s.c_str());
-         lua_settable(L, -3);
-      });
-
+      PushStringArray(L, checker.OutOfDate());
       return 1;
    }
 
@@ -509,7 +512,9 @@ namespace Impl {
       rc.DependencyCheck(Bool(L, "DependencyCheck", true));
       rc.Go();
 
-      return 0;
+      PushStringArray(L, rc.Outfiles());
+
+      return 1;
    }
 
 
