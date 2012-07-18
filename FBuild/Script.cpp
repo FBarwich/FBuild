@@ -13,6 +13,7 @@
 #include "Link.h"
 #include "Copy.h"
 #include "FileToCpp.h"
+#include "RC.h"
 
 #include <string>
 
@@ -487,6 +488,19 @@ namespace Impl {
       return 0;
    }
 
+   static int RC (lua_State* L)
+   {
+      if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for RC()");
+      if (!lua_istable(L, -1)) luaL_error(L, "Expected table as argument for RC()");
+
+      ::RC rc;
+      rc.Outdir(String(L, "Outdir"));
+      rc.Files(StringArray(L, "Res"));
+      rc.Go();
+
+      return 0;
+   }
+
 
    // Register the avove Lua-Callable functions. All Functions are in the table "FBuild".
 
@@ -515,6 +529,7 @@ namespace Impl {
       RegisterFunc(L, "Copy", &Copy);
       RegisterFunc(L, "ChangeDirectory", &ChangeDirectory);
       RegisterFunc(L, "FileToCpp", &FileToCpp);
+      RegisterFunc(L, "RC", &RC);
 
       lua_setglobal(L, "FBuild");
    }

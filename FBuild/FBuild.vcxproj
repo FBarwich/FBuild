@@ -116,6 +116,7 @@
     <ClCompile Include="FileToCpp.cpp" />
     <ClCompile Include="Lib.cpp" />
     <ClCompile Include="Link.cpp" />
+    <ClCompile Include="RC.cpp" />
     <ClCompile Include="Script.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -130,6 +131,7 @@
     <ClInclude Include="Link.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Precompiled.h" />
+    <ClInclude Include="RC.h" />
     <ClInclude Include="Script.h" />
   </ItemGroup>
   <ItemGroup>
