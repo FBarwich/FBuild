@@ -40,5 +40,7 @@ public:
    void AutoFiles (const std::string& outdir, const std::vector<std::string>& cppFiles, const std::string& outExtension);
 
    void Go ();
+
+   const std::string& Output () const { return output; }
 };
 

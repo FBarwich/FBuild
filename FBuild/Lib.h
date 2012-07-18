@@ -22,5 +22,7 @@ public:
    void AutoFilesFromCpp (const std::string& outdir, const std::vector<std::string>& cppFiles);
 
    void Go ();
+
+   const std::string& Output () const { return output; }
 };
 

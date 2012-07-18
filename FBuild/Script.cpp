@@ -266,7 +266,8 @@ namespace Impl {
       lib.Files(StringArray(L, "Files"));
       lib.Go();
 
-      return 0;
+      lua_pushstring(L, lib.Output().c_str());
+      return 1;
    }
 
    static int FileOutOfDate (lua_State* L)
@@ -341,8 +342,8 @@ namespace Impl {
       lib.AutoFilesFromCpp(String(L, "Outdir"), StringArray(L, "Files"));
       lib.Go();
 
-
-      return 0;
+      lua_pushstring(L, lib.Output().c_str());
+      return 1;
    }
 
    static int Link (lua_State* L)
@@ -424,7 +425,8 @@ namespace Impl {
       link.AddFiles(rc.Outfiles());
       link.Go();
 
-      return 0;
+      lua_pushstring(L, link.Output().c_str());
+      return 1;
    }
 
    static int Build (lua_State* L)
