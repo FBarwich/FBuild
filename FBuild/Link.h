@@ -39,6 +39,6 @@ public:
 
    void Go ();
 
-   const std::string& Output () const { return output; }
+   std::string Output () const;
 };
 

@@ -83,3 +83,10 @@ bool Link::NeedsRebuild () const
    return false;
 }
 
+std::string Link::Output () const
+{
+   boost::filesystem::path p(output);
+   p.make_preferred();
+   return p.string();
+}
+

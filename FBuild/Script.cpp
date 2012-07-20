@@ -20,6 +20,7 @@
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "../lua-5.2.0/src/lua.hpp"
 
@@ -439,6 +440,17 @@ namespace Impl {
       return 1;
    }
 
+   static int Run (lua_State* L)
+   {
+      if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for System()");
+
+      std::string command = PopString(L);
+      int rc = std::system(command.c_str());
+      if (rc != 0) luaL_error(L, "Error executing '%s' RC = %d", command.c_str(), rc);
+
+      return 0;
+   }
+
    static int Copy (lua_State* L)
    {
       ::Copy copy;
@@ -529,6 +541,7 @@ namespace Impl {
       RegisterFunc(L, "BuildDynamicLib", &BuildExe);
       RegisterFunc(L, "Build", &Build);
       RegisterFunc(L, "System", &System);
+      RegisterFunc(L, "Run", &Run);
       RegisterFunc(L, "Copy", &Copy);
       RegisterFunc(L, "ChangeDirectory", &ChangeDirectory);
       RegisterFunc(L, "FileToCpp", &FileToCpp);
