@@ -490,6 +490,18 @@ namespace Impl {
       return 0;
    }
 
+   static int FullPath (lua_State* L)
+   {
+      if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for FullPath()");
+
+      boost::filesystem::path path(PopString(L));
+      auto full = boost::filesystem::canonical(path);
+      full.make_preferred();
+
+      lua_pushstring(L, full.string().c_str());
+      return 1;
+   }
+
    static int FileToCpp (lua_State* L)
    {
       if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for FileToCpp()");
@@ -558,6 +570,7 @@ namespace Impl {
       RegisterFunc(L, "FileToCpp", &FileToCpp);
       RegisterFunc(L, "RC", &RC);
       RegisterFunc(L, "Execute", &Execute);
+      RegisterFunc(L, "FullPath", &FullPath);
 
       lua_setglobal(L, "FBuild");
    }
