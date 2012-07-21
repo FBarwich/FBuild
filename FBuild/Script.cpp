@@ -429,6 +429,17 @@ namespace Impl {
       return 0;
    }
 
+   static int Execute (lua_State* L)
+   {
+      if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for Execute()");
+
+      auto current = boost::filesystem::current_path();
+      ExecuteFile(L, PopString(L));
+      boost::filesystem::current_path(current);
+
+      return 0;
+   }
+
    static int System (lua_State* L)
    {
       if (lua_gettop(L) != 1) luaL_error(L, "Expected one argument for System()");
@@ -546,6 +557,7 @@ namespace Impl {
       RegisterFunc(L, "ChangeDirectory", &ChangeDirectory);
       RegisterFunc(L, "FileToCpp", &FileToCpp);
       RegisterFunc(L, "RC", &RC);
+      RegisterFunc(L, "Execute", &Execute);
 
       lua_setglobal(L, "FBuild");
    }
