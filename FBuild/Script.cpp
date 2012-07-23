@@ -517,6 +517,7 @@ namespace Impl {
       file2cpp.Outro (String(L, "Outro"));
       file2cpp.Additional (String(L, "Additional"));
       file2cpp.Const(Bool(L, "Const", true));
+      file2cpp.AddTerminatingNull(Bool(L, "NullTerminator", false));
 
       file2cpp.Go();
 

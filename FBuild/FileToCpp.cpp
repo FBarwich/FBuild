@@ -62,7 +62,9 @@ void FileToCpp::Go ()
          }
       });
 
-      out << (int)*(end - 1) << "\n";
+      out << (int)*(end - 1);
+      if (addTerminatingNull) out << ",0";
+      out << "\n";
    }
 
    if (hasNamespace) out << "   ";

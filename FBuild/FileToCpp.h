@@ -13,6 +13,7 @@ class FileToCpp {
    std::string outro;
    std::string additional;
    bool        varConst;
+   bool        addTerminatingNull;
    
    void CheckParams ();
    bool CheckDependency ();
@@ -30,6 +31,7 @@ public:
    void Outro (const std::string& v)      { outro = v; }
    void Additional (const std::string& v) { additional = v; }
    void Const (bool v)                    { varConst = v; }
+   void AddTerminatingNull (bool v)       { addTerminatingNull = v; }
 
    void Go ();
 };
