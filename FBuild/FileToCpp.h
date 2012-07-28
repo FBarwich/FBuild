@@ -1,9 +1,16 @@
+/*
+ * Any copyright is dedicated to the Public Domain.
+ * http://creativecommons.org/publicdomain/zero/1.0/*
+ *
+ * Author: Frank Barwich
+ */
+
 #pragma once
 
 #include <string>
 
 class FileToCpp {
-   bool        checkDependency;
+   bool        dependencyCheck;
    std::string infile;
    std::string outfile;
    std::string nameForNamespace;
@@ -13,26 +20,39 @@ class FileToCpp {
    std::string outro;
    std::string additional;
    bool        varConst;
-   bool        addTerminatingNull;
-   
+   bool        terminatingNull;
+
    void CheckParams ();
-   bool CheckDependency ();
+   bool NeedsRebuild ();
 
 public:
-   FileToCpp () : checkDependency(true), varConst(true) { }
+   FileToCpp () : dependencyCheck(true), varConst(true), terminatingNull(false) { }
 
-   void CheckDependency (bool v)          { checkDependency = v; }
-   void Infile (const std::string& v)     { infile = v; }
-   void Outfile (const std::string& v)    { outfile = v; }
-   void Namespace (const std::string& v)  { nameForNamespace = v; }
-   void Arry (const std::string& v)       { nameForArray = v; }
-   void Ptr (const std::string& v)        { nameForPtr = v; }
-   void Intro (const std::string& v)      { intro = v; }
-   void Outro (const std::string& v)      { outro = v; }
-   void Additional (const std::string& v) { additional = v; }
-   void Const (bool v)                    { varConst = v; }
-   void AddTerminatingNull (bool v)       { addTerminatingNull = v; }
+   void DependencyCheck (bool v)    { dependencyCheck = v; }
+   void Const (bool v)              { varConst = v; }
+   void NullTerminator (bool v)    { terminatingNull = v; }
+   void Infile (std::string v)      { infile = std::move(v); }
+   void Outfile (std::string v)     { outfile = std::move(v); }
+   void Namespace (std::string v)   { nameForNamespace = std::move(v); }
+   void Array (std::string v)        { nameForArray = std::move(v); }
+   void Ptr (std::string v)         { nameForPtr = std::move(v); }
+   void Intro (std::string v)       { intro = std::move(v); }
+   void Outro (std::string v)       { outro = std::move(v); }
+   void Additional (std::string v)  { additional = std::move(v); }
 
-   void Go ();
+   bool               DependencyCheck () const  { return dependencyCheck; }
+   bool               Const () const            { return varConst; }
+   bool               NullTerminator () const  { return terminatingNull; }
+   const std::string& Infile () const           { return infile; }
+   const std::string& Outfile () const          { return outfile; }
+   const std::string& Namespace () const        { return nameForNamespace; }
+   const std::string& Array () const            { return nameForArray; }
+   const std::string& Ptr () const              { return nameForPtr; }
+   const std::string& Intro () const            { return intro; }
+   const std::string& Outro () const            { return outro; }
+   const std::string& Additional () const       { return additional; }
+
+
+   void Create ();
 };
 

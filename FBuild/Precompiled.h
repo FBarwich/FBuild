@@ -1,3 +1,9 @@
+/*
+ * Any copyright is dedicated to the Public Domain.
+ * http://creativecommons.org/publicdomain/zero/1.0/*
+ *
+ * Author: Frank Barwich
+ */
 #pragma once
 
 #include <string>
@@ -19,3 +25,7 @@
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
+
+#pragma warning(disable:4355)
+#include <v8.h>
+#pragma warning(default:4355)

@@ -40,15 +40,17 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <NMakeBuildCommandLine>..\FBuild.exe Build='Debug'</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine>..\FBuild.exe build=Debug</NMakeBuildCommandLine>
     <NMakeOutput>$(SolutionDir)$(Configuration)\FBuild.exe</NMakeOutput>
-    <IncludePath>/boost_1_50_0;$(IncludePath)</IncludePath>
+    <NMakeIncludeSearchPath>/boost_1_50_0;../V8/include</NMakeIncludeSearchPath>
+    <NMakeReBuildCommandLine>..\FBuild.exe build=Debug rebuild=true</NMakeReBuildCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <NMakeBuildCommandLine>..\FBuild.exe Build='Release'</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine>..\FBuild.exe build=Release</NMakeBuildCommandLine>
     <NMakeOutput>$(SolutionDir)$(Configuration)\FBuild.exe</NMakeOutput>
-    <IncludePath>/boost_1_50_0;$(IncludePath)</IncludePath>
+    <NMakeIncludeSearchPath>/boost_1_50_0;../V8/include</NMakeIncludeSearchPath>
+    <NMakeReBuildCommandLine>..\FBuild.exe build=Release rebuild=true</NMakeReBuildCommandLine>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -108,34 +110,51 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Compile.cpp" />
+    <ClCompile Include="Compiler.cpp" />
     <ClCompile Include="Copy.cpp" />
     <ClCompile Include="CppDepends.cpp" />
     <ClCompile Include="FBuild.cpp" />
     <ClCompile Include="FileOutOfDate.cpp" />
     <ClCompile Include="FileToCpp.cpp" />
-    <ClCompile Include="Lib.cpp" />
-    <ClCompile Include="Link.cpp" />
-    <ClCompile Include="RC.cpp" />
-    <ClCompile Include="Script.cpp" />
+    <ClCompile Include="JavaScript.cpp" />
+    <ClCompile Include="JsCompiler.cpp" />
+    <ClCompile Include="JsCopy.cpp" />
+    <ClCompile Include="JsExe.cpp" />
+    <ClCompile Include="JsFileToCpp.cpp" />
+    <ClCompile Include="JsLib.cpp" />
+    <ClCompile Include="JsLibrarian.cpp" />
+    <ClCompile Include="JsLinker.cpp" />
+    <ClCompile Include="JsResourceCompiler.cpp" />
+    <ClCompile Include="Librarian.cpp" />
+    <ClCompile Include="Linker.cpp" />
+    <ClCompile Include="ResourceCompiler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BinaryStream.h" />
-    <ClInclude Include="Compile.h" />
+    <ClInclude Include="Compiler.h" />
     <ClInclude Include="Copy.h" />
     <ClInclude Include="CppDepends.h" />
     <ClInclude Include="CppOutOfDate.h" />
     <ClInclude Include="FileOutOfDate.h" />
     <ClInclude Include="FileToCpp.h" />
-    <ClInclude Include="Lib.h" />
-    <ClInclude Include="Link.h" />
+    <ClInclude Include="JavaScript.h" />
+    <ClInclude Include="JavaScriptHelper.h" />
+    <ClInclude Include="JsCompiler.h" />
+    <ClInclude Include="JsCopy.h" />
+    <ClInclude Include="JsExe.h" />
+    <ClInclude Include="JsFileToCpp.h" />
+    <ClInclude Include="JsLib.h" />
+    <ClInclude Include="JsLibrarian.h" />
+    <ClInclude Include="JsLinker.h" />
+    <ClInclude Include="JsResourceCompiler.h" />
+    <ClInclude Include="Librarian.h" />
+    <ClInclude Include="Linker.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Precompiled.h" />
-    <ClInclude Include="RC.h" />
-    <ClInclude Include="Script.h" />
+    <ClInclude Include="ResourceCompiler.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="FBuild.lua" />
+    <None Include="FBuild.js" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

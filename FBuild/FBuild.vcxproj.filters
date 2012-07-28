@@ -14,22 +14,10 @@
     <ClCompile Include="FBuild.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Script.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CppDepends.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Compile.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Lib.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="FileOutOfDate.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Link.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Copy.cpp">
@@ -38,14 +26,47 @@
     <ClCompile Include="FileToCpp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RC.cpp">
+    <ClCompile Include="JavaScript.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Compiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JsCompiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JsCopy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Linker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JsLinker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JsExe.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JsResourceCompiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceCompiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JsLibrarian.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Librarian.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JsLib.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JsFileToCpp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Script.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="BinaryStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -58,16 +79,7 @@
     <ClInclude Include="CppOutOfDate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Compile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Lib.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FileOutOfDate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Link.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Precompiled.h">
@@ -79,11 +91,50 @@
     <ClInclude Include="FileToCpp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RC.h">
+    <ClInclude Include="JavaScript.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Compiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaScriptHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsCompiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsCopy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Linker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsLinker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsExe.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsResourceCompiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceCompiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsLibrarian.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Librarian.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsLib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsFileToCpp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="FBuild.lua" />
+    <None Include="FBuild.js" />
   </ItemGroup>
 </Project>

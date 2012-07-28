@@ -1,3 +1,10 @@
+/*
+ * Any copyright is dedicated to the Public Domain.
+ * http://creativecommons.org/publicdomain/zero/1.0/*
+ *
+ * Author: Frank Barwich
+ */
+
 #pragma once
 
 template<typename Iterator> Iterator SkipWhitespaces (Iterator it, Iterator end)

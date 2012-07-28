@@ -1,3 +1,10 @@
+/*
+ * Any copyright is dedicated to the Public Domain.
+ * http://creativecommons.org/publicdomain/zero/1.0/*
+ *
+ * Author: Frank Barwich
+ */
+
 #include "FileToCpp.h"
 
 #include <iostream>
@@ -11,7 +18,7 @@
 void FileToCpp::CheckParams ()
 {
    if (infile.empty()) throw std::runtime_error("Missing 'Infile' for FileToCpp()");
-   if (outfile.empty()) throw std::runtime_error("Missing 'Infile' for FileToCpp()");
+   if (outfile.empty()) throw std::runtime_error("Missing 'Outfile' for FileToCpp()");
    if (nameForArray.empty() && nameForPtr.empty()) throw std::runtime_error("Missing variable name for FileToCpp()");
 
    if (nameForArray.empty()) nameForArray = nameForPtr + "Array";
@@ -20,20 +27,21 @@ void FileToCpp::CheckParams ()
    if (!boost::filesystem::exists(infile)) throw std::runtime_error("Missing Infile '" + infile + "' for FileToCpp(). File does not exist.");
 }
 
-bool FileToCpp::CheckDependency ()
+bool FileToCpp::NeedsRebuild ()
 {
-   if (!checkDependency) return true;
+   if (!dependencyCheck) return true;
    if (!boost::filesystem::exists(outfile)) return true;
    return boost::filesystem::last_write_time(infile) > boost::filesystem::last_write_time(outfile);
 }
 
-void FileToCpp::Go ()
+void FileToCpp::Create ()
 {
    CheckParams();
-   if (!CheckDependency()) return;
+   if (!NeedsRebuild()) return;
    bool hasNamespace = !nameForNamespace.empty();
 
    std::ofstream out(outfile, std::ofstream::trunc);
+   if (out.fail()) throw std::runtime_error("Error opening " + outfile);
 
    if (intro.size()) out << intro << "\n\n";
    if (hasNamespace) out << "namespace " << nameForNamespace << " {\n\n";
@@ -63,7 +71,7 @@ void FileToCpp::Go ()
       });
 
       out << (int)*(end - 1);
-      if (addTerminatingNull) out << ",0";
+      if (terminatingNull) out << ",0";
       out << "\n";
    }
 

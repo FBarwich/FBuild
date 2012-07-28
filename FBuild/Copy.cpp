@@ -1,9 +1,18 @@
+/*
+ * Any copyright is dedicated to the Public Domain.
+ * http://creativecommons.org/publicdomain/zero/1.0/*
+ *
+ * Author: Frank Barwich
+ */
+
 #include "Copy.h"
 
 #include <iostream>
 #include <fstream>
 
 #include <Shlwapi.h>
+
+#include "JavaScript.h"
 
 
 static std::vector<boost::filesystem::path> CollectSourceFiles (const std::string& p)
@@ -60,11 +69,15 @@ void Copy::DoFile (boost::filesystem::path source, boost::filesystem::path dest)
    std::time_t sourceTime = boost::filesystem::last_write_time(source);
    boost::filesystem::last_write_time(dest, sourceTime);
 
+   ++copied;
+
    std::cout << " OK\n";
 }
 
 int Copy::Go ()
 {
+   CheckParams();
+
    boost::filesystem::create_directories(dest);
 
    auto sourceFiles = CollectSourceFiles(source);
@@ -76,4 +89,42 @@ int Copy::Go ()
    });
 
    return copied;
+}
+
+static bool NeedsCopy (boost::filesystem::path source, boost::filesystem::path dest)
+{
+   source.make_preferred();
+   dest.make_preferred();
+
+   if (boost::filesystem::exists(dest)) {
+      std::time_t sourceTime = boost::filesystem::last_write_time(source);
+      std::time_t destTime = boost::filesystem::last_write_time(dest);
+
+      if (destTime >= sourceTime) return false;
+   }
+
+   return true;
+}
+
+bool Copy::NeedsCopy () const
+{
+   CheckParams();
+
+   if (ignoreTimestamp) return true;
+
+   auto sourceFiles = CollectSourceFiles(source);
+   boost::filesystem::path destPath(dest);
+
+   for (size_t i = 0; i < sourceFiles.size(); ++i) {
+      const boost::filesystem::path& file = sourceFiles[i];
+      if (::NeedsCopy(file, destPath / file.filename())) return true;
+   }
+
+   return false;
+}
+
+void Copy::CheckParams () const
+{
+   if (source.empty()) throw std::runtime_error("Missing source for Copy");
+   if (dest.empty()) throw std::runtime_error("Missing dest for Copy");
 }
