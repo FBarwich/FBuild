@@ -50,6 +50,7 @@ JavaScript::JavaScript (const std::vector<std::string>& args)
    global->Set(v8::String::New("FileOutOfDate"), v8::FunctionTemplate::New(JsFileOutOfDate));
    global->Set(v8::String::New("ChangeDirectory"), v8::FunctionTemplate::New(JsChangeDirectory));
    global->Set(v8::String::New("StringToFile"), v8::FunctionTemplate::New(JsStringToFile));
+   global->Set(v8::String::New("GetEnv"), v8::FunctionTemplate::New(JsGetEnv));
 
    JsCopy::Register(global);
    JsCompiler::Register(global);
@@ -394,4 +395,17 @@ v8::Handle<v8::Value> JavaScript::JsStringToFile (const v8::Arguments& args)
    out << JavaScriptHelper::AsString(args[1]);
 
    return v8::Undefined();
+}
+
+v8::Handle<v8::Value> JavaScript::JsGetEnv (const v8::Arguments& args)
+{
+   v8::HandleScope scope;
+   v8::Handle<v8::Value> result;
+
+   if (args.Length() != 1) return v8::ThrowException(v8::String::New("Expected one argument for GetEnv()"));
+
+   const char* env = std::getenv(JavaScriptHelper::AsString(args[0]).c_str());
+   if (env) result = v8::String::New(env);
+
+   return scope.Close(result);
 }

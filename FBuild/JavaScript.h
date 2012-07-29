@@ -32,6 +32,7 @@ class JavaScript {
    static v8::Handle<v8::Value> JsFileOutOfDate (const v8::Arguments& args);
    static v8::Handle<v8::Value> JsChangeDirectory (const v8::Arguments& args);
    static v8::Handle<v8::Value> JsStringToFile (const v8::Arguments& args);
+   static v8::Handle<v8::Value> JsGetEnv (const v8::Arguments& args);
 
    static void Exec (const char* code, size_t len, const std::string& name);
 
