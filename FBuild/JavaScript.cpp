@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
@@ -217,21 +218,44 @@ v8::Handle<v8::Value> JavaScript::JsQuit (const v8::Arguments& args)
 v8::Handle<v8::Value> JavaScript::JsRun (const v8::Arguments& args)
 {
    v8::HandleScope scope;
+   v8::Handle<v8::Value> result;
 
+   if (args.Length() < 1) return v8::ThrowException(v8::String::New("Expected commandline for Run()"));
    std::string command = JavaScriptHelper::AsString(args[0]);
-   if (command.empty()) return v8::ThrowException(v8::String::New("Expected commandline for Run()"));
+
+   bool catchOutput = false;
+   if (args.Length() > 1) catchOutput = args[1]->BooleanValue();
+
+   auto tmpfile = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
+
+
+   if (catchOutput) {
+      command += " 1>" + tmpfile.string() + " 2>&1";
+   }
 
    int rc = std::system(command.c_str());
+   if (rc) return v8::ThrowException(v8::String::New(std::string("Error running command " + command).c_str()));
 
-   return v8::Undefined();
+   if (catchOutput) {
+      {
+         std::ifstream in(tmpfile.string());
+         std::stringstream ss;
+         ss << in.rdbuf();
+
+         result = v8::String::New(ss.str().c_str());
+      }
+      boost::filesystem::remove(tmpfile);
+   }
+
+   return scope.Close(result);
 }
 
 v8::Handle<v8::Value> JavaScript::JsSystem (const v8::Arguments& args)
 {
    v8::HandleScope scope;
 
+   if (args.Length() < 1) return v8::ThrowException(v8::String::New("Expected commandline for System()"));
    std::string command = JavaScriptHelper::AsString(args[0]);
-   if (command.empty()) return v8::ThrowException(v8::String::New("Expected commandline for System()"));
 
    int rc = std::system(command.c_str());
 
