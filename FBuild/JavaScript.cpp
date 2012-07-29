@@ -25,6 +25,7 @@
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include <Shlwapi.h>
 
@@ -242,7 +243,10 @@ v8::Handle<v8::Value> JavaScript::JsRun (const v8::Arguments& args)
          std::stringstream ss;
          ss << in.rdbuf();
 
-         result = v8::String::New(ss.str().c_str());
+         std::string r = ss.str();
+         boost::trim_right(r);
+
+         result = v8::String::New(r.c_str());
       }
       boost::filesystem::remove(tmpfile);
    }
