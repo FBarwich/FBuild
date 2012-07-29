@@ -299,8 +299,6 @@ v8::Handle<v8::Value> JavaScript::JsBuild (const v8::Arguments& args)
    boost::filesystem::current_path(JavaScriptHelper::AsString(args[0]));
 
    try {
-      if (!boost::filesystem::exists("FBuild.js")) throw std::runtime_error("File FBuild.js not found");
-
       boost::filesystem::path file = boost::filesystem::canonical("FBuild.js");
       file.make_preferred();
 
