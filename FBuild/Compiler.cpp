@@ -117,7 +117,7 @@ void Compiler::Compile ()
 
 std::string Compiler::CommandLine () const
 {
-   std::string command = "-nologo -c -EHa -GF -Gm- -DWIN32 -DWINDOWS ";
+   std::string command = "-nologo -c -EHa -GF -Gm- -GS- -DWIN32 -DWINDOWS ";
    command += D(debug, defines);
    command += MP(threads);
    command += MT(debug, crtStatic);
