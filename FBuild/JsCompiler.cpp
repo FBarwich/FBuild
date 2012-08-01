@@ -42,6 +42,8 @@ v8::Handle<v8::Value> JsCompiler::GetSet (const v8::Arguments& args)
          else if (funcname == "PrecompiledHeader") self->compiler.PrecompiledHeader(AsString(args[0]), AsString(args[1]));
          else if (funcname == "DependencyCheck") self->compiler.DependencyCheck(AsBool(args[0]));
          else if (funcname == "Files") self->compiler.Files(AsStringVector(args));
+
+         result = args.This();
       }
    }
    catch (std::exception& e) {
@@ -88,16 +90,18 @@ v8::Handle<v8::Value> JsCompiler::CompiledObjFiles (const v8::Arguments& args)
 v8::Handle<v8::Value> JsCompiler::Compile (const v8::Arguments& args)
 {
    v8::HandleScope scope;
+   v8::Handle<v8::Value> result;
    JsCompiler* self = Unwrap<JsCompiler>(args);
 
    try {
       self->compiler.Compile();
+      result = args.This();
    }
    catch (std::exception& e) {
       return v8::ThrowException(v8::String::New(e.what()));
    }
 
-   return v8::Undefined();
+   return scope.Close(result);
 }
 
 void JsCompiler::Register (v8::Handle<v8::ObjectTemplate>& global)

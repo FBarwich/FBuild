@@ -37,6 +37,8 @@ v8::Handle<v8::Value> JsFileToCpp::GetSet (const v8::Arguments& args)
          else if (funcname == "Intro") self->file2cpp.Intro(AsString(args[0]));
          else if (funcname == "Outro") self->file2cpp.Outro(AsString(args[0]));
          else if (funcname == "Additional") self->file2cpp.Additional(AsString(args[0]));
+
+         result = args.This();
       }
    }
    catch (std::exception& e) {
@@ -50,16 +52,18 @@ v8::Handle<v8::Value> JsFileToCpp::GetSet (const v8::Arguments& args)
 v8::Handle<v8::Value> JsFileToCpp::Create (const v8::Arguments& args)
 {
    v8::HandleScope scope;
+   v8::Handle<v8::Value> result;
    JsFileToCpp* self = Unwrap<JsFileToCpp>(args);
 
    try {
       self->file2cpp.Create();
+      result = args.This();
    }
    catch (std::exception& e) {
       return v8::ThrowException(v8::String::New(e.what()));
    }
 
-   return v8::Undefined();
+   return scope.Close(result);
 }
 
 void JsFileToCpp::Register (v8::Handle<v8::ObjectTemplate>& global)

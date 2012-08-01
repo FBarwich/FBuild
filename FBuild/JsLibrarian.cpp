@@ -17,7 +17,6 @@ v8::Handle<v8::Value> JsLibrarian::GetSet (const v8::Arguments& args)
    const std::string funcname = AsString(args.Callee()->GetName());
 
    try {
-
       if (args.Length() == 0) {
          if (funcname == "Output") result = Value(self->librarian.Output());
          else if (funcname == "Files") result = Value(self->librarian.Files());
@@ -27,6 +26,8 @@ v8::Handle<v8::Value> JsLibrarian::GetSet (const v8::Arguments& args)
          if (funcname == "Output") self->librarian.Output(AsString(args[0]));
          else if (funcname == "Files") self->librarian.Files(AsStringVector(args));
          else if (funcname == "DependencyCheck") self->librarian.DependencyCheck(AsBool(args[0]));
+
+         result = args.This();
       }
    }
    catch (std::exception& e) {
@@ -40,16 +41,18 @@ v8::Handle<v8::Value> JsLibrarian::GetSet (const v8::Arguments& args)
 v8::Handle<v8::Value> JsLibrarian::Create (const v8::Arguments& args)
 {
    v8::HandleScope scope;
+   v8::Handle<v8::Value> result;
    JsLibrarian* self = Unwrap<JsLibrarian>(args);
 
    try {
       self->librarian.Create();
+      result = args.This();
    }
    catch (std::exception& e) {
       return v8::ThrowException(v8::String::New(e.what()));
    }
 
-   return v8::Undefined();
+   return scope.Close(result);
 }
 
 void JsLibrarian::Register (v8::Handle<v8::ObjectTemplate>& global)

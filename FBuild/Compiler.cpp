@@ -178,6 +178,8 @@ bool Compiler::NeedsRebuild ()
 {
    CheckParams();
 
+   outOfDate.clear();
+
    if (!dependencyCheck) {
       std::copy(allFiles.cbegin(), allFiles.cend(), std::back_inserter(outOfDate));
    }

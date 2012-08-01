@@ -28,6 +28,8 @@ v8::Handle<v8::Value> JsResourceCompiler::GetSet (const v8::Arguments& args)
          if (funcname == "Files") self->resourceCompiler.Files(AsStringVector(args));
          else if (funcname == "Outdir") self->resourceCompiler.Outdir(AsString(args[0]));
          else if (funcname == "DependencyCheck") self->resourceCompiler.DependencyCheck(AsBool(args[0]));
+
+         result = args.This();
       }
    }
    catch (std::exception& e) {
@@ -50,7 +52,8 @@ v8::Handle<v8::Value> JsResourceCompiler::Compile (const v8::Arguments& args)
       return v8::ThrowException(v8::String::New(e.what()));
    }
 
-   return v8::Undefined();
+   v8::Handle<v8::Value> result = args.This();
+   return scope.Close(result);
 }
 
 void JsResourceCompiler::Register (v8::Handle<v8::ObjectTemplate>& global)

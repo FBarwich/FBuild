@@ -55,6 +55,8 @@ v8::Handle<v8::Value> JsExe::GetSet (const v8::Arguments& args)
          else if (funcname == "Def") self->linker.Def(AsString(args[0]));
          else if (funcname == "LinkArgs") self->linker.Args(AsString(args));
          else if (funcname == "Res") self->resourceCompiler.Files(AsStringVector(args));
+
+         result = args.This();
       }
    }
    catch (std::exception& e) {
@@ -86,7 +88,7 @@ v8::Handle<v8::Value> JsExe::Create (const v8::Arguments& args)
       self->linker.DependencyCheck(self->compiler.DependencyCheck());
       self->linker.Link();
 
-      result = Value(self->linker.Output());
+      result = args.This();
    }
    catch (std::exception& e) {
       return v8::ThrowException(v8::String::New(e.what()));

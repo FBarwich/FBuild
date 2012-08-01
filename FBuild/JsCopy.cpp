@@ -67,6 +67,8 @@ v8::Handle<v8::Value> JsCopy::GetSet (const v8::Arguments& args)
       if (funcname == "Source") self->copy.Source(AsString(args[0]));
       else if (funcname == "Dest") self->copy.Dest(AsString(args[0]));
       else if (funcname == "DependencyCheck") self->copy.DependencyCheck(AsBool(args[0]));
+
+      result = args.This();
    }
 
    return scope.Close(result);

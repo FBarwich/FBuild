@@ -41,6 +41,8 @@ v8::Handle<v8::Value> JsLib::GetSet (const v8::Arguments& args)
          else if (funcname == "DependencyCheck") self->compiler.DependencyCheck(AsBool(args[0]));
          else if (funcname == "Files") self->compiler.Files(AsStringVector(args));
          else if (funcname == "Output") self->librarian.Output(AsString(args[0]));
+
+         result = args.This();
       }
    }
    catch (std::exception& e) {
@@ -63,7 +65,7 @@ v8::Handle<v8::Value> JsLib::Create (const v8::Arguments& args)
       self->librarian.DependencyCheck(self->compiler.DependencyCheck());
       self->librarian.Create();
 
-      result = Value(self->librarian.Output());
+      result = args.This();
    }
    catch (std::exception& e) {
       return v8::ThrowException(v8::String::New(e.what()));

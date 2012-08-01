@@ -38,6 +38,8 @@ v8::Handle<v8::Value> JsLinker::GetSet (const v8::Arguments& args)
          else if (funcname == "Def") self->linker.Def(AsString(args[0]));
          else if (funcname == "DependencyCheck") self->linker.DependencyCheck(AsBool(args[0]));
          else if (funcname == "Args") self->linker.Args(AsString(args));
+
+         result = args.This();
       }
    }
    catch (std::exception& e) {
@@ -50,16 +52,18 @@ v8::Handle<v8::Value> JsLinker::GetSet (const v8::Arguments& args)
 v8::Handle<v8::Value> JsLinker::Link (const v8::Arguments& args)
 {
    v8::HandleScope scope;
+   v8::Handle<v8::Value> result;
    JsLinker* self = Unwrap<JsLinker>(args);
 
    try {
       self->linker.Link();
+      result = args.This();
    }
    catch (std::exception& e) {
       return v8::ThrowException(v8::String::New(e.what()));
    }
 
-   return v8::Undefined();
+   return scope.Close(result);
 }
 
 void JsLinker::Register (v8::Handle<v8::ObjectTemplate>& global)
