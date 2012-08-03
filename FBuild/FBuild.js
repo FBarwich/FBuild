@@ -9,6 +9,7 @@ exe.Build(args.build);
 exe.Output("../" + args.build + "/FBuild.exe");
 exe.Includes("/boost_1_50_0", "../V8/Include");
 exe.CRT("Static");
+exe.WarnLevel(4).WarningAsError(true);
 exe.Files(Glob("*.cpp"));
 exe.PrecompiledHeader("Precompiled.h", "Precompiled.cpp");
 exe.LibPath("/boost_1_50_0/stage/lib", "../" + args.build);

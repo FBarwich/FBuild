@@ -25,6 +25,9 @@ class Compiler {
    std::string              precompiledHeader;
    std::string              precompiledCpp;
    bool                     dependencyCheck;
+   int                      warnLevel;
+   bool                     warningAsError;
+   std::vector<int>         warningDisable;
 
    std::string CommandLine () const;
 
@@ -36,7 +39,7 @@ class Compiler {
    void CheckParams ();
 
 public:
-   Compiler () : threads(0), debug(false), crtStatic(false), dependencyCheck(true) { }
+   Compiler () : threads(0), debug(false), crtStatic(false), dependencyCheck(true), warnLevel(1), warningAsError(false) { }
    ~ Compiler () { }
 
    void Build (std::string build) 
@@ -60,6 +63,9 @@ public:
    void Args (std::string v)                               { args = std::move(v); }
    void PrecompiledHeader (std::string h, std::string cpp) { precompiledHeader = std::move(h); precompiledCpp = std::move(cpp); }
    void DependencyCheck (bool v)                           { dependencyCheck = v; }
+   void WarnLevel (int v)                                  { warnLevel = v; }
+   void WarningAsError (bool v)                            { warningAsError = v; }
+   void WarningDisable (std::vector<int> v)                { warningDisable = std::move(v); }
 
    std::string                     Build () const             { return debug ? "Debug" : "Release"; }
    std::string                     CRT () const               { return crtStatic ? "Static" : "Dynamic"; }
@@ -71,6 +77,9 @@ public:
    const std::string&              Args () const              { return args; }
    std::string                     PrecompiledHeader () const { return precompiledHeader.empty() ? "" : precompiledHeader + "; " + precompiledCpp; }
    bool                            DependencyCheck () const   { return dependencyCheck; }
+   int                             WarnLevel () const         { return warnLevel; }
+   bool                            WarningAsError () const    { return warningAsError; }
+   const std::vector<int>&         WarningDisable () const    { return warningDisable; }
 
    void Compile ();
 

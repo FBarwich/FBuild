@@ -30,6 +30,9 @@ v8::Handle<v8::Value> JsCompiler::GetSet (const v8::Arguments& args)
          else if (funcname == "PrecompiledHeader") result = Value(self->compiler.PrecompiledHeader());
          else if (funcname == "DependencyCheck") result = Value(self->compiler.DependencyCheck());
          else if (funcname == "Files") result = Value(self->compiler.Files());
+         else if (funcname == "WarnLevel") result = Value(self->compiler.WarnLevel());
+         else if (funcname == "WarningAsError") result = Value(self->compiler.WarningAsError());
+         else if (funcname == "WarningDisable") result = Value(self->compiler.WarningDisable());
       }
       else {
          if (funcname == "Build") self->compiler.Build(AsString(args[0]));
@@ -42,6 +45,9 @@ v8::Handle<v8::Value> JsCompiler::GetSet (const v8::Arguments& args)
          else if (funcname == "PrecompiledHeader") self->compiler.PrecompiledHeader(AsString(args[0]), AsString(args[1]));
          else if (funcname == "DependencyCheck") self->compiler.DependencyCheck(AsBool(args[0]));
          else if (funcname == "Files") self->compiler.Files(AsStringVector(args));
+         else if (funcname == "WarnLevel") self->compiler.WarnLevel(AsInt(args[0]));
+         else if (funcname == "WarningAsError") self->compiler.WarningAsError(AsBool(args[0]));
+         else if (funcname == "WarningDisable") self->compiler.WarningDisable(AsIntVector(args));
 
          result = args.This();
       }
@@ -122,6 +128,9 @@ void JsCompiler::Register (v8::Handle<v8::ObjectTemplate>& global)
    proto->Set("PrecompiledHeader", v8::FunctionTemplate::New(GetSet));
    proto->Set("DependencyCheck", v8::FunctionTemplate::New(GetSet));
    proto->Set("Files", v8::FunctionTemplate::New(GetSet));
+   proto->Set("WarnLevel", v8::FunctionTemplate::New(GetSet));
+   proto->Set("WarningAsError", v8::FunctionTemplate::New(GetSet));
+   proto->Set("WarningDisable", v8::FunctionTemplate::New(GetSet));
 
    proto->Set("Compile", v8::FunctionTemplate::New(Compile));
    proto->Set("ObjFiles", v8::FunctionTemplate::New(ObjFiles));

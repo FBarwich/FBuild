@@ -51,6 +51,24 @@ public:
       return result;
    }
 
+   static std::vector<int> AsIntVector (const v8::Arguments& args)
+   {
+      std::vector<int> result;
+
+      for (size_t i = 0; i < args.Length(); ++i) {
+         if (args[i]->IsArray()) {
+            v8::Local<v8::Object> arr = args[i]->ToObject();
+            size_t length = arr->Get(v8::String::New("length"))->Int32Value();
+            for (size_t i = 0; i < length; ++i) result.push_back(AsInt(arr->Get(i)));
+         }
+         else {
+            result.push_back(AsInt(args[i]));
+         }
+      }
+
+      return result;
+   }
+
    static v8::Handle<v8::Value> Value (int i) { return v8::Integer::New(i); }
    static v8::Handle<v8::Value> Value (bool b) { return v8::Boolean::New(b); }
    static v8::Handle<v8::Value> Value (const std::string& s) { return v8::String::New(s.c_str(), s.size()); }

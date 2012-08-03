@@ -104,6 +104,20 @@ inline std::string D (bool debug, const std::vector<std::string>& defines)
    return ret;
 }
 
+inline std::string W (int warningLevel, bool warningAsError, const std::vector<int>& warningDisable)
+{
+   std::string ret;
+
+   ret = "-W" + boost::lexical_cast<std::string>(warningLevel) + " ";
+   if (warningAsError) ret += "-WX ";
+
+   std::for_each(warningDisable.begin(), warningDisable.end(), [&ret] (int d) {
+      ret += "-wd" + boost::lexical_cast<std::string>(d) + " ";
+   });
+
+   return ret;
+}
+
 void Compiler::Compile ()
 {
    CheckParams();
@@ -124,6 +138,7 @@ std::string Compiler::CommandLine () const
    command += O(debug);
    command += Z(debug);
    command += I(includes);
+   command += W(warnLevel, warningAsError, warningDisable);
    command += args + " ";
    command += Fo(objDir);
    command += Fp(objDir);

@@ -29,6 +29,10 @@ v8::Handle<v8::Value> JsExe::GetSet (const v8::Arguments& args)
          else if (funcname == "PrecompiledHeader") result = Value(self->compiler.PrecompiledHeader());
          else if (funcname == "DependencyCheck") result = Value(self->compiler.DependencyCheck());
          else if (funcname == "Files") result = Value(self->compiler.Files());
+         else if (funcname == "WarnLevel") result = Value(self->compiler.WarnLevel());
+         else if (funcname == "WarningAsError") result = Value(self->compiler.WarningAsError());
+         else if (funcname == "WarningDisable") result = Value(self->compiler.WarningDisable());
+
          else if (funcname == "Output") result = Value(self->linker.Output());
          else if (funcname == "ImportLib") result = Value(self->linker.ImportLib());
          else if (funcname == "LibPath") result = Value(self->linker.Libpath());
@@ -48,6 +52,10 @@ v8::Handle<v8::Value> JsExe::GetSet (const v8::Arguments& args)
          else if (funcname == "PrecompiledHeader") self->compiler.PrecompiledHeader(AsString(args[0]), AsString(args[1]));
          else if (funcname == "DependencyCheck") self->compiler.DependencyCheck(AsBool(args[0]));
          else if (funcname == "Files") self->compiler.Files(AsStringVector(args));
+         else if (funcname == "WarnLevel") self->compiler.WarnLevel(AsInt(args[0]));
+         else if (funcname == "WarningAsError") self->compiler.WarningAsError(AsBool(args[0]));
+         else if (funcname == "WarningDisable") self->compiler.WarningDisable(AsIntVector(args));
+
          else if (funcname == "Output") self->linker.Output(AsString(args[0]));
          else if (funcname == "ImportLib") self->linker.ImportLib(AsString(args[0]));
          else if (funcname == "LibPath") self->linker.Libpath(AsStringVector(args));
@@ -122,6 +130,9 @@ void JsExe::Register (const char* classname, v8::Handle<v8::ObjectTemplate>& glo
    proto->Set("PrecompiledHeader", v8::FunctionTemplate::New(GetSet));
    proto->Set("DependencyCheck", v8::FunctionTemplate::New(GetSet));
    proto->Set("Files", v8::FunctionTemplate::New(GetSet));
+   proto->Set("WarnLevel", v8::FunctionTemplate::New(GetSet));
+   proto->Set("WarningAsError", v8::FunctionTemplate::New(GetSet));
+   proto->Set("WarningDisable", v8::FunctionTemplate::New(GetSet));
 
    proto->Set("Output", v8::FunctionTemplate::New(GetSet));
    proto->Set("ImportLib", v8::FunctionTemplate::New(GetSet));
