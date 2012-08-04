@@ -8,6 +8,7 @@ var exe = new Exe;
 exe.Build(args.build);
 exe.Output("../" + args.build + "/FBuild.exe");
 exe.Includes("/boost_1_50_0", "../V8/Include");
+exe.Defines("_CRT_SECURE_NO_WARNINGS");
 exe.CRT("Static");
 exe.WarningLevel(4).WarningAsError(true);
 exe.Files(Glob("*.cpp"));

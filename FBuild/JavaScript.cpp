@@ -214,7 +214,6 @@ v8::Handle<v8::Value> JavaScript::JsQuit (const v8::Arguments& args)
 {
    int exit_code = args[0]->Int32Value();
    exit(exit_code);
-   return v8::Undefined();
 }
 
 v8::Handle<v8::Value> JavaScript::JsRun (const v8::Arguments& args)
@@ -357,7 +356,7 @@ v8::Handle<v8::Value> JavaScript::JsFileOutOfDate (const v8::Arguments& args)
    FileOutOfDate outOfDate;
    outOfDate.Parent(JavaScriptHelper::AsString(args[0]));
 
-   for (size_t i = 1; i < args.Length(); ++i) {
+   for (int i = 1; i < args.Length(); ++i) {
       if (args[i]->IsArray()) {
          v8::Local<v8::Object> arr = args[i]->ToObject();
          size_t length = arr->Get(v8::String::New("length"))->Int32Value();

@@ -94,10 +94,10 @@ inline std::string FI (const std::string& precompiledHeader)
 
 inline std::string D (bool debug, const std::vector<std::string>& defines)
 {
-   std::string ret;
+   std::string ret = "-D_SCL_SECURE_NO_WARNINGS ";
 
-   if (debug) ret = "-D_DEBUG -D_SCL_SECURE_NO_WARNINGS ";
-   else ret = "-DNDEBUG ";
+   if (debug) ret += "-D_DEBUG ";
+   else ret += "-DNDEBUG ";
 
    std::for_each(defines.begin(), defines.end(), [&ret] (const std::string& s) { ret += "-D" + s + " "; });
 

@@ -83,7 +83,7 @@ v8::Handle<v8::Value> JsExe::Create (const v8::Arguments& args)
    try {
       self->compiler.Compile();
 
-      bool rc = self->resourceCompiler.Outfiles().size();
+      bool rc = !self->resourceCompiler.Outfiles().empty();
       if (rc) {
          self->resourceCompiler.DependencyCheck(self->compiler.DependencyCheck());
          self->resourceCompiler.Outdir(self->compiler.ObjDir());

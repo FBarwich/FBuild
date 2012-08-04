@@ -25,7 +25,7 @@ public:
    {
       std::string result;
 
-      for (size_t i = 0; i < args.Length(); ++i) {
+      for (int i = 0; i < args.Length(); ++i) {
          if (!result.empty()) result += ' ';
          result += AsString(args[i]);
       }
@@ -37,7 +37,7 @@ public:
    {
       std::vector<std::string> result;
 
-      for (size_t i = 0; i < args.Length(); ++i) {
+      for (int i = 0; i < args.Length(); ++i) {
          if (args[i]->IsArray()) {
             v8::Local<v8::Object> arr = args[i]->ToObject();
             size_t length = arr->Get(v8::String::New("length"))->Int32Value();
@@ -55,7 +55,7 @@ public:
    {
       std::vector<int> result;
 
-      for (size_t i = 0; i < args.Length(); ++i) {
+      for (int i = 0; i < args.Length(); ++i) {
          if (args[i]->IsArray()) {
             v8::Local<v8::Object> arr = args[i]->ToObject();
             size_t length = arr->Get(v8::String::New("length"))->Int32Value();

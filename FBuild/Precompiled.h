@@ -27,5 +27,9 @@
 
 
 #pragma warning(disable:4355)
+#pragma warning(disable:4100)
+#pragma warning(disable:4127)
 #include <v8.h>
 #pragma warning(default:4355)
+#pragma warning(default:4100)
+#pragma warning(default:4127)
