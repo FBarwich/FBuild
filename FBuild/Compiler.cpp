@@ -152,7 +152,8 @@ void Compiler::CompilePrecompiledHeaders ()
 
    if (!precompiledCpp.size()) return;
 
-   boost::filesystem::path cpp(precompiledCpp);
+   boost::filesystem::path cpp = boost::filesystem::canonical(precompiledCpp);
+   cpp.make_preferred();
 
    auto it = std::find_if(outOfDate.cbegin(), outOfDate.cend(), [&cpp] (const std::string& f) -> bool {
       return boost::filesystem::equivalent(cpp, f);
@@ -163,7 +164,7 @@ void Compiler::CompilePrecompiledHeaders ()
    outOfDate.erase(it);
 
    std::string command =  "CL " + CommandLine();
-   command += "-Yc\"" + precompiledHeader + "\" ";
+   command += "-Yc\"" + boost::filesystem::path(precompiledHeader).filename().string() + "\" ";
    command += cpp.string();
 
    int rc = std::system(command.c_str());
