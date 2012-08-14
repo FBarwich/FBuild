@@ -206,7 +206,7 @@ v8::Handle<v8::Value> JavaScript::JsExecuteFile (const v8::Arguments& args)
 
 v8::Handle<v8::Value> JavaScript::JsPrint (const v8::Arguments& args)
 {
-   std::cout << JavaScriptHelper::AsString(args) << "\n";
+   std::cout << JavaScriptHelper::AsString(args) << std::endl;
    return v8::Undefined();
 }
 
