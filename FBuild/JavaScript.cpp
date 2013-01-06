@@ -51,6 +51,7 @@ JavaScript::JavaScript (const std::vector<std::string>& args)
    global->Set(v8::String::New("ChangeDirectory"), v8::FunctionTemplate::New(JsChangeDirectory));
    global->Set(v8::String::New("StringToFile"), v8::FunctionTemplate::New(JsStringToFile));
    global->Set(v8::String::New("GetEnv"), v8::FunctionTemplate::New(JsGetEnv));
+   global->Set(v8::String::New("SetEnv"), v8::FunctionTemplate::New(JsSetEnv));
    global->Set(v8::String::New("Touch"), v8::FunctionTemplate::New(JsTouch));
 
    JsCopy::Register(global);
@@ -408,6 +409,21 @@ v8::Handle<v8::Value> JavaScript::JsGetEnv (const v8::Arguments& args)
    if (env) result = v8::String::New(env);
 
    return scope.Close(result);
+}
+
+v8::Handle<v8::Value> JavaScript::JsSetEnv (const v8::Arguments& args)
+{
+   v8::HandleScope scope;
+   v8::Handle<v8::Value> result;
+
+   if (args.Length() != 2) return v8::ThrowException(v8::String::New("Expected two arguments for SetEnv()"));
+
+   std::string arg = JavaScriptHelper::AsString(args[0]) + "=" + JavaScriptHelper::AsString(args[1]);
+
+   int rc = _putenv(arg.c_str());
+   if (rc) return v8::ThrowException(v8::String::New(std::string("Error putting environment " + JavaScriptHelper::AsString(args[0])).c_str()));
+
+   return v8::Undefined();
 }
 
 v8::Handle<v8::Value> JavaScript::JsTouch (const v8::Arguments& args)
