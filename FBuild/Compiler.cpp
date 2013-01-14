@@ -5,6 +5,7 @@
  * Author: Frank Barwich
  */
 
+
 #include "Compiler.h"
 #include "CppOutOfDate.h"
 #include "JavaScript.h"
@@ -16,6 +17,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include <boost/interprocess/file_mapping.hpp>
+#include <boost/interprocess/mapped_region.hpp>
 
 
 inline std::string MP (int threads)
@@ -45,13 +48,6 @@ inline std::string I (const std::vector<std::string>& includes)
 {
    std::string ret;
    std::for_each(includes.begin(), includes.end(), [&ret] (const std::string& s) { ret += "-I\"" + s + "\" "; });
-   return ret;
-}
-
-inline std::string Sources (const std::vector<std::string>& files)
-{
-   std::string ret;
-   std::for_each(files.begin(), files.end(), [&ret] (const std::string& s) { ret += "\"" + s + "\" "; });
    return ret;
 }
 
@@ -171,23 +167,63 @@ void Compiler::CompilePrecompiledHeaders ()
    if (rc != 0) throw std::runtime_error("Compile Error");
 }
 
+static bool CanMultiThread (const std::string& file)
+{
+   size_t size = static_cast<size_t>(boost::filesystem::file_size(file));
+
+   boost::interprocess::file_mapping mapping(file.c_str(), boost::interprocess::read_only);
+   boost::interprocess::mapped_region region(mapping, boost::interprocess::read_only, 0, size);
+
+   const char* it = static_cast<const char*>(region.get_address());
+   const char* end = it + size;
+
+   static const std::string findMe = "#import";
+
+   if (std::search(it, end, findMe.begin(), findMe.end()) != end) return false;
+
+   return true;
+}
+
 void Compiler::CompileFiles ()
 {
    if (outOfDate.empty()) return;
 
-   std::string command =  CommandLine() + FI(precompiledHeader) + Yu(precompiledHeader) + Sources(outOfDate);
+   std::vector<std::string> cantMP;
 
-   if (command.size() > 8000) {
-      std::ofstream responseFile(objDir + "/cl.rsp", std::fstream::trunc);
-      responseFile << command;
-      command = "cl.exe @" + objDir + "/cl.rsp";
-   }
-   else {
-      command.insert(0, "cl.exe ");
+   std::string command =  CommandLine() + FI(precompiledHeader) + Yu(precompiledHeader);
+
+   std::string sources;
+   std::for_each(outOfDate.begin(), outOfDate.end(), [&] (const std::string& s) {
+      if (CanMultiThread(s)) sources += "\"" + s + "\" ";
+      else cantMP.push_back(s);
+   });
+
+   if (sources.size()) {
+      command += sources;
+
+      if (command.size() > 8000) {
+         std::ofstream responseFile(objDir + "/cl.rsp", std::fstream::trunc);
+         responseFile << command;
+         command = "cl.exe @" + objDir + "/cl.rsp";
+      }
+      else {
+         command.insert(0, "cl.exe ");
+      }
+
+      int rc = std::system(command.c_str());
+      if (rc != 0) throw std::runtime_error("Compile Error");
    }
 
-   int rc = std::system(command.c_str());
-   if (rc != 0) throw std::runtime_error("Compile Error");
+   // These are the files that using #import, which prevents them from compiling them with multipble threads
+   // TODO: Do the multithreading myself, by using multiple instances of cl.exe
+
+   for (size_t i = 0; i < cantMP.size(); ++i) {
+      command =  "cl.exe " + CommandLine() + FI(precompiledHeader) + Yu(precompiledHeader) + "-MP1 ";
+      command += "\"" + cantMP[i] + "\" ";
+
+      int rc = std::system(command.c_str());
+      if (rc != 0) throw std::runtime_error("Compile Error");
+   }
 }
 
 bool Compiler::NeedsRebuild ()
