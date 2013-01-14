@@ -53,6 +53,7 @@ JavaScript::JavaScript (const std::vector<std::string>& args)
    global->Set(v8::String::New("GetEnv"), v8::FunctionTemplate::New(JsGetEnv));
    global->Set(v8::String::New("SetEnv"), v8::FunctionTemplate::New(JsSetEnv));
    global->Set(v8::String::New("Touch"), v8::FunctionTemplate::New(JsTouch));
+   global->Set(v8::String::New("Delete"), v8::FunctionTemplate::New(JsDelete));
 
    JsCopy::Register(global);
    JsCompiler::Register(global);
@@ -447,3 +448,22 @@ v8::Handle<v8::Value> JavaScript::JsTouch (const v8::Arguments& args)
    return v8::Undefined();
 }
 
+v8::Handle<v8::Value> JavaScript::JsDelete (const v8::Arguments& args)
+{
+   v8::HandleScope scope;
+
+   if (args.Length() < 1) return v8::ThrowException(v8::String::New("Expected filename(s) for Delete()"));
+   std::vector<std::string> files = JavaScriptHelper::AsStringVector(args);
+
+   try {
+      std::for_each(files.begin(), files.end(), [] (const std::string& filename) {
+         boost::system::error_code rc;
+         boost::filesystem::remove_all(filename, rc);
+      });
+   }
+   catch (std::exception& e) {
+      return v8::ThrowException(v8::String::New(e.what()));
+   }
+
+   return v8::Undefined();
+}

@@ -35,6 +35,7 @@ class JavaScript {
    static v8::Handle<v8::Value> JsGetEnv (const v8::Arguments& args);
    static v8::Handle<v8::Value> JsSetEnv (const v8::Arguments& args);
    static v8::Handle<v8::Value> JsTouch (const v8::Arguments& args);
+   static v8::Handle<v8::Value> JsDelete (const v8::Arguments& args);
 
    static void Exec (const char* code, size_t len, const std::string& name);
 
