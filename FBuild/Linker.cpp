@@ -31,6 +31,7 @@ void Linker::Link ()
    if (!NeedsRebuild()) return;
 
    if (boost::filesystem::exists(output)) boost::filesystem::remove(output);
+   if (importLib.size() && boost::filesystem::exists(importLib)) boost::filesystem::remove(importLib);
 
    boost::filesystem::create_directories(boost::filesystem::path(output).remove_filename());
 
