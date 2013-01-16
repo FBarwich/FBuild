@@ -10,6 +10,7 @@
 #include "CppDepends.h"
 
 #include <algorithm>
+#include <ctime>
 
 #include <boost/thread.hpp>
 
@@ -19,6 +20,7 @@ class CppOutOfDate {
    boost::mutex        filesMutex;
    boost::mutex        outOfDateMutex;
    size_t              current;
+   time_t              scriptTime;
 
    std::string              outdir;
    bool                     ignoreCache;
@@ -62,6 +64,7 @@ class CppOutOfDate {
 
          if (!boost::filesystem::exists(obj)) AddOutOfDate(file.string());
          else if (boost::filesystem::last_write_time(obj) < dep.MaxTime()) AddOutOfDate(file.string());
+         else if (boost::filesystem::last_write_time(obj) < scriptTime) AddOutOfDate(file.string());
       }
    }
 
@@ -72,6 +75,7 @@ public:
       current = 0;
       ignoreCache = false;
       threads = 0;
+      scriptTime = boost::filesystem::last_write_time("FBuild.js");
       files.reserve(1000);
 
       CppDepends::ClearIncludePath();
