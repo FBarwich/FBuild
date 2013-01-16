@@ -33,6 +33,7 @@ class Compiler {
 
    void CompilePrecompiledHeaders ();
    void CompileFiles ();
+   void DeleteOutOfDateObjectFiles ();
 
    bool NeedsRebuild ();
 

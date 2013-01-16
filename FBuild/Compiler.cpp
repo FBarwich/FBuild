@@ -121,6 +121,7 @@ void Compiler::Compile ()
 
    if (!NeedsRebuild()) return;
 
+   DeleteOutOfDateObjectFiles();
    CompilePrecompiledHeaders();
    CompileFiles();
 }
@@ -247,6 +248,14 @@ bool Compiler::NeedsRebuild ()
    }
 
    return !outOfDate.empty();
+}
+
+void Compiler::DeleteOutOfDateObjectFiles ()
+{
+   const std::vector<std::string> files = CompiledObjFiles();
+   std::for_each(files.begin(), files.end(), [] (const std::string& file) {
+      boost::filesystem::remove(file);
+   });
 }
 
 std::vector<std::string> Compiler::ObjFiles () const
