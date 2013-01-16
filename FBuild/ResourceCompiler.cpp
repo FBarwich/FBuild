@@ -39,6 +39,7 @@ void ResourceCompiler::Compile () const
    std::for_each(files.cbegin(), files.cend(), [&] (const std::string& file) {
       std::string outfile = Outfile(file);
       if (NeedsRebuild(file, outfile)) {
+         if (boost::filesystem::exists(outfile)) boost::filesystem::remove(outfile);
          std::string command = "RC -nologo -fo\"" + outfile + "\" " + file;
 
          int r = std::system(command.c_str());
