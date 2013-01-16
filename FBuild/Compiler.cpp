@@ -160,6 +160,9 @@ void Compiler::CompilePrecompiledHeaders ()
 
    outOfDate.erase(it);
 
+   boost::filesystem::path pch = boost::filesystem::path(objDir) / "PrecompiledHeader.pch";
+   if (boost::filesystem::exists(pch)) boost::filesystem::remove(pch);
+
    std::string command =  "CL " + CommandLine();
    command += "-Yc\"" + boost::filesystem::path(precompiledHeader).filename().string() + "\" ";
    command += cpp.string();
