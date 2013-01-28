@@ -245,6 +245,7 @@ bool Compiler::NeedsRebuild ()
       checker.Threads(threads);
       checker.Files(allFiles);
       checker.Include(includes);
+      checker.PrecompiledHeader(precompiledHeader);
       checker.Go();
 
       outOfDate = checker.OutOfDate();

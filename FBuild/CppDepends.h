@@ -32,6 +32,7 @@ public:
    // Beware. This functions are NOT threadsafe
    static void ClearIncludePath ();
    static void AddIncludePath (const boost::filesystem::path& path);
+   static void PrecompiledHeader (const std::string& prec);
 
 private:
    std::unordered_set<std::string> dependencies;

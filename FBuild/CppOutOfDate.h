@@ -79,6 +79,7 @@ public:
       files.reserve(1000);
 
       CppDepends::ClearIncludePath();
+      CppDepends::PrecompiledHeader("");
    }
 
    void OutDir (std::string v)                      { outdir = std::move(v); }
@@ -88,6 +89,7 @@ public:
    void Files (std::vector<std::string>&& v)        { files = std::move(v); }
    void Files (const std::vector<std::string>& v)   { std::copy(v.begin(), v.end(), std::back_inserter(files)); }
    void Include (const std::vector<std::string>& v) { std::for_each(v.begin(), v.end(), [] (const std::string& s) { CppDepends::AddIncludePath(s); }); }
+   void PrecompiledHeader (const std::string& v)    { CppDepends::PrecompiledHeader(v); }
 
    void Go ()
    {
