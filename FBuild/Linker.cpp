@@ -74,6 +74,15 @@ bool Linker::NeedsRebuild () const
       if (boost::filesystem::last_write_time(files[i]) > parentTime) return true;
    }
 
+   for (size_t l = 0; l < libs.size(); ++l) {
+      for (size_t p = 0; p < libpath.size(); ++p) {
+         const auto file = libpath[p] + "/" + libs[l];
+         if (boost::filesystem::exists(file)) {
+            if (boost::filesystem::last_write_time(file) > parentTime) return true;
+         }
+      }
+   }
+
    return false;
 }
 
