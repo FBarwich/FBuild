@@ -140,7 +140,7 @@ std::string Compiler::CommandLine () const
    command += Fo(objDir);
    command += Fp(objDir);
    const char* env = std::getenv("CL");
-   if (env) command += env;
+   if (env) command += " " + std::string(env) + " ";
 
    return command;
 }

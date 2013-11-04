@@ -47,6 +47,9 @@ void Linker::Link ()
    std::for_each(libs.cbegin(), libs.cend(), [&command] (const std::string& f) { command += "\"" + f + "\" "; });
    std::for_each(files.cbegin(), files.cend(), [&command] (const std::string& f) { command += "\"" + f + "\" "; });
 
+   const char* env = std::getenv("LINK");
+   if (env) command += " " + std::string(env) + " ";
+
    if (command.size() > 8000) {
       auto rsp = boost::filesystem::temp_directory_path() / boost::filesystem::path(output).filename();
       rsp.replace_extension(".rsp");
