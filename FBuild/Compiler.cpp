@@ -139,6 +139,8 @@ std::string Compiler::CommandLine () const
    command += args + " ";
    command += Fo(objDir);
    command += Fp(objDir);
+   const char* env = std::getenv("CL");
+   if (env) command += env;
 
    return command;
 }
