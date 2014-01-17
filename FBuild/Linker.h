@@ -23,6 +23,7 @@ class Linker {
    std::vector<std::string> files;
    bool                     dependencyCheck;
    std::string              args;
+   std::function<void()>    beforeLink;
 
    bool NeedsRebuild () const;
 
@@ -45,6 +46,7 @@ public:
    void AddFiles (const std::vector<std::string>& v) { std::copy(v.begin(), v.end(), std::back_inserter(files));  }
    void DependencyCheck (bool v)                     { dependencyCheck = v; }
    void Args (std::string v)                         { args = std::move(v); }
+   void BeforeLink (std::function<void()> v)         { beforeLink = std::move(v); }
 
    std::string                     Build () const           { return debug ? "Debug" : "Release"; }
    const std::string               Output () const          { return output; }
@@ -55,6 +57,7 @@ public:
    const std::vector<std::string>& Files () const           { return files; }
    bool                            DependencyCheck () const { return dependencyCheck; }
    const std::string&              Args () const            { return args; }
+   const std::function<void()>&    BeforeLink () const      { return beforeLink; }
 
    void Link ();
 };

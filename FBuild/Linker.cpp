@@ -30,6 +30,8 @@ void Linker::Link ()
 
    if (!NeedsRebuild()) return;
 
+   if (beforeLink) beforeLink();
+
    if (boost::filesystem::exists(output)) boost::filesystem::remove(output);
    if (importLib.size() && boost::filesystem::exists(importLib)) boost::filesystem::remove(importLib);
 

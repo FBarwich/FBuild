@@ -39,6 +39,8 @@ v8::Handle<v8::Value> JsExe::GetSet (const v8::Arguments& args)
          else if (funcname == "Libs") result = Value(self->linker.Libs());
          else if (funcname == "Def") result = Value(self->linker.Def());
          else if (funcname == "LinkArgs") result = Value(self->linker.Args());
+         else if (funcname == "BeforeLink") result = Value(self->linker.BeforeLink());
+
          else if (funcname == "Res") result = Value(self->resourceCompiler.Files());
       }
       else {
@@ -62,6 +64,8 @@ v8::Handle<v8::Value> JsExe::GetSet (const v8::Arguments& args)
          else if (funcname == "Libs") self->linker.Libs(AsStringVector(args));
          else if (funcname == "Def") self->linker.Def(AsString(args[0]));
          else if (funcname == "LinkArgs") self->linker.Args(AsString(args));
+         else if (funcname == "BeforeLink") self->linker.BeforeLink(AsCallback(args[0]));
+
          else if (funcname == "Res") self->resourceCompiler.Files(AsStringVector(args));
 
          result = args.This();
@@ -140,6 +144,7 @@ void JsExe::Register (const char* classname, v8::Handle<v8::ObjectTemplate>& glo
    proto->Set("Libs", v8::FunctionTemplate::New(GetSet));
    proto->Set("Def", v8::FunctionTemplate::New(GetSet));
    proto->Set("LinkArgs", v8::FunctionTemplate::New(GetSet));
+   proto->Set("BeforeLink", v8::FunctionTemplate::New(GetSet));
 
    proto->Set("Res", v8::FunctionTemplate::New(GetSet));
 

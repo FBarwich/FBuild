@@ -27,6 +27,7 @@ v8::Handle<v8::Value> JsLinker::GetSet (const v8::Arguments& args)
          else if (funcname == "Def") result = Value(self->linker.Def());
          else if (funcname == "DependencyCheck") result = Value(self->linker.DependencyCheck());
          else if (funcname == "Args") result = Value(self->linker.Args());
+         else if (funcname == "BeforeLink") result = Value(self->linker.BeforeLink());
       }
       else {
          if (funcname == "Build") self->linker.Build(AsString(args[0]));
@@ -38,6 +39,7 @@ v8::Handle<v8::Value> JsLinker::GetSet (const v8::Arguments& args)
          else if (funcname == "Def") self->linker.Def(AsString(args[0]));
          else if (funcname == "DependencyCheck") self->linker.DependencyCheck(AsBool(args[0]));
          else if (funcname == "Args") self->linker.Args(AsString(args));
+         else if (funcname == "BeforeLink") self->linker.BeforeLink(AsCallback(args[0]));
 
          result = args.This();
       }
@@ -83,6 +85,7 @@ void JsLinker::Register (v8::Handle<v8::ObjectTemplate>& global)
    proto->Set("Files", v8::FunctionTemplate::New(GetSet));
    proto->Set("DependencyCheck", v8::FunctionTemplate::New(GetSet));
    proto->Set("Args", v8::FunctionTemplate::New(GetSet));
+   proto->Set("BeforeLink", v8::FunctionTemplate::New(GetSet));
 
    proto->Set("Link", v8::FunctionTemplate::New(Link));
 

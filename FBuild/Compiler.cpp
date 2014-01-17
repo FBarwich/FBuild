@@ -70,7 +70,7 @@ inline std::string O (bool debug)
 
 inline std::string Z (bool debug)
 {
-   if (debug) return "-Z7 ";
+   if (debug) return "-Zi ";
    else return "";
 }
 
