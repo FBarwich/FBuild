@@ -35,6 +35,8 @@ void Librarian::Create () const
 
    if (!NeedsRebuild()) return;
 
+   if (beforeLink) beforeLink();
+
    if (boost::filesystem::exists(output)) boost::filesystem::remove(output);
 
    boost::filesystem::create_directories(boost::filesystem::path(output).remove_filename());

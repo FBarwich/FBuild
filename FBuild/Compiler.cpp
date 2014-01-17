@@ -121,6 +121,8 @@ void Compiler::Compile ()
 
    if (!NeedsRebuild()) return;
 
+   if (beforeCompile) beforeCompile();
+
    DeleteOutOfDateObjectFiles();
    CompilePrecompiledHeaders();
    CompileFiles();

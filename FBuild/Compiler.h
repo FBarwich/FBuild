@@ -28,6 +28,7 @@ class Compiler {
    int                      warnLevel;
    bool                     warningAsError;
    std::vector<int>         warningDisable;
+   std::function<void()>    beforeCompile;
 
    std::string CommandLine () const;
 
@@ -67,6 +68,7 @@ public:
    void WarnLevel (int v)                                  { warnLevel = v; }
    void WarningAsError (bool v)                            { warningAsError = v; }
    void WarningDisable (std::vector<int> v)                { warningDisable = std::move(v); }
+   void BeforeCompile (std::function<void()> v)            { beforeCompile = std::move(v); }
 
    std::string                     Build () const             { return debug ? "Debug" : "Release"; }
    std::string                     CRT () const               { return crtStatic ? "Static" : "Dynamic"; }
@@ -81,6 +83,7 @@ public:
    int                             WarnLevel () const         { return warnLevel; }
    bool                            WarningAsError () const    { return warningAsError; }
    const std::vector<int>&         WarningDisable () const    { return warningDisable; }
+   const std::function<void()>&    BeforeCompile () const     { return beforeCompile; }
 
    void Compile ();
 

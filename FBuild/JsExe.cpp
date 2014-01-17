@@ -32,6 +32,7 @@ v8::Handle<v8::Value> JsExe::GetSet (const v8::Arguments& args)
          else if (funcname == "WarningLevel") result = Value(self->compiler.WarnLevel());
          else if (funcname == "WarningAsError") result = Value(self->compiler.WarningAsError());
          else if (funcname == "WarningDisable") result = Value(self->compiler.WarningDisable());
+         else if (funcname == "BeforeCompile") result = Value(self->compiler.BeforeCompile());
 
          else if (funcname == "Output") result = Value(self->linker.Output());
          else if (funcname == "ImportLib") result = Value(self->linker.ImportLib());
@@ -57,6 +58,7 @@ v8::Handle<v8::Value> JsExe::GetSet (const v8::Arguments& args)
          else if (funcname == "WarningLevel") self->compiler.WarnLevel(AsInt(args[0]));
          else if (funcname == "WarningAsError") self->compiler.WarningAsError(AsBool(args[0]));
          else if (funcname == "WarningDisable") self->compiler.WarningDisable(AsIntVector(args));
+         else if (funcname == "BeforeCompile") self->compiler.BeforeCompile(AsCallback(args[0]));
 
          else if (funcname == "Output") self->linker.Output(AsString(args[0]));
          else if (funcname == "ImportLib") self->linker.ImportLib(AsString(args[0]));
@@ -137,6 +139,7 @@ void JsExe::Register (const char* classname, v8::Handle<v8::ObjectTemplate>& glo
    proto->Set("WarningLevel", v8::FunctionTemplate::New(GetSet));
    proto->Set("WarningAsError", v8::FunctionTemplate::New(GetSet));
    proto->Set("WarningDisable", v8::FunctionTemplate::New(GetSet));
+   proto->Set("BeforeCompile", v8::FunctionTemplate::New(GetSet));
 
    proto->Set("Output", v8::FunctionTemplate::New(GetSet));
    proto->Set("ImportLib", v8::FunctionTemplate::New(GetSet));

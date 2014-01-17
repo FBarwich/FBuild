@@ -33,6 +33,7 @@ v8::Handle<v8::Value> JsCompiler::GetSet (const v8::Arguments& args)
          else if (funcname == "WarningLevel") result = Value(self->compiler.WarnLevel());
          else if (funcname == "WarningAsError") result = Value(self->compiler.WarningAsError());
          else if (funcname == "WarningDisable") result = Value(self->compiler.WarningDisable());
+         else if (funcname == "BeforeCompile") result = Value(self->compiler.BeforeCompile());
       }
       else {
          if (funcname == "Build") self->compiler.Build(AsString(args[0]));
@@ -48,6 +49,7 @@ v8::Handle<v8::Value> JsCompiler::GetSet (const v8::Arguments& args)
          else if (funcname == "WarningLevel") self->compiler.WarnLevel(AsInt(args[0]));
          else if (funcname == "WarningAsError") self->compiler.WarningAsError(AsBool(args[0]));
          else if (funcname == "WarningDisable") self->compiler.WarningDisable(AsIntVector(args));
+         else if (funcname == "BeforeCompile") self->compiler.BeforeCompile(AsCallback(args[0]));
 
          result = args.This();
       }
@@ -131,6 +133,7 @@ void JsCompiler::Register (v8::Handle<v8::ObjectTemplate>& global)
    proto->Set("WarningLevel", v8::FunctionTemplate::New(GetSet));
    proto->Set("WarningAsError", v8::FunctionTemplate::New(GetSet));
    proto->Set("WarningDisable", v8::FunctionTemplate::New(GetSet));
+   proto->Set("BeforeCompile", v8::FunctionTemplate::New(GetSet));
 
    proto->Set("Compile", v8::FunctionTemplate::New(Compile));
    proto->Set("ObjFiles", v8::FunctionTemplate::New(ObjFiles));

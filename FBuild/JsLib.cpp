@@ -30,7 +30,9 @@ v8::Handle<v8::Value> JsLib::GetSet (const v8::Arguments& args)
          else if (funcname == "WarningLevel") result = Value(self->compiler.WarnLevel());
          else if (funcname == "WarningAsError") result = Value(self->compiler.WarningAsError());
          else if (funcname == "WarningDisable") result = Value(self->compiler.WarningDisable());
+         else if (funcname == "BeforeCompile") result = Value(self->compiler.BeforeCompile());
 
+         else if (funcname == "BeforeLink") result = Value(self->librarian.BeforeLink());
          else if (funcname == "Output") result = Value(self->librarian.Output());
       }
       else {
@@ -47,7 +49,9 @@ v8::Handle<v8::Value> JsLib::GetSet (const v8::Arguments& args)
          else if (funcname == "WarningLevel") self->compiler.WarnLevel(AsInt(args[0]));
          else if (funcname == "WarningAsError") self->compiler.WarningAsError(AsBool(args[0]));
          else if (funcname == "WarningDisable") self->compiler.WarningDisable(AsIntVector(args));
+         else if (funcname == "BeforeCompile") self->compiler.BeforeCompile(AsCallback(args[0]));
 
+         else if (funcname == "BeforeLink") self->librarian.BeforeLink(AsCallback(args[0]));
          else if (funcname == "Output") self->librarian.Output(AsString(args[0]));
 
          result = args.This();
