@@ -33,14 +33,29 @@ public:
       return result;
    }
 
+   struct FunctorWrapper {
+      v8::HandleScope scope; // scope must be created before the local!
+      v8::Local<v8::Function> function;
+
+      FunctorWrapper (v8::Local<v8::Function> f) 
+         : function(v8::Local<v8::Function>::New(f))
+      {
+      }
+
+      FunctorWrapper (const FunctorWrapper& other) 
+         : function(v8::Local<v8::Function>::New(other.function))
+      {
+      }
+
+      void operator() () 
+      {
+         function->Call(v8::Context::GetCurrent()->Global(), 0, nullptr);
+      }
+   };
+
    static std::function<void()> AsCallback (const v8::Handle<v8::Value>& val) 
    {
-      if (!val->IsObject()) throw std::runtime_error("Parameter ist kein v8::object");
-
-      auto tmpFunctor = v8::Local<v8::Function>::Cast(val->ToObject());
-      auto functor = v8::Persistent<v8::Function>::New(tmpFunctor);
-      
-      return [functor] () { functor->Call(v8::Context::GetCurrent()->Global(), 0, nullptr); };
+      return FunctorWrapper(v8::Local<v8::Function>::Cast(val->ToObject()));
    }
 
    static std::vector<std::string> AsStringVector (const v8::Arguments& args)
