@@ -37,7 +37,7 @@ void Linker::Link ()
 
    boost::filesystem::create_directories(boost::filesystem::path(output).remove_filename());
 
-   std::string command = "-NOLOGO -INCREMENTAL:NO -LARGEADDRESSAWARE ";
+   std::string command = "-NOLOGO -INCREMENTAL:NO -LARGEADDRESSAWARE -STACK:3000000";
    if (debug) command += "-DEBUG ";
    if (!Exe(output)) command += "-DLL ";
    command += "-OUT:\"" + output + "\" ";
