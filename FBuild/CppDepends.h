@@ -29,7 +29,7 @@ public:
 
    std::time_t MaxTime () const { return maxTime; }
 
-   // Beware. This functions are NOT threadsafe
+   // Beware. These functions are NOT threadsafe
    static void ClearIncludePath ();
    static void AddIncludePath (const boost::filesystem::path& path);
    static void PrecompiledHeader (const std::string& prec);

@@ -6,6 +6,7 @@
  */
 
 #include "ResourceCompiler.h"
+#include "CppDepends.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -26,7 +27,9 @@ bool ResourceCompiler::NeedsRebuild (const std::string& infile, const std::strin
 {
    if (!dependencyCheck) return true;
    if (!boost::filesystem::exists(outfile)) return true;
-   return boost::filesystem::last_write_time(infile) > boost::filesystem::last_write_time(outfile); 
+
+   CppDepends dep(infile);
+   return boost::filesystem::last_write_time(outfile) < dep.MaxTime(); 
 }
 
 void ResourceCompiler::Compile () const
