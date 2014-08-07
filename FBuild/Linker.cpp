@@ -32,13 +32,16 @@ void Linker::Link ()
 
    if (beforeLink) beforeLink();
 
-   if (boost::filesystem::exists(output)) boost::filesystem::remove(output);
-   if (importLib.size() && boost::filesystem::exists(importLib)) boost::filesystem::remove(importLib);
+   // I did not find a reason for this, but it prevents incremental linking
+   // if (boost::filesystem::exists(output)) boost::filesystem::remove(output);
+   // if (importLib.size() && boost::filesystem::exists(importLib)) boost::filesystem::remove(importLib);
 
    boost::filesystem::create_directories(boost::filesystem::path(output).remove_filename());
 
-   std::string command = "-NOLOGO -INCREMENTAL:NO -LARGEADDRESSAWARE -STACK:3000000 ";
+   std::string command = "-NOLOGO -LARGEADDRESSAWARE -STACK:3000000 ";
    if (debug) command += "-DEBUG ";
+   else command += "-INCREMENTAL:NO ";
+   
    if (!Exe(output)) command += "-DLL ";
    command += "-OUT:\"" + output + "\" ";
    if (!importLib.empty()) command += "-IMPLIB:\"" + importLib + "\" ";
