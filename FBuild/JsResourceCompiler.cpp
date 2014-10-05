@@ -7,6 +7,7 @@
 
 #include "JsResourceCompiler.h"
 
+/* TODO
 
 v8::Handle<v8::Value> JsResourceCompiler::GetSet (const v8::Arguments& args)
 {
@@ -78,3 +79,4 @@ void JsResourceCompiler::Register (v8::Handle<v8::ObjectTemplate>& global)
    global->Set(v8::String::New("ResourceCompiler"), funcTemplate);
 }
 
+*/

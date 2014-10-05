@@ -7,6 +7,7 @@
 
 #include "JsExe.h"
 
+/* TODO
 
 
 v8::Handle<v8::Value> JsExe::GetSet (const v8::Arguments& args)
@@ -158,3 +159,4 @@ void JsExe::Register (const char* classname, v8::Handle<v8::ObjectTemplate>& glo
 
    global->Set(v8::String::New(classname), funcTemplate);
 }
+*/

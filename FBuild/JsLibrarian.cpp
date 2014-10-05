@@ -7,6 +7,8 @@
 
 #include "JsLibrarian.h"
 
+/* TODO
+
 
 v8::Handle<v8::Value> JsLibrarian::GetSet (const v8::Arguments& args)
 {
@@ -78,3 +80,4 @@ void JsLibrarian::Register (v8::Handle<v8::ObjectTemplate>& global)
 
    global->Set(v8::String::New("Librarian"), funcTemplate);
 }
+*/

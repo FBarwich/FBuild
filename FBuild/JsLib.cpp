@@ -7,6 +7,8 @@
 
 #include "JsLib.h"
 
+/* TODO
+
 v8::Handle<v8::Value> JsLib::GetSet (const v8::Arguments& args)
 {
    v8::HandleScope scope;
@@ -120,3 +122,4 @@ void JsLib::Register (v8::Handle<v8::ObjectTemplate>& global)
 
 }
 
+*/

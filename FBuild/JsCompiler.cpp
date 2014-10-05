@@ -8,6 +8,7 @@
 #include "JsCompiler.h"
 
 
+/* TODO
 
 
 v8::Handle<v8::Value> JsCompiler::GetSet (const v8::Arguments& args)
@@ -146,3 +147,4 @@ void JsCompiler::Register (v8::Handle<v8::ObjectTemplate>& global)
 }
 
 
+*/

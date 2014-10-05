@@ -7,6 +7,8 @@
 
 #pragma once
 
+/* TODO
+
 #include "JavaScriptHelper.h"
 
 #include "Compiler.h"
@@ -24,3 +26,4 @@ public:
    static void Register (v8::Handle<v8::ObjectTemplate>& global);
 };
 
+*/

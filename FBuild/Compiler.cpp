@@ -8,7 +8,6 @@
 
 #include "Compiler.h"
 #include "CppOutOfDate.h"
-#include "JavaScript.h"
 
 #include <algorithm>
 #include <cstdlib>

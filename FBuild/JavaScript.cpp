@@ -5,43 +5,34 @@
  * Author: Frank Barwich
  */
 
+#include "Precompiled.h"
+
 #include "JavaScript.h"
-#include "JavaScriptHelper.h"
-
-#include "JsCopy.h"
-#include "JsCompiler.h"
-#include "JsLinker.h"
-#include "JsExe.h"
-#include "JsResourceCompiler.h"
-#include "JsLibrarian.h"
-#include "JsLib.h"
-#include "JsFileToCpp.h"
-#include "FileOutOfDate.h"
-
-#include <iostream>
-#include <fstream>
-#include <sstream>
-
-#include <boost/interprocess/file_mapping.hpp>
-#include <boost/interprocess/mapped_region.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/algorithm/string.hpp>
-
-#include <Shlwapi.h>
-
 
 
 
 JavaScript::JavaScript (const std::vector<std::string>& args)
 {
+   duktapeContext = duk_create_heap_default();
+   if (!duktapeContext) throw std::runtime_error("Unable to create JavaScript-Context");
+
+   SetArgs(args);
+
+   duk_push_global_object(duktapeContext);
+
+   duk_push_c_function(duktapeContext, JsQuit, 1);
+   duk_put_prop_string(duktapeContext, -2, "Quit");
+
+   duk_push_c_function(duktapeContext, JsPrint, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Print");
+
+   /*
    v8::HandleScope scope;
 
    v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
 
    global->Set(v8::String::New("ExecuteString"), v8::FunctionTemplate::New(JsExecuteString));
    global->Set(v8::String::New("ExecuteFile"), v8::FunctionTemplate::New(JsExecuteFile));
-   global->Set(v8::String::New("Print"), v8::FunctionTemplate::New(JsPrint));
-   global->Set(v8::String::New("Quit"), v8::FunctionTemplate::New(JsQuit));
    global->Set(v8::String::New("Run"), v8::FunctionTemplate::New(JsRun));
    global->Set(v8::String::New("System"), v8::FunctionTemplate::New(JsSystem));
    global->Set(v8::String::New("Glob"), v8::FunctionTemplate::New(JsGlob));
@@ -64,66 +55,84 @@ JavaScript::JavaScript (const std::vector<std::string>& args)
    JsLib::Register(global);
    JsFileToCpp::Register(global);
 
-   SetArgs(global, args);
-
    context = v8::Context::New(NULL, global);
+   */
 }
 
 JavaScript::~JavaScript ()
 {
-   context.Dispose();
-   while(!v8::V8::IdleNotification());  // What a crappy API... This collects all garbage, that's still laying around.
+   if (duktapeContext) duk_destroy_heap(duktapeContext);
 }
 
-void JavaScript::SetArgs (v8::Handle<v8::ObjectTemplate>& global, const std::vector<std::string>& args)
+void JavaScript::SetArgs (const std::vector<std::string>& args)
 {
-   v8::Handle<v8::ObjectTemplate> obj = v8::ObjectTemplate::New();
+   ExecuteString("var args = {};");
 
-   std::for_each(args.begin(), args.end(), [&obj] (const std::string& s) {
-      size_t pos = s.find(':');
-      if (pos == s.npos) pos = s.find('=');
-      if (pos == s.npos) obj->Set(v8::String::New(s.c_str()), v8::String::New(""));
+   for (const auto& arg : args) {
+      auto pos = arg.find(':');
+      if (pos == std::string::npos) pos = arg.find('=');
+      if (pos == std::string::npos) ExecuteString("args['" + arg + "'] = '';");
       else {
-         std::string key = s.substr(0, pos);
-         std::string val = s.substr(pos + 1);
-         obj->Set(v8::String::New(key.c_str()), v8::String::New(val.c_str()));
+         std::string key = arg.substr(0, pos);
+         std::string val = arg.substr(pos + 1);
+         ExecuteString("args['" + key + "'] = '" + val + "';");
       }
-   });
-
-   global->Set(v8::String::New("args"), obj);
+   }
 }
 
-void JavaScript::CheckException (v8::TryCatch& tryCatch)
+void JavaScript::ExecuteString (const std::string& code, const std::string& name)
 {
-   if (!tryCatch.HasCaught()) return;
-
-   v8::HandleScope scope;
-
-   std::string error = JavaScriptHelper::AsString(tryCatch.Exception());
-
-   v8::Handle<v8::Message> message = tryCatch.Message();
-   if (!message.IsEmpty()) {
-      std::string filename = JavaScriptHelper::AsString(message->GetScriptResourceName());
-      int line = message->GetLineNumber();
-      
-      std::stringstream ss;
-      ss << filename << ": " << line << ": " << error << "\n";
-      ss << JavaScriptHelper::AsString(message->GetSourceLine()) << "\n";
-
-      int start = message->GetStartColumn();
-      for (int i = 0; i < start; ++i) ss << ' ';
-
-      int end = message->GetEndColumn();
-      for (int i = start; i < end; ++i) ss << "^";
-
-      ss << "\n";
-
-      throw std::runtime_error(ss.str());
+   duk_push_string(duktapeContext, code.c_str());
+   duk_push_string(duktapeContext, name.c_str());
+   if (duk_pcompile(duktapeContext, DUK_COMPILE_NORESULT)) {
+      std::string error = duk_safe_to_string(duktapeContext, -1);
+      throw std::runtime_error(error);
    }
-   else {
+
+   if (duk_pcall(duktapeContext, 0)) {
+      std::string error = duk_safe_to_string(duktapeContext, -1);
       throw std::runtime_error(error);
    }
 }
+
+
+void JavaScript::ExecuteFile (const boost::filesystem::path& script)
+{
+   if (!boost::filesystem::exists(script)) throw std::runtime_error("File " + script.string() + " does not exist");
+
+   boost::filesystem::path file = boost::filesystem::canonical(script);
+   file.make_preferred();
+
+   std::string str = file.string();
+   if (duk_peval_file(duktapeContext, str.c_str())) {
+      std::string error = duk_safe_to_string(duktapeContext, -1);
+      throw std::runtime_error(error);
+   }
+
+   duk_pop(duktapeContext);
+}
+
+duk_ret_t JavaScript::JsQuit (duk_context* duktapeContext)
+{
+   int exitCode = duk_to_int(duktapeContext, 0);
+   exit(exitCode);
+}
+
+duk_ret_t JavaScript::JsPrint (duk_context* duktapeContext)
+{
+   int top = duk_get_top(duktapeContext);
+   for (int i = 0; i < top; ++i) {
+      std::cout << duk_to_string(duktapeContext, i) << " ";
+   }
+
+   std::cout << "\n";
+
+   return 0;
+}
+
+
+/* TODO
+
 
 void JavaScript::Exec (const char* code, size_t len, const std::string& name)
 {
@@ -142,34 +151,6 @@ void JavaScript::Exec (const char* code, size_t len, const std::string& name)
 
    v8::Handle<v8::Value> result = script->Run();
    CheckException(tryCatch);
-}
-
-void JavaScript::ExecuteBuffer (const char* code, size_t len, const std::string& name)
-{
-   v8::Context::Scope contextScope(context);
-   Exec(code, len, name);
-}
-
-void JavaScript::ExecuteString (const std::string& code, const std::string& name)
-{
-   ExecuteBuffer(code.c_str(), code.size(), name);
-}
-
-void JavaScript::ExecuteFile (const std::string& script)
-{
-   v8::HandleScope scope;
-
-   if (!boost::filesystem::exists(script)) throw std::runtime_error("File " + script + " not found");
-
-   boost::filesystem::path file = boost::filesystem::canonical(script);
-   file.make_preferred();
-
-   size_t size = static_cast<size_t>(boost::filesystem::file_size(file));
-
-   boost::interprocess::file_mapping mapping(file.string().c_str(), boost::interprocess::read_only);
-   boost::interprocess::mapped_region region(mapping, boost::interprocess::read_only, 0, size);
-
-   ExecuteBuffer(static_cast<const char*>(region.get_address()), size, file.filename().string());
 }
 
 v8::Handle<v8::Value> JavaScript::JsExecuteString (const v8::Arguments& args)
@@ -205,18 +186,6 @@ v8::Handle<v8::Value> JavaScript::JsExecuteFile (const v8::Arguments& args)
    Exec(static_cast<const char*>(region.get_address()), size, file.filename().string());
 
    return v8::Undefined();
-}
-
-v8::Handle<v8::Value> JavaScript::JsPrint (const v8::Arguments& args)
-{
-   std::cout << JavaScriptHelper::AsString(args) << std::endl;
-   return v8::Undefined();
-}
-
-v8::Handle<v8::Value> JavaScript::JsQuit (const v8::Arguments& args)
-{
-   int exit_code = args[0]->Int32Value();
-   exit(exit_code);
 }
 
 v8::Handle<v8::Value> JavaScript::JsRun (const v8::Arguments& args)
@@ -467,3 +436,5 @@ v8::Handle<v8::Value> JavaScript::JsDelete (const v8::Arguments& args)
 
    return v8::Undefined();
 }
+
+*/

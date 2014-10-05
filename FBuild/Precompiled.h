@@ -25,11 +25,5 @@
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
+#include "../Duktape/duktape.h"
 
-#pragma warning(disable:4355)
-#pragma warning(disable:4100)
-#pragma warning(disable:4127)
-#include <v8.h>
-#pragma warning(default:4355)
-#pragma warning(default:4100)
-#pragma warning(default:4127)

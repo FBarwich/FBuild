@@ -7,15 +7,14 @@ if (args.rebuild == undefined) args.rebuild = false;
 var exe = new Exe;
 exe.Build(args.build);
 exe.Output("../" + args.build + "/FBuild.exe");
-exe.Includes("../Boost", "../V8/Include");
+exe.Includes("../Boost");
 exe.Defines("_CRT_SECURE_NO_WARNINGS");
 exe.CRT("Static");
 exe.WarningLevel(4).WarningAsError(true);
 exe.Files(Glob("*.cpp"));
 exe.PrecompiledHeader("Precompiled.h", "Precompiled.cpp");
 exe.LibPath("../Boost/stage/lib", "../" + args.build);
-exe.Libs("v8_base.lib", "preparser_lib.lib", "v8_nosnapshot.lib", "v8_snapshot.lib", "Ws2_32.lib", "Winmm.lib", "Shlwapi.lib");
+exe.Libs("Duktape.lib", "Ws2_32.lib", "Winmm.lib", "Shlwapi.lib");
 exe.DependencyCheck(!args.rebuild);
-if (args.build == "debug") exe.LinkArgs("-ignore:4099"); // Gnah, Fuck you Microsoft. Why is this Warning not ignorable?
 
 exe.Create();

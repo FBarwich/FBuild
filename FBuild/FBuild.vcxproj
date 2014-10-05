@@ -21,12 +21,14 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -42,14 +44,14 @@
     <LinkIncremental>true</LinkIncremental>
     <NMakeBuildCommandLine>..\FBuild.exe build=Debug</NMakeBuildCommandLine>
     <NMakeOutput>$(SolutionDir)$(Configuration)\FBuild.exe</NMakeOutput>
-    <NMakeIncludeSearchPath>/boost_1_50_0;../V8/include</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath>../Boost</NMakeIncludeSearchPath>
     <NMakeReBuildCommandLine>..\FBuild.exe build=Debug rebuild=true</NMakeReBuildCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <NMakeBuildCommandLine>..\FBuild.exe build=Release</NMakeBuildCommandLine>
     <NMakeOutput>$(SolutionDir)$(Configuration)\FBuild.exe</NMakeOutput>
-    <NMakeIncludeSearchPath>/boost_1_50_0;../V8/include</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath>../Boost</NMakeIncludeSearchPath>
     <NMakeReBuildCommandLine>..\FBuild.exe build=Release rebuild=true</NMakeReBuildCommandLine>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

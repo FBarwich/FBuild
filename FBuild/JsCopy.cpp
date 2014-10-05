@@ -7,6 +7,8 @@
 
 #include "JsCopy.h"
 
+/* TODO
+
 
 v8::Handle<v8::Value> JsCopy::CopyFunc (const v8::Arguments& args)
 {
@@ -117,3 +119,5 @@ void JsCopy::Register (v8::Handle<v8::ObjectTemplate>& global)
 
    global->Set(v8::String::New("CopyObj"), funcTemplate);
 }
+
+*/

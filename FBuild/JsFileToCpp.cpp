@@ -1,5 +1,6 @@
 #include "JsFileToCpp.h"
 
+/* TODO
 
 
 v8::Handle<v8::Value> JsFileToCpp::GetSet (const v8::Arguments& args)
@@ -94,3 +95,4 @@ void JsFileToCpp::Register (v8::Handle<v8::ObjectTemplate>& global)
    global->Set(v8::String::New("FileToCpp"), funcTemplate);
 }
 
+*/

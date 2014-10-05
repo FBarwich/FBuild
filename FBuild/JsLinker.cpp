@@ -7,6 +7,7 @@
 
 #include "JsLinker.h"
 
+/*
 v8::Handle<v8::Value> JsLinker::GetSet (const v8::Arguments& args)
 {
    v8::HandleScope scope;
@@ -94,3 +95,5 @@ void JsLinker::Register (v8::Handle<v8::ObjectTemplate>& global)
 
    global->Set(v8::String::New("Linker"), funcTemplate);
 }
+
+*/
