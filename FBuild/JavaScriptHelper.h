@@ -7,20 +7,52 @@
 
 #pragma once
 
+#include "../Duktape/duktape.h"
+
+#include <boost/utility/string_ref.hpp> 
+
+
+namespace JavaScriptHelper {
+
+   void Throw(duk_context* duktapeContext, boost::string_ref what)
+   {
+      duk_push_string(duktapeContext, what.data());
+      duk_throw(duktapeContext);
+   }
+
+   std::vector<std::string> AsStringVector(duk_context* duktapeContext)
+   {
+      std::vector<std::string> result;
+
+      int top = duk_get_top(duktapeContext);
+
+      for (int i = 0; i < top; ++i) {
+         if (duk_is_array(duktapeContext, i)) {
+            duk_enum(duktapeContext, i, DUK_ENUM_ARRAY_INDICES_ONLY);
+
+            while (duk_next(duktapeContext, -1, 1)) {
+               result.push_back(duk_to_string(duktapeContext, -1));
+               duk_pop_2(duktapeContext);
+            }
+
+            duk_pop(duktapeContext);
+         }
+         else {
+            result.push_back(duk_to_string(duktapeContext, i));
+         }
+      }
+
+      return result;
+   }
+}
+
+
 /* TODO
-#include <v8.h>
 
 class JavaScriptHelper {
 public:
    static int AsInt (const v8::Handle<v8::Value>& val) { return val->Int32Value(); }
    static bool AsBool (const v8::Handle<v8::Value>& val) { return val->BooleanValue(); }
-
-   static std::string AsString (const v8::Handle<v8::Value>& val)
-   {
-      v8::String::AsciiValue ascii(val);
-      if (!*ascii) return "";
-      else return std::string(*ascii, ascii.length());
-   }
 
    static std::string AsString (const v8::Arguments& args)
    {
@@ -59,23 +91,6 @@ public:
       return FunctorWrapper(v8::Local<v8::Function>::Cast(val->ToObject()));
    }
 
-   static std::vector<std::string> AsStringVector (const v8::Arguments& args)
-   {
-      std::vector<std::string> result;
-
-      for (int i = 0; i < args.Length(); ++i) {
-         if (args[i]->IsArray()) {
-            v8::Local<v8::Object> arr = args[i]->ToObject();
-            size_t length = arr->Get(v8::String::New("length"))->Int32Value();
-            for (size_t i = 0; i < length; ++i) result.push_back(AsString(arr->Get(i)));
-         }
-         else {
-            result.push_back(AsString(args[i]));
-         }
-      }
-
-      return result;
-   }
 
    static std::vector<int> AsIntVector (const v8::Arguments& args)
    {

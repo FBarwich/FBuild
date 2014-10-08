@@ -8,7 +8,11 @@
 #include "Precompiled.h"
 
 #include "JavaScript.h"
+#include "JavaScriptHelper.h"
 
+#include "FileOutOfDate.h"
+
+#include <Shlwapi.h>
 
 
 JavaScript::JavaScript (const std::vector<std::string>& args)
@@ -20,32 +24,57 @@ JavaScript::JavaScript (const std::vector<std::string>& args)
 
    duk_push_global_object(duktapeContext);
 
-   duk_push_c_function(duktapeContext, JsQuit, 1);
+   duk_push_c_function(duktapeContext, JsQuit, DUK_VARARGS);
    duk_put_prop_string(duktapeContext, -2, "Quit");
 
    duk_push_c_function(duktapeContext, JsPrint, DUK_VARARGS);
    duk_put_prop_string(duktapeContext, -2, "Print");
 
+   duk_push_c_function(duktapeContext, JsExecuteString, 2);
+   duk_put_prop_string(duktapeContext, -2, "ExecuteString");
+
+   duk_push_c_function(duktapeContext, JsExecuteFile, 1);
+   duk_put_prop_string(duktapeContext, -2, "ExecuteFile");
+
+   duk_push_c_function(duktapeContext, JsSystem, 1);
+   duk_put_prop_string(duktapeContext, -2, "System");
+
+   duk_push_c_function(duktapeContext, JsFullPath, 1);
+   duk_put_prop_string(duktapeContext, -2, "FullPath");
+
+   duk_push_c_function(duktapeContext, JsDelete, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Delete");
+
+   duk_push_c_function(duktapeContext, JsRun, 2);
+   duk_put_prop_string(duktapeContext, -2, "Run");
+
+   duk_push_c_function(duktapeContext, JsTouch, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Touch");
+
+   duk_push_c_function(duktapeContext, JsGlob, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Glob");
+
+   duk_push_c_function(duktapeContext, JsBuild, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Build");
+
+   duk_push_c_function(duktapeContext, JsFileOutOfDate, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "FileOutOfDate");
+
+   duk_push_c_function(duktapeContext, JsChangeDirectory, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "ChangeDirectory");
+
+   duk_push_c_function(duktapeContext, JsStringToFile, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "StringToFile");
+
+   duk_push_c_function(duktapeContext, JsGetEnv, 1);
+   duk_put_prop_string(duktapeContext, -2, "GetEnv");
+
+   duk_push_c_function(duktapeContext, JsSetEnv, 2);
+   duk_put_prop_string(duktapeContext, -2, "SetEnv");
+
+   duk_pop(duktapeContext);
+
    /*
-   v8::HandleScope scope;
-
-   v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
-
-   global->Set(v8::String::New("ExecuteString"), v8::FunctionTemplate::New(JsExecuteString));
-   global->Set(v8::String::New("ExecuteFile"), v8::FunctionTemplate::New(JsExecuteFile));
-   global->Set(v8::String::New("Run"), v8::FunctionTemplate::New(JsRun));
-   global->Set(v8::String::New("System"), v8::FunctionTemplate::New(JsSystem));
-   global->Set(v8::String::New("Glob"), v8::FunctionTemplate::New(JsGlob));
-   global->Set(v8::String::New("FullPath"), v8::FunctionTemplate::New(JsFullPath));
-   global->Set(v8::String::New("Build"), v8::FunctionTemplate::New(JsBuild));
-   global->Set(v8::String::New("FileOutOfDate"), v8::FunctionTemplate::New(JsFileOutOfDate));
-   global->Set(v8::String::New("ChangeDirectory"), v8::FunctionTemplate::New(JsChangeDirectory));
-   global->Set(v8::String::New("StringToFile"), v8::FunctionTemplate::New(JsStringToFile));
-   global->Set(v8::String::New("GetEnv"), v8::FunctionTemplate::New(JsGetEnv));
-   global->Set(v8::String::New("SetEnv"), v8::FunctionTemplate::New(JsSetEnv));
-   global->Set(v8::String::New("Touch"), v8::FunctionTemplate::New(JsTouch));
-   global->Set(v8::String::New("Delete"), v8::FunctionTemplate::New(JsDelete));
-
    JsCopy::Register(global);
    JsCompiler::Register(global);
    JsLinker::Register(global);
@@ -54,8 +83,6 @@ JavaScript::JavaScript (const std::vector<std::string>& args)
    JsLibrarian::Register(global);
    JsLib::Register(global);
    JsFileToCpp::Register(global);
-
-   context = v8::Context::New(NULL, global);
    */
 }
 
@@ -66,24 +93,33 @@ JavaScript::~JavaScript ()
 
 void JavaScript::SetArgs (const std::vector<std::string>& args)
 {
-   ExecuteString("var args = {};");
+   duk_push_global_object(duktapeContext);
+   duk_push_object(duktapeContext);
 
    for (const auto& arg : args) {
       auto pos = arg.find(':');
       if (pos == std::string::npos) pos = arg.find('=');
-      if (pos == std::string::npos) ExecuteString("args['" + arg + "'] = '';");
+      if (pos == std::string::npos) {
+         duk_push_string(duktapeContext, "");
+         duk_put_prop_string(duktapeContext, -2, arg.c_str());
+      }
       else {
          std::string key = arg.substr(0, pos);
          std::string val = arg.substr(pos + 1);
-         ExecuteString("args['" + key + "'] = '" + val + "';");
+         duk_push_string(duktapeContext, val.c_str());
+         duk_put_prop_string(duktapeContext, -2, key.c_str());
       }
    }
+
+   duk_put_prop_string(duktapeContext, -2, "args");
+   duk_pop(duktapeContext);
 }
 
 void JavaScript::ExecuteString (const std::string& code, const std::string& name)
 {
    duk_push_string(duktapeContext, code.c_str());
    duk_push_string(duktapeContext, name.c_str());
+
    if (duk_pcompile(duktapeContext, DUK_COMPILE_NORESULT)) {
       std::string error = duk_safe_to_string(duktapeContext, -1);
       throw std::runtime_error(error);
@@ -114,6 +150,8 @@ void JavaScript::ExecuteFile (const boost::filesystem::path& script)
 
 duk_ret_t JavaScript::JsQuit (duk_context* duktapeContext)
 {
+   if (duk_get_top(duktapeContext) != 1) JavaScriptHelper::Throw(duktapeContext, "One argument for Quit() expected");
+
    int exitCode = duk_to_int(duktapeContext, 0);
    exit(exitCode);
 }
@@ -130,84 +168,87 @@ duk_ret_t JavaScript::JsPrint (duk_context* duktapeContext)
    return 0;
 }
 
-
-/* TODO
-
-
-void JavaScript::Exec (const char* code, size_t len, const std::string& name)
+duk_ret_t JavaScript::JsExecuteString(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
+   std::string code = duk_require_string(duktapeContext, 0);
+   std::string name = duk_to_string(duktapeContext, 1);
+   if (name == "undefined") name = "<ExecuteString>";
 
-   v8::TryCatch tryCatch;
+   duk_push_string(duktapeContext, code.c_str());
+   duk_push_string(duktapeContext, name.c_str());
 
-   v8::Handle<v8::String> source = v8::String::New(code, len);
-   CheckException(tryCatch);
+   duk_compile(duktapeContext, DUK_COMPILE_NORESULT);
+   duk_call(duktapeContext, 0);
 
-   v8::Handle<v8::String> origin = v8::String::New(name.c_str(), name.size());
-   CheckException(tryCatch);
-
-   v8::Handle<v8::Script> script = v8::Script::Compile(source, origin);
-   CheckException(tryCatch);
-
-   v8::Handle<v8::Value> result = script->Run();
-   CheckException(tryCatch);
+   return 0;
 }
 
-v8::Handle<v8::Value> JavaScript::JsExecuteString (const v8::Arguments& args)
+duk_ret_t JavaScript::JsExecuteFile(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
+   std::string script = duk_require_string(duktapeContext, 0);
 
-   std::string code = JavaScriptHelper::AsString(args[0]);
-   if (code.empty()) return v8::ThrowException(v8::String::New("Expected String for ExecuteString()"));
-   std::string name = JavaScriptHelper::AsString(args[1]);
-   if (name.empty()) name = "<ExecuteString>";
-
-   Exec(code.c_str(), code.size(), name);
-
-   return v8::Undefined();
-}
-
-v8::Handle<v8::Value> JavaScript::JsExecuteFile (const v8::Arguments& args)
-{
-   v8::HandleScope scope;
-
-   std::string script = JavaScriptHelper::AsString(args[0]);
-   if (script.empty()) return v8::ThrowException(v8::String::New("Expected filename for ExecuteFile()"));
-   if (!boost::filesystem::exists(script)) return v8::ThrowException(v8::String::New(std::string("File " + script + " not found").c_str()));
+   if (!boost::filesystem::exists(script)) JavaScriptHelper::Throw(duktapeContext, "File " + script + " does not exist");
 
    boost::filesystem::path file = boost::filesystem::canonical(script);
    file.make_preferred();
 
-   size_t size = static_cast<size_t>(boost::filesystem::file_size(file));
+   std::string str = file.string();
+   duk_eval_file_noresult(duktapeContext, str.c_str());
 
-   boost::interprocess::file_mapping mapping(file.string().c_str(), boost::interprocess::read_only);
-   boost::interprocess::mapped_region region(mapping, boost::interprocess::read_only, 0, size);
-
-   Exec(static_cast<const char*>(region.get_address()), size, file.filename().string());
-
-   return v8::Undefined();
+   return 0;
 }
 
-v8::Handle<v8::Value> JavaScript::JsRun (const v8::Arguments& args)
+duk_ret_t JavaScript::JsSystem(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
-   v8::Handle<v8::Value> result;
+   std::string command = duk_require_string(duktapeContext, 0);
 
-   if (args.Length() < 1) return v8::ThrowException(v8::String::New("Expected commandline for Run()"));
-   std::string command = JavaScriptHelper::AsString(args[0]);
+   int rc = std::system(command.c_str());
 
-   bool catchOutput = false;
-   if (args.Length() > 1) catchOutput = args[1]->BooleanValue();
+   duk_push_int(duktapeContext, rc);
+   return 1;
+}
+
+duk_ret_t JavaScript::JsFullPath(duk_context* duktapeContext)
+{
+   std::string path = duk_require_string(duktapeContext, 0);
+
+   auto full = boost::filesystem::canonical(path);
+   full.make_preferred();
+
+   std::string str = full.string();
+   duk_push_string(duktapeContext, str.c_str());
+   return 1;
+}
+
+duk_ret_t JavaScript::JsDelete(duk_context* duktapeContext)
+{
+   const std::vector<std::string> files = JavaScriptHelper::AsStringVector(duktapeContext);
+   if (files.empty()) JavaScriptHelper::Throw(duktapeContext, "Filename(s) for Delete() expected");
+
+   try {
+      for (const auto& file : files) {
+         boost::system::error_code rc;
+         boost::filesystem::remove_all(file, rc);
+      }
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
+
+   return 0;
+}
+
+duk_ret_t JavaScript::JsRun(duk_context* duktapeContext)
+{
+   std::string command = duk_require_string(duktapeContext, 0);
+   bool catchOutput = duk_to_boolean(duktapeContext, 1) != false;
 
    auto tmpfile = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
 
-
-   if (catchOutput) {
-      command += " 1>" + tmpfile.string() + " 2>&1";
-   }
+   if (catchOutput) command += " 1>" + tmpfile.string() + " 2>&1";
 
    int rc = std::system(command.c_str());
-   if (rc) return v8::ThrowException(v8::String::New(std::string("Error running command " + command).c_str()));
+   if (rc) JavaScriptHelper::Throw(duktapeContext, "Error running command " + command);
 
    if (catchOutput) {
       {
@@ -218,43 +259,51 @@ v8::Handle<v8::Value> JavaScript::JsRun (const v8::Arguments& args)
          std::string r = ss.str();
          boost::trim_right(r);
 
-         result = v8::String::New(r.c_str());
+         duk_push_string(duktapeContext, r.c_str());
       }
+
       boost::filesystem::remove(tmpfile);
+      return 1;
+   }
+   else {
+      return 0;
+   }
+}
+
+duk_ret_t JavaScript::JsTouch(duk_context* duktapeContext)
+{
+   const std::vector<std::string> files = JavaScriptHelper::AsStringVector(duktapeContext);
+   if (files.empty()) JavaScriptHelper::Throw(duktapeContext, "Filename(s) for Touch() expected");
+
+   try {
+      for (const auto& filename : files) {
+         if (!boost::filesystem::exists(filename)) throw std::exception(std::string("File " + filename + " does not exist").c_str());
+         if (!boost::filesystem::is_regular_file(filename)) throw std::exception(std::string(filename + " is not a file").c_str());
+         boost::filesystem::last_write_time(filename, std::time(nullptr));
+      }
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
    }
 
-   return scope.Close(result);
+   return 0;
 }
 
-v8::Handle<v8::Value> JavaScript::JsSystem (const v8::Arguments& args)
+duk_ret_t JavaScript::JsGlob(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
-
-   if (args.Length() < 1) return v8::ThrowException(v8::String::New("Expected commandline for System()"));
-   std::string command = JavaScriptHelper::AsString(args[0]);
-
-   int rc = std::system(command.c_str());
-
-   v8::Handle<v8::Integer> ret = v8::Integer::New(rc);
-   return scope.Close(ret);
-}
-
-v8::Handle<v8::Value> JavaScript::JsGlob (const v8::Arguments& args)
-{
-   v8::HandleScope scope;
-
    std::string path = ".";
    std::string pattern = "*";
 
-   if (args.Length() == 1) {
-      pattern = JavaScriptHelper::AsString(args[0]);
+   int args = duk_get_top(duktapeContext);
+   if (args == 1) {
+      pattern = duk_require_string(duktapeContext, 0);
    }
-   else if (args.Length() == 2) {
-      path = JavaScriptHelper::AsString(args[0]);
-      pattern = JavaScriptHelper::AsString(args[1]);
+   else if (args == 2) {
+      path = duk_require_string(duktapeContext, 0);
+      pattern = duk_require_string(duktapeContext, 1);
    }
    else {
-      return v8::ThrowException(v8::String::New("Expected one or two arguments for Glob()"));
+      JavaScriptHelper::Throw(duktapeContext, "Expected one or two arguments for Glob()");
    }
 
    std::vector<std::string> files;
@@ -270,171 +319,99 @@ v8::Handle<v8::Value> JavaScript::JsGlob (const v8::Arguments& args)
       });
    }
 
-   v8::Handle<v8::Array> result = v8::Array::New(files.size());
-   for (size_t i = 0; i < files.size(); ++i) result->Set(i, v8::String::New(files[i].c_str()));
-   return scope.Close(result);
+   duk_push_array(duktapeContext);
+
+   for (size_t i = 0; i < files.size(); ++i) {
+      duk_push_string(duktapeContext, files[i].c_str());
+      duk_put_prop_index(duktapeContext, -2, i);
+   }
+
+   return 1;
 }
 
-v8::Handle<v8::Value> JavaScript::JsFullPath (const v8::Arguments& args)
+duk_ret_t JavaScript::JsBuild(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
+   if (duk_get_top(duktapeContext) != 1) JavaScriptHelper::Throw(duktapeContext, "One argument for Build() expected");
 
-   std::string path = ".";
-   if (args.Length()) path = JavaScriptHelper::AsString(args[0]);
-
-   auto full = boost::filesystem::canonical(path);
-   full.make_preferred();
-
-   v8::Local<v8::String> result = v8::String::New(full.string().c_str());
-   return scope.Close(result);
-}
-
-v8::Handle<v8::Value> JavaScript::JsBuild (const v8::Arguments& args)
-{
-   v8::HandleScope scope;
-
-   if (args.Length() != 1) return v8::ThrowException(v8::String::New("Expected one argument for Build()"));
-
-   auto current = boost::filesystem::current_path();
-   boost::filesystem::current_path(JavaScriptHelper::AsString(args[0]));
+   const auto current = boost::filesystem::current_path();
+   boost::filesystem::current_path(duk_require_string(duktapeContext, 0));
 
    try {
       boost::filesystem::path file = boost::filesystem::canonical("FBuild.js");
       file.make_preferred();
 
-      size_t size = static_cast<size_t>(boost::filesystem::file_size(file));
-
-      boost::interprocess::file_mapping mapping(file.string().c_str(), boost::interprocess::read_only);
-      boost::interprocess::mapped_region region(mapping, boost::interprocess::read_only, 0, size);
-
-      Exec(static_cast<const char*>(region.get_address()), size, file.filename().string());
+      const std::string str = file.string();
+      duk_eval_file_noresult(duktapeContext, str.c_str());
    }
    catch (std::exception& e) {
       boost::filesystem::current_path(current);
-      return v8::ThrowException(v8::String::New(e.what()));
+      JavaScriptHelper::Throw(duktapeContext, e.what());
    }
 
    boost::filesystem::current_path(current);
 
-   return v8::Undefined();
+   return 0;
 }
 
-v8::Handle<v8::Value> JavaScript::JsFileOutOfDate (const v8::Arguments& args)
+duk_ret_t JavaScript::JsFileOutOfDate(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
-
-   if (args.Length() < 2) return v8::ThrowException(v8::String::New("Expected two or more arguments for FileOutOfDate()"));
+   const auto files = JavaScriptHelper::AsStringVector(duktapeContext);
+   if (files.size() < 2) JavaScriptHelper::Throw(duktapeContext, "Expected two or more arguments for FileOutOfDate()");
 
    FileOutOfDate outOfDate;
-   outOfDate.Parent(JavaScriptHelper::AsString(args[0]));
+   outOfDate.Parent(files[0]);
 
-   for (int i = 1; i < args.Length(); ++i) {
-      if (args[i]->IsArray()) {
-         v8::Local<v8::Object> arr = args[i]->ToObject();
-         size_t length = arr->Get(v8::String::New("length"))->Int32Value();
-         for (size_t i = 0; i < length; ++i) outOfDate.AddFile(JavaScriptHelper::AsString(arr->Get(i)));
-      }
-      else {
-         outOfDate.AddFile(JavaScriptHelper::AsString(args[i]));
-      }
+   for (size_t i = 1; i < files.size(); ++i) {
+      outOfDate.AddFile(files[i]);
    }
 
-   v8::Handle<v8::Value> result = v8::Boolean::New(outOfDate.Go());
-   return scope.Close(result);
+   duk_push_boolean(duktapeContext, outOfDate.Go());
+   return 1;
 }
 
-v8::Handle<v8::Value> JavaScript::JsChangeDirectory (const v8::Arguments& args)
+duk_ret_t JavaScript::JsChangeDirectory(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
+   if (duk_get_top(duktapeContext) != 1) JavaScriptHelper::Throw(duktapeContext, "One arguments for ChangeDirectory() expected");
 
-   if (args.Length() != 1) return v8::ThrowException(v8::String::New("Expected one argument for ChangeDirectory()"));
-
-   boost::filesystem::current_path(JavaScriptHelper::AsString(args[0]));
-
-   return v8::Undefined();
+   boost::filesystem::current_path(duk_require_string(duktapeContext, 0));
+   return 0;
 }
 
-v8::Handle<v8::Value> JavaScript::JsStringToFile (const v8::Arguments& args)
+duk_ret_t JavaScript::JsStringToFile(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
+   if (duk_get_top(duktapeContext) != 2) JavaScriptHelper::Throw(duktapeContext, "Two arguments for StringToFile() expected");
 
-   if (args.Length() != 2) return v8::ThrowException(v8::String::New("Expected two arguments for StringToFile()"));
+   std::string file = duk_require_string(duktapeContext, 0);
+   std::string content = duk_to_string(duktapeContext, 1);
 
-   std::ofstream out(JavaScriptHelper::AsString(args[0]), std::ofstream::trunc);
-   if (out.fail()) return v8::ThrowException(v8::String::New(std::string("Error opening " + JavaScriptHelper::AsString(args[0])).c_str()));
+   std::ofstream out(file, std::ofstream::trunc);
+   if (out.fail()) JavaScriptHelper::Throw(duktapeContext, "Error opening " + file);
 
-   out << JavaScriptHelper::AsString(args[1]);
+   out << content;
 
-   return v8::Undefined();
+   return 0;
 }
 
-v8::Handle<v8::Value> JavaScript::JsGetEnv (const v8::Arguments& args)
+duk_ret_t JavaScript::JsGetEnv(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
-   v8::Handle<v8::Value> result;
-
-   if (args.Length() != 1) return v8::ThrowException(v8::String::New("Expected one argument for GetEnv()"));
-
-   const char* env = std::getenv(JavaScriptHelper::AsString(args[0]).c_str());
-   if (env) result = v8::String::New(env);
-
-   return scope.Close(result);
+   const char* env = std::getenv(duk_require_string(duktapeContext, 0));
+   if (env) {
+      duk_push_string(duktapeContext, env);
+      return 1;
+   }
+   else {
+      return 0;
+   }
 }
 
-v8::Handle<v8::Value> JavaScript::JsSetEnv (const v8::Arguments& args)
+duk_ret_t JavaScript::JsSetEnv(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
-   v8::Handle<v8::Value> result;
-
-   if (args.Length() != 2) return v8::ThrowException(v8::String::New("Expected two arguments for SetEnv()"));
-
-   std::string arg = JavaScriptHelper::AsString(args[0]) + "=" + JavaScriptHelper::AsString(args[1]);
+   std::string arg = duk_require_string(duktapeContext, 0);
+   arg += "=";
+   arg += duk_require_string(duktapeContext, 1);
 
    int rc = _putenv(arg.c_str());
-   if (rc) return v8::ThrowException(v8::String::New(std::string("Error putting environment " + JavaScriptHelper::AsString(args[0])).c_str()));
+   if (rc) JavaScriptHelper::Throw(duktapeContext, "Error putting environment " + arg);
 
-   return v8::Undefined();
+   return 0;
 }
-
-v8::Handle<v8::Value> JavaScript::JsTouch (const v8::Arguments& args)
-{
-   v8::HandleScope scope;
-
-   if (args.Length() < 1) return v8::ThrowException(v8::String::New("Expected filename(s) for Touch()"));
-   std::vector<std::string> files = JavaScriptHelper::AsStringVector(args);
-
-   try {
-      std::for_each(files.begin(), files.end(), [] (const std::string& filename) {
-         if (!boost::filesystem::exists(filename)) throw std::exception(std::string("File " + filename + " does not exist").c_str());
-         if (!boost::filesystem::is_regular_file(filename)) throw std::exception(std::string(filename + " is not a file").c_str());
-         boost::filesystem::last_write_time(filename, std::time(nullptr));
-      });
-   }
-   catch (std::exception& e) {
-      return v8::ThrowException(v8::String::New(e.what()));
-   }
-
-   return v8::Undefined();
-}
-
-v8::Handle<v8::Value> JavaScript::JsDelete (const v8::Arguments& args)
-{
-   v8::HandleScope scope;
-
-   if (args.Length() < 1) return v8::ThrowException(v8::String::New("Expected filename(s) for Delete()"));
-   std::vector<std::string> files = JavaScriptHelper::AsStringVector(args);
-
-   try {
-      std::for_each(files.begin(), files.end(), [] (const std::string& filename) {
-         boost::system::error_code rc;
-         boost::filesystem::remove_all(filename, rc);
-      });
-   }
-   catch (std::exception& e) {
-      return v8::ThrowException(v8::String::New(e.what()));
-   }
-
-   return v8::Undefined();
-}
-
-*/

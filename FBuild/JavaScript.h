@@ -21,23 +21,20 @@ class JavaScript {
 
    static duk_ret_t JsQuit (duk_context* duktapeContext);
    static duk_ret_t JsPrint (duk_context* duktapeContext);
-
-   //static v8::Handle<v8::Value> JsExecuteString(const v8::Arguments& args);
-   //static v8::Handle<v8::Value> JsExecuteFile(const v8::Arguments& args);
-   //static v8::Handle<v8::Value> JsRun(const v8::Arguments& args);
-   //static v8::Handle<v8::Value> JsSystem(const v8::Arguments& args);
-   //static v8::Handle<v8::Value> JsGlob(const v8::Arguments& args);
-   //static v8::Handle<v8::Value> JsFullPath(const v8::Arguments& args);
-   //static v8::Handle<v8::Value> JsBuild(const v8::Arguments& args);
-   //static v8::Handle<v8::Value> JsFileOutOfDate(const v8::Arguments& args);
-   //static v8::Handle<v8::Value> JsChangeDirectory(const v8::Arguments& args);
-   //static v8::Handle<v8::Value> JsStringToFile(const v8::Arguments& args);
-   //static v8::Handle<v8::Value> JsGetEnv(const v8::Arguments& args);
-   //static v8::Handle<v8::Value> JsSetEnv(const v8::Arguments& args);
-   //static v8::Handle<v8::Value> JsTouch(const v8::Arguments& args);
-   //static v8::Handle<v8::Value> JsDelete(const v8::Arguments& args);
-
-   //static void Exec(const char* code, size_t len, const std::string& name);
+   static duk_ret_t JsExecuteString (duk_context* duktapeContext);
+   static duk_ret_t JsExecuteFile (duk_context* duktapeContext);
+   static duk_ret_t JsSystem (duk_context* duktapeContext);
+   static duk_ret_t JsFullPath(duk_context* duktapeContext);
+   static duk_ret_t JsDelete(duk_context* duktapeContext);
+   static duk_ret_t JsRun(duk_context* duktapeContext);
+   static duk_ret_t JsTouch(duk_context* duktapeContext);
+   static duk_ret_t JsGlob(duk_context* duktapeContext);
+   static duk_ret_t JsBuild(duk_context* duktapeContext);
+   static duk_ret_t JsFileOutOfDate(duk_context* duktapeContext);
+   static duk_ret_t JsChangeDirectory(duk_context* duktapeContext);
+   static duk_ret_t JsStringToFile(duk_context* duktapeContext);
+   static duk_ret_t JsGetEnv(duk_context* duktapeContext);
+   static duk_ret_t JsSetEnv(duk_context* duktapeContext);
 
 public:
    JavaScript (const std::vector<std::string>& args);
