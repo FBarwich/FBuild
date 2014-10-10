@@ -22,11 +22,21 @@ int main (int argc, char** argv)
       ::SetPriorityClass(::GetCurrentProcess(), IDLE_PRIORITY_CLASS);
 
       JavaScript js(args);
-      js.ExecuteFile("FBuild.js");
+
+      const char* script =  // The stacktrace is not accessible from C, thus throwing it from ecmascript.
+         "try {"
+         "   ExecuteFile('FBuild.js');"
+         "}"
+         "catch (error) {"
+         "   throw error.name + ' in file ' + error.fileName + ' - line ' + error.lineNumber + '\\n' + error.stack;"
+         "}";
+
+      js.ExecuteString(script, "Script");
+
       return 0;
    }
    catch (std::exception& e) {
       std::cerr << e.what() << std::endl;
-      return 1;
+      return 5;
    }
 }
