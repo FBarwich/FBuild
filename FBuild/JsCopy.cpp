@@ -7,117 +7,170 @@
 
 #include "JsCopy.h"
 
-/* TODO
 
 
-v8::Handle<v8::Value> JsCopy::CopyFunc (const v8::Arguments& args)
+
+duk_ret_t JsCopy::Function(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
+   if (duk_is_constructor_call(duktapeContext)) return Constructor(duktapeContext);
+   else return Standalone(duktapeContext);
+}
 
-   if (args.Length() < 2) return v8::ThrowException(v8::String::New("Expected two or three arguments for Copy()"));
+duk_ret_t JsCopy::Standalone(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+   if (args < 2) JavaScriptHelper::Throw(duktapeContext, "Expected two or three arguments for Copy()");
 
    Copy copy;
-   copy.Source(AsString(args[0]));
-   copy.Dest(AsString(args[1]));
-   if (args.Length() > 2) copy.DependencyCheck(AsBool(args[2]));
+   copy.Source(duk_require_string(duktapeContext, 0));
+   copy.Dest(duk_require_string(duktapeContext, 1));
+   if (args > 2) copy.DependencyCheck(duk_to_boolean(duktapeContext, 2) != 0);
 
    int copied = copy.Go();
 
-   v8::Handle<v8::Integer> ret = v8::Integer::New(copied);
-   return scope.Close(ret);
+   duk_push_int(duktapeContext, copied);
+   return 1;
 }
 
-v8::Handle<v8::Value> JsCopy::Construct (const v8::Arguments& args)
+duk_ret_t JsCopy::Constructor(duk_context* duktapeContext)
 {
-   if (!args.IsConstructCall()) return v8::ThrowException(v8::String::New("Wrong use of constructor (CopyObj)"));
+   if (duk_get_top(duktapeContext) != 0) JavaScriptHelper::Throw(duktapeContext, "No arguments for constructor for Copy expected");
 
-   v8::HandleScope scope;
+   JsCopy* copy = new JsCopy;
 
-   v8::Persistent<v8::Object> self = v8::Persistent<v8::Object>::New(args.This());
+   duk_push_this(duktapeContext);
 
+   duk_push_pointer(duktapeContext, copy);
+   duk_put_prop_string(duktapeContext, -2, "__Ptr");
 
-   JsCopy* me = new JsCopy;
-   if (args.Length() > 1) {
-      me->copy.Source(AsString(args[0]));
-      me->copy.Dest(AsString(args[1]));
-   }
-   if (args.Length() > 2) {
-      me->copy.DependencyCheck(AsBool(args[2]));
-   }
+   duk_push_c_function(duktapeContext, JsCopy::Destructor, 1);
+   duk_set_finalizer(duktapeContext, -2);
 
-   self.MakeWeak(me, WeakCallback<JsCopy>);
-   self->SetInternalField(0, v8::External::New(me));
+   duk_push_c_function(duktapeContext, JsCopy::Source, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Source");
 
-   return v8::Undefined();
+   duk_push_c_function(duktapeContext, JsCopy::Dest, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Dest");
+
+   duk_push_c_function(duktapeContext, JsCopy::DependencyCheck, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "DependencyCheck");
+
+   duk_push_c_function(duktapeContext, JsCopy::NeedsCopy, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "NeedsCopy");
+
+   duk_push_c_function(duktapeContext, JsCopy::Go, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Go");
+
+   return 1;
 }
 
-v8::Handle<v8::Value> JsCopy::GetSet (const v8::Arguments& args)
+duk_ret_t JsCopy::Destructor(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
+   delete JavaScriptHelper::CppObject<JsCopy>(duktapeContext);
 
-   v8::Handle<v8::Value> result;
+   return 0;
+}
 
-   std::string funcname = AsString(args.Callee()->GetName());
-   JsCopy* self = Unwrap<JsCopy>(args);
+duk_ret_t JsCopy::Source(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
 
-   if (args.Length() == 0) {
-      if (funcname == "Source") result = Value(self->copy.Source());
-      else if (funcname == "Dest") result = Value(self->copy.Dest());
-      else if (funcname == "DependencyCheck") result = Value(self->copy.DependencyCheck());
+   duk_push_this(duktapeContext);
+   JsCopy* obj = JavaScriptHelper::CppObject<JsCopy>(duktapeContext);
+
+   if (!args) {
+      duk_push_string(duktapeContext, obj->copy.Source().c_str());
+      return 1;
+   }
+   else if (args == 1) {
+      obj->copy.Source(duk_require_string(duktapeContext, 0));
+      return 1;
    }
    else {
-      if (funcname == "Source") self->copy.Source(AsString(args[0]));
-      else if (funcname == "Dest") self->copy.Dest(AsString(args[0]));
-      else if (funcname == "DependencyCheck") self->copy.DependencyCheck(AsBool(args[0]));
-
-      result = args.This();
+      JavaScriptHelper::Throw(duktapeContext, "Expected one argument for Copy::Source()");
    }
-
-   return scope.Close(result);
 }
 
-v8::Handle<v8::Value> JsCopy::NeedsCopy (const v8::Arguments& args)
+duk_ret_t JsCopy::Dest(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
-   JsCopy* self = Unwrap<JsCopy>(args);
+   int args = duk_get_top(duktapeContext);
 
-   v8::Local<v8::Value> result = v8::BooleanObject::New(self->copy.NeedsCopy());
-   return scope.Close(result);
+   duk_push_this(duktapeContext);
+   JsCopy* obj = JavaScriptHelper::CppObject<JsCopy>(duktapeContext);
+
+   if (!args) {
+      duk_push_string(duktapeContext, obj->copy.Dest().c_str());
+      return 1;
+   }
+   else if (args == 1) {
+      obj->copy.Dest(duk_require_string(duktapeContext, 0));
+      return 1;
+   }
+   else {
+      JavaScriptHelper::Throw(duktapeContext, "Expected one argument for Copy::Dest()");
+   }
 }
 
-v8::Handle<v8::Value> JsCopy::Go (const v8::Arguments& args)
+duk_ret_t JsCopy::DependencyCheck(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
+   int args = duk_get_top(duktapeContext);
 
-   JsCopy* self = Unwrap<JsCopy>(args);
+   duk_push_this(duktapeContext);
+   JsCopy* obj = JavaScriptHelper::CppObject<JsCopy>(duktapeContext);
 
-   v8::Local<v8::Value> result = v8::Integer::New(self->copy.Go());
-   return scope.Close(result);
+   if (!args) {
+      duk_push_boolean(duktapeContext, obj->copy.DependencyCheck());
+      return 1;
+   }
+   else if (args == 1) {
+      obj->copy.DependencyCheck(duk_require_boolean(duktapeContext, 0) != 0);
+      return 1;
+   }
+   else {
+      JavaScriptHelper::Throw(duktapeContext, "Expected one argument for Copy::DependencyCheck()");
+   }
 }
 
-void JsCopy::Register (v8::Handle<v8::ObjectTemplate>& global)
+duk_ret_t JsCopy::NeedsCopy(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
+   int args = duk_get_top(duktapeContext);
 
-   global->Set(v8::String::New("Copy"), v8::FunctionTemplate::New(CopyFunc));
+   duk_push_this(duktapeContext);
+   JsCopy* obj = JavaScriptHelper::CppObject<JsCopy>(duktapeContext);
 
-
-
-   v8::Handle<v8::FunctionTemplate> funcTemplate = v8::FunctionTemplate::New(Construct);
-   funcTemplate->SetClassName(v8::String::New("CopyObj"));
-
-   v8::Handle<v8::ObjectTemplate> proto = funcTemplate->PrototypeTemplate();
-   proto->Set("NeedsCopy", v8::FunctionTemplate::New(NeedsCopy));
-   proto->Set("Copy", v8::FunctionTemplate::New(Go));
-
-   proto->Set("Source", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Dest", v8::FunctionTemplate::New(GetSet));
-   proto->Set("DependencyCheck", v8::FunctionTemplate::New(GetSet));
-
-   v8::Handle<v8::ObjectTemplate> inst = funcTemplate->InstanceTemplate();
-   inst->SetInternalFieldCount(1);
-
-   global->Set(v8::String::New("CopyObj"), funcTemplate);
+   if (!args) {
+      duk_push_boolean(duktapeContext, obj->copy.NeedsCopy());
+      return 1;
+   }
+   else {
+      JavaScriptHelper::Throw(duktapeContext, "Expected no arguments for Copy::NeedsCopy()");
+   }
 }
 
-*/
+duk_ret_t JsCopy::Go(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   JsCopy* obj = JavaScriptHelper::CppObject<JsCopy>(duktapeContext);
+
+   if (!args) {
+      int copied = obj->copy.Go();
+      duk_push_int(duktapeContext, copied);
+      return 1;
+   }
+   else {
+      JavaScriptHelper::Throw(duktapeContext, "Expected no arguments for Copy::Go()");
+   }
+}
+
+void JsCopy::Register(duk_context* duktapeContext)
+{
+   duk_push_global_object(duktapeContext);
+
+   duk_push_c_function(duktapeContext, JsCopy::Function, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Copy");
+
+   duk_pop(duktapeContext);
+}
+

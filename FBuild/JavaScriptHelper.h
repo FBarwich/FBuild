@@ -14,13 +14,13 @@
 
 namespace JavaScriptHelper {
 
-   void Throw(duk_context* duktapeContext, boost::string_ref what)
+   inline void Throw(duk_context* duktapeContext, boost::string_ref what)
    {
       duk_push_string(duktapeContext, what.data());
       duk_throw(duktapeContext);
    }
 
-   std::vector<std::string> AsStringVector(duk_context* duktapeContext)
+   inline std::vector<std::string> AsStringVector(duk_context* duktapeContext)
    {
       std::vector<std::string> result;
 
@@ -44,6 +44,19 @@ namespace JavaScriptHelper {
 
       return result;
    }
+
+   template<typename T>
+   T* CppObject(duk_context* duktapeContext)
+   {
+      if (!duk_is_object(duktapeContext, -1)) throw std::exception("Internal Error: expected object on top of the stack");
+      duk_get_prop_string(duktapeContext, -1, "__Ptr");
+      if (!duk_is_pointer(duktapeContext, -1)) throw std::exception("Internal Error: expected property '__Ptr' to hold the C++ Object");
+      void* ptr = duk_get_pointer(duktapeContext, -1);
+      duk_pop(duktapeContext);
+      if (!ptr) throw std::exception("Internal Error: Nullpointer! C++ Object ist Null");
+      return static_cast<T*>(ptr);
+   }
+
 }
 
 

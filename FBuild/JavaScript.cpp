@@ -12,6 +12,8 @@
 
 #include "FileOutOfDate.h"
 
+#include "JsCopy.h"
+
 #include <Shlwapi.h>
 
 
@@ -74,16 +76,14 @@ JavaScript::JavaScript (const std::vector<std::string>& args)
 
    duk_pop(duktapeContext);
 
-   /*
-   JsCopy::Register(global);
-   JsCompiler::Register(global);
-   JsLinker::Register(global);
-   JsResourceCompiler::Register(global);
-   JsExe::Register(global);
-   JsLibrarian::Register(global);
-   JsLib::Register(global);
-   JsFileToCpp::Register(global);
-   */
+   JsCopy::Register(duktapeContext);
+   //JsCompiler::Register(global);
+   //JsLinker::Register(global);
+   //JsResourceCompiler::Register(global);
+   //JsExe::Register(global);
+   //JsLibrarian::Register(global);
+   //JsLib::Register(global);
+   //JsFileToCpp::Register(global);
 }
 
 JavaScript::~JavaScript ()
@@ -151,6 +151,7 @@ void JavaScript::ExecuteFile (const boost::filesystem::path& script)
 duk_ret_t JavaScript::JsQuit (duk_context* duktapeContext)
 {
    if (duk_get_top(duktapeContext) != 1) JavaScriptHelper::Throw(duktapeContext, "One argument for Quit() expected");
+   if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "Quit() can't be constructed");
 
    int exitCode = duk_to_int(duktapeContext, 0);
    exit(exitCode);
@@ -158,6 +159,8 @@ duk_ret_t JavaScript::JsQuit (duk_context* duktapeContext)
 
 duk_ret_t JavaScript::JsPrint (duk_context* duktapeContext)
 {
+   if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "Print() can't be constructed");
+
    int top = duk_get_top(duktapeContext);
    for (int i = 0; i < top; ++i) {
       std::cout << duk_to_string(duktapeContext, i) << " ";
@@ -170,6 +173,8 @@ duk_ret_t JavaScript::JsPrint (duk_context* duktapeContext)
 
 duk_ret_t JavaScript::JsExecuteString(duk_context* duktapeContext)
 {
+   if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "ExecuteString() can't be constructed");
+
    std::string code = duk_require_string(duktapeContext, 0);
    std::string name = duk_to_string(duktapeContext, 1);
    if (name == "undefined") name = "<ExecuteString>";
@@ -185,6 +190,8 @@ duk_ret_t JavaScript::JsExecuteString(duk_context* duktapeContext)
 
 duk_ret_t JavaScript::JsExecuteFile(duk_context* duktapeContext)
 {
+   if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "ExecuteFile() can't be constructed");
+
    std::string script = duk_require_string(duktapeContext, 0);
 
    if (!boost::filesystem::exists(script)) JavaScriptHelper::Throw(duktapeContext, "File " + script + " does not exist");
@@ -200,6 +207,8 @@ duk_ret_t JavaScript::JsExecuteFile(duk_context* duktapeContext)
 
 duk_ret_t JavaScript::JsSystem(duk_context* duktapeContext)
 {
+   if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "System() can't be constructed");
+
    std::string command = duk_require_string(duktapeContext, 0);
 
    int rc = std::system(command.c_str());
@@ -210,6 +219,8 @@ duk_ret_t JavaScript::JsSystem(duk_context* duktapeContext)
 
 duk_ret_t JavaScript::JsFullPath(duk_context* duktapeContext)
 {
+   if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "FullPath() can't be constructed");
+
    std::string path = duk_require_string(duktapeContext, 0);
 
    auto full = boost::filesystem::canonical(path);
@@ -222,6 +233,8 @@ duk_ret_t JavaScript::JsFullPath(duk_context* duktapeContext)
 
 duk_ret_t JavaScript::JsDelete(duk_context* duktapeContext)
 {
+   if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "Delete() can't be constructed");
+
    const std::vector<std::string> files = JavaScriptHelper::AsStringVector(duktapeContext);
    if (files.empty()) JavaScriptHelper::Throw(duktapeContext, "Filename(s) for Delete() expected");
 
@@ -240,6 +253,8 @@ duk_ret_t JavaScript::JsDelete(duk_context* duktapeContext)
 
 duk_ret_t JavaScript::JsRun(duk_context* duktapeContext)
 {
+   if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "Run() can't be constructed");
+
    std::string command = duk_require_string(duktapeContext, 0);
    bool catchOutput = duk_to_boolean(duktapeContext, 1) != false;
 
@@ -272,6 +287,8 @@ duk_ret_t JavaScript::JsRun(duk_context* duktapeContext)
 
 duk_ret_t JavaScript::JsTouch(duk_context* duktapeContext)
 {
+   if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "Touch() can't be constructed");
+
    const std::vector<std::string> files = JavaScriptHelper::AsStringVector(duktapeContext);
    if (files.empty()) JavaScriptHelper::Throw(duktapeContext, "Filename(s) for Touch() expected");
 
@@ -291,6 +308,8 @@ duk_ret_t JavaScript::JsTouch(duk_context* duktapeContext)
 
 duk_ret_t JavaScript::JsGlob(duk_context* duktapeContext)
 {
+   if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "Glob() can't be constructed");
+
    std::string path = ".";
    std::string pattern = "*";
 
@@ -331,6 +350,8 @@ duk_ret_t JavaScript::JsGlob(duk_context* duktapeContext)
 
 duk_ret_t JavaScript::JsBuild(duk_context* duktapeContext)
 {
+   if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "Build() can't be constructed");
+
    if (duk_get_top(duktapeContext) != 1) JavaScriptHelper::Throw(duktapeContext, "One argument for Build() expected");
 
    const auto current = boost::filesystem::current_path();
@@ -355,6 +376,8 @@ duk_ret_t JavaScript::JsBuild(duk_context* duktapeContext)
 
 duk_ret_t JavaScript::JsFileOutOfDate(duk_context* duktapeContext)
 {
+   if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "FileOutOfDate() can't be constructed");
+
    const auto files = JavaScriptHelper::AsStringVector(duktapeContext);
    if (files.size() < 2) JavaScriptHelper::Throw(duktapeContext, "Expected two or more arguments for FileOutOfDate()");
 
@@ -371,6 +394,8 @@ duk_ret_t JavaScript::JsFileOutOfDate(duk_context* duktapeContext)
 
 duk_ret_t JavaScript::JsChangeDirectory(duk_context* duktapeContext)
 {
+   if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "ChangeDirectory() can't be constructed");
+
    if (duk_get_top(duktapeContext) != 1) JavaScriptHelper::Throw(duktapeContext, "One arguments for ChangeDirectory() expected");
 
    boost::filesystem::current_path(duk_require_string(duktapeContext, 0));
@@ -379,6 +404,8 @@ duk_ret_t JavaScript::JsChangeDirectory(duk_context* duktapeContext)
 
 duk_ret_t JavaScript::JsStringToFile(duk_context* duktapeContext)
 {
+   if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "StringToFile() can't be constructed");
+
    if (duk_get_top(duktapeContext) != 2) JavaScriptHelper::Throw(duktapeContext, "Two arguments for StringToFile() expected");
 
    std::string file = duk_require_string(duktapeContext, 0);
@@ -394,6 +421,8 @@ duk_ret_t JavaScript::JsStringToFile(duk_context* duktapeContext)
 
 duk_ret_t JavaScript::JsGetEnv(duk_context* duktapeContext)
 {
+   if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "GetEnv() can't be constructed");
+
    const char* env = std::getenv(duk_require_string(duktapeContext, 0));
    if (env) {
       duk_push_string(duktapeContext, env);
@@ -406,6 +435,8 @@ duk_ret_t JavaScript::JsGetEnv(duk_context* duktapeContext)
 
 duk_ret_t JavaScript::JsSetEnv(duk_context* duktapeContext)
 {
+   if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "SetEnv() can't be constructed");
+
    std::string arg = duk_require_string(duktapeContext, 0);
    arg += "=";
    arg += duk_require_string(duktapeContext, 1);
