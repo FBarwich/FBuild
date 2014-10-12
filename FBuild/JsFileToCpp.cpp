@@ -1,98 +1,305 @@
+
 #include "JsFileToCpp.h"
 
-/* TODO
 
 
-v8::Handle<v8::Value> JsFileToCpp::GetSet (const v8::Arguments& args)
+duk_ret_t JsFileToCpp::Constructor(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
-   v8::Handle<v8::Value> result;
-
-   const std::string funcname = AsString(args.Callee()->GetName());
-
    try {
-      JsFileToCpp* self = Unwrap<JsFileToCpp>(args);
+      if (duk_get_top(duktapeContext) != 0) JavaScriptHelper::Throw(duktapeContext, "No arguments for FileToCpp constructor expected");
 
-      if (args.Length() == 0) {
-         if (funcname == "DependencyCheck") result = Value(self->file2cpp.DependencyCheck());
-         else if (funcname == "Const") result = Value(self->file2cpp.Const());
-         else if (funcname == "NullTerminator") result = Value(self->file2cpp.NullTerminator());
-         else if (funcname == "Infile") result = Value(self->file2cpp.NullTerminator());
-         else if (funcname == "Outfile") result = Value(self->file2cpp.Outfile());
-         else if (funcname == "Namespace") result = Value(self->file2cpp.Namespace());
-         else if (funcname == "Array") result = Value(self->file2cpp.Array());
-         else if (funcname == "Ptr") result = Value(self->file2cpp.Ptr());
-         else if (funcname == "Intro") result = Value(self->file2cpp.Intro());
-         else if (funcname == "Outro") result = Value(self->file2cpp.Outro());
-         else if (funcname == "Additional") result = Value(self->file2cpp.Additional());
-      }
-      else {
-         if (funcname == "DependencyCheck") self->file2cpp.DependencyCheck(AsBool(args[0]));
-         else if (funcname == "Const") self->file2cpp.Const(AsBool(args[0]));
-         else if (funcname == "NullTerminator") self->file2cpp.NullTerminator(AsBool(args[0]));
-         else if (funcname == "Infile") self->file2cpp.Infile(AsString(args[0]));
-         else if (funcname == "Outfile") self->file2cpp.Outfile(AsString(args[0]));
-         else if (funcname == "Namespace") self->file2cpp.Namespace(AsString(args[0]));
-         else if (funcname == "Array") self->file2cpp.Array(AsString(args[0]));
-         else if (funcname == "Ptr") self->file2cpp.Ptr(AsString(args[0]));
-         else if (funcname == "Intro") self->file2cpp.Intro(AsString(args[0]));
-         else if (funcname == "Outro") self->file2cpp.Outro(AsString(args[0]));
-         else if (funcname == "Additional") self->file2cpp.Additional(AsString(args[0]));
+      if (duk_is_constructor_call(duktapeContext)) duk_push_this(duktapeContext);
+      else duk_push_object(duktapeContext);
 
-         result = args.This();
-      }
+      duk_push_pointer(duktapeContext, new JsFileToCpp);
+      duk_put_prop_string(duktapeContext, -2, "__Ptr");
+
+      duk_push_c_function(duktapeContext, JsFileToCpp::Destructor, 1);
+      duk_set_finalizer(duktapeContext, -2);
+
+      duk_push_c_function(duktapeContext, JsFileToCpp::DependencyCheck, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "DependencyCheck");
+
+      duk_push_c_function(duktapeContext, JsFileToCpp::Infile, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "Infile");
+
+      duk_push_c_function(duktapeContext, JsFileToCpp::Outfile, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "Outfile");
+
+      duk_push_c_function(duktapeContext, JsFileToCpp::NullTerminator, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "NullTerminator");
+
+      duk_push_c_function(duktapeContext, JsFileToCpp::Namespace, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "Namespace");
+
+      duk_push_c_function(duktapeContext, JsFileToCpp::Ptr, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "Ptr");
+
+      duk_push_c_function(duktapeContext, JsFileToCpp::Intro, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "Intro");
+
+      duk_push_c_function(duktapeContext, JsFileToCpp::Outro, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "Outro");
+
+      duk_push_c_function(duktapeContext, JsFileToCpp::Additional, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "Additional");
+
+      duk_push_c_function(duktapeContext, JsFileToCpp::Array, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "Array");
+
+      duk_push_c_function(duktapeContext, JsFileToCpp::Const, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "Const");
+
+      duk_push_c_function(duktapeContext, JsFileToCpp::Create, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "Create");
+
+      return 1;
    }
    catch (std::exception& e) {
-      return v8::ThrowException(v8::String::New(e.what()));
+      JavaScriptHelper::Throw(duktapeContext, e.what());
    }
-
-   return scope.Close(result);
 }
 
-
-v8::Handle<v8::Value> JsFileToCpp::Create (const v8::Arguments& args)
+duk_ret_t JsFileToCpp::Destructor(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
-   v8::Handle<v8::Value> result;
-   JsFileToCpp* self = Unwrap<JsFileToCpp>(args);
+   delete JavaScriptHelper::CppObject<JsFileToCpp>(duktapeContext);
+   return 0;
+}
 
+duk_ret_t JsFileToCpp::DependencyCheck(duk_context* duktapeContext)
+{
    try {
-      self->file2cpp.Create();
-      result = args.This();
+      int args = duk_get_top(duktapeContext);
+
+      duk_push_this(duktapeContext);
+      auto obj = JavaScriptHelper::CppObject<JsFileToCpp>(duktapeContext);
+
+      if (!args) duk_push_boolean(duktapeContext, obj->fileToCpp.DependencyCheck());
+      else if (args == 1) obj->fileToCpp.DependencyCheck(duk_require_boolean(duktapeContext, 0) != 0);
+      else JavaScriptHelper::Throw(duktapeContext, "One argument for FileToCpp::DependencyCheck() expected");
+
+      return 1;
    }
    catch (std::exception& e) {
-      return v8::ThrowException(v8::String::New(e.what()));
+      JavaScriptHelper::Throw(duktapeContext, e.what());
    }
-
-   return scope.Close(result);
 }
 
-void JsFileToCpp::Register (v8::Handle<v8::ObjectTemplate>& global)
+duk_ret_t JsFileToCpp::Infile(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
+   try {
+      int args = duk_get_top(duktapeContext);
 
-   v8::Handle<v8::FunctionTemplate> funcTemplate = v8::FunctionTemplate::New(JavaScriptHelper::Construct<JsFileToCpp>);
-   funcTemplate->SetClassName(v8::String::New("FileToCpp"));
+      duk_push_this(duktapeContext);
+      auto obj = JavaScriptHelper::CppObject<JsFileToCpp>(duktapeContext);
 
-   v8::Handle<v8::ObjectTemplate> proto = funcTemplate->PrototypeTemplate();
-   proto->Set("DependencyCheck", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Const", v8::FunctionTemplate::New(GetSet));
-   proto->Set("NullTerminator", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Infile", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Outfile", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Namespace", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Array", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Ptr", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Intro", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Outro", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Additional", v8::FunctionTemplate::New(GetSet));
+      if (!args) duk_push_string(duktapeContext, obj->fileToCpp.Infile().c_str());
+      else if (args == 1) obj->fileToCpp.Infile(duk_require_string(duktapeContext, 0));
+      else JavaScriptHelper::Throw(duktapeContext, "One argument for FileToCpp::Infile() expected");
 
-   proto->Set("Create", v8::FunctionTemplate::New(Create));
-
-   v8::Handle<v8::ObjectTemplate> inst = funcTemplate->InstanceTemplate();
-   inst->SetInternalFieldCount(1);
-
-   global->Set(v8::String::New("FileToCpp"), funcTemplate);
+      return 1;
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
 }
 
-*/
+duk_ret_t JsFileToCpp::Outfile(duk_context* duktapeContext)
+{
+   try {
+      int args = duk_get_top(duktapeContext);
+
+      duk_push_this(duktapeContext);
+      auto obj = JavaScriptHelper::CppObject<JsFileToCpp>(duktapeContext);
+
+      if (!args) duk_push_string(duktapeContext, obj->fileToCpp.Outfile().c_str());
+      else if (args == 1) obj->fileToCpp.Outfile(duk_require_string(duktapeContext, 0));
+      else JavaScriptHelper::Throw(duktapeContext, "One argument for FileToCpp::Outfile() expected");
+
+      return 1;
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
+}
+
+duk_ret_t JsFileToCpp::NullTerminator(duk_context* duktapeContext)
+{
+   try {
+      int args = duk_get_top(duktapeContext);
+
+      duk_push_this(duktapeContext);
+      auto obj = JavaScriptHelper::CppObject<JsFileToCpp>(duktapeContext);
+
+      if (!args) duk_push_boolean(duktapeContext, obj->fileToCpp.NullTerminator());
+      else if (args == 1) obj->fileToCpp.NullTerminator(duk_require_boolean(duktapeContext, 0) != 0);
+      else JavaScriptHelper::Throw(duktapeContext, "One argument for FileToCpp::NullTerminator() expected");
+
+      return 1;
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
+}
+
+duk_ret_t JsFileToCpp::Namespace(duk_context* duktapeContext)
+{
+   try {
+      int args = duk_get_top(duktapeContext);
+
+      duk_push_this(duktapeContext);
+      auto obj = JavaScriptHelper::CppObject<JsFileToCpp>(duktapeContext);
+
+      if (!args) duk_push_string(duktapeContext, obj->fileToCpp.Namespace().c_str());
+      else if (args == 1) obj->fileToCpp.Namespace(duk_require_string(duktapeContext, 0));
+      else JavaScriptHelper::Throw(duktapeContext, "One argument for FileToCpp::Namespace() expected");
+
+      return 1;
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
+}
+
+duk_ret_t JsFileToCpp::Ptr(duk_context* duktapeContext)
+{
+   try {
+      int args = duk_get_top(duktapeContext);
+
+      duk_push_this(duktapeContext);
+      auto obj = JavaScriptHelper::CppObject<JsFileToCpp>(duktapeContext);
+
+      if (!args) duk_push_string(duktapeContext, obj->fileToCpp.Ptr().c_str());
+      else if (args == 1) obj->fileToCpp.Ptr(duk_require_string(duktapeContext, 0));
+      else JavaScriptHelper::Throw(duktapeContext, "One argument for FileToCpp::Ptr() expected");
+
+      return 1;
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
+}
+
+duk_ret_t JsFileToCpp::Intro(duk_context* duktapeContext)
+{
+   try {
+      int args = duk_get_top(duktapeContext);
+
+      duk_push_this(duktapeContext);
+      auto obj = JavaScriptHelper::CppObject<JsFileToCpp>(duktapeContext);
+
+      if (!args) duk_push_string(duktapeContext, obj->fileToCpp.Intro().c_str());
+      else if (args == 1) obj->fileToCpp.Intro(duk_require_string(duktapeContext, 0));
+      else JavaScriptHelper::Throw(duktapeContext, "One argument for FileToCpp::Intro() expected");
+
+      return 1;
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
+}
+
+duk_ret_t JsFileToCpp::Outro(duk_context* duktapeContext)
+{
+   try {
+      int args = duk_get_top(duktapeContext);
+
+      duk_push_this(duktapeContext);
+      auto obj = JavaScriptHelper::CppObject<JsFileToCpp>(duktapeContext);
+
+      if (!args) duk_push_string(duktapeContext, obj->fileToCpp.Outro().c_str());
+      else if (args == 1) obj->fileToCpp.Outro(duk_require_string(duktapeContext, 0));
+      else JavaScriptHelper::Throw(duktapeContext, "One argument for FileToCpp::Outro() expected");
+
+      return 1;
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
+}
+
+duk_ret_t JsFileToCpp::Additional(duk_context* duktapeContext)
+{
+   try {
+      int args = duk_get_top(duktapeContext);
+
+      duk_push_this(duktapeContext);
+      auto obj = JavaScriptHelper::CppObject<JsFileToCpp>(duktapeContext);
+
+      if (!args) duk_push_string(duktapeContext, obj->fileToCpp.Additional().c_str());
+      else if (args == 1) obj->fileToCpp.Additional(duk_require_string(duktapeContext, 0));
+      else JavaScriptHelper::Throw(duktapeContext, "One argument for FileToCpp::Additional() expected");
+
+      return 1;
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
+}
+
+duk_ret_t JsFileToCpp::Array(duk_context* duktapeContext)
+{
+   try {
+      int args = duk_get_top(duktapeContext);
+
+      duk_push_this(duktapeContext);
+      auto obj = JavaScriptHelper::CppObject<JsFileToCpp>(duktapeContext);
+
+      if (!args) duk_push_string(duktapeContext, obj->fileToCpp.Array().c_str());
+      else if (args == 1) obj->fileToCpp.Array(duk_require_string(duktapeContext, 0));
+      else JavaScriptHelper::Throw(duktapeContext, "One argument for FileToCpp::Array() expected");
+
+      return 1;
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
+}
+
+duk_ret_t JsFileToCpp::Const(duk_context* duktapeContext)
+{
+   try {
+      int args = duk_get_top(duktapeContext);
+
+      duk_push_this(duktapeContext);
+      auto obj = JavaScriptHelper::CppObject<JsFileToCpp>(duktapeContext);
+
+      if (!args) duk_push_boolean(duktapeContext, obj->fileToCpp.Const());
+      else if (args == 1) obj->fileToCpp.Const(duk_require_boolean(duktapeContext, 0) != 0);
+      else JavaScriptHelper::Throw(duktapeContext, "One argument for FileToCpp::Const() expected");
+
+      return 1;
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
+}
+
+duk_ret_t JsFileToCpp::Create(duk_context* duktapeContext)
+{
+   try {
+      int args = duk_get_top(duktapeContext);
+
+      duk_push_this(duktapeContext);
+      auto obj = JavaScriptHelper::CppObject<JsFileToCpp>(duktapeContext);
+
+      if (args != 0) JavaScriptHelper::Throw(duktapeContext, "No arguments for FileToCpp::Create() expected");
+
+      obj->fileToCpp.Create();
+
+      return 1;
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
+}
+
+void JsFileToCpp::Register(duk_context* duktapeContext)
+{
+   duk_push_global_object(duktapeContext);
+
+   duk_push_c_function(duktapeContext, JsFileToCpp::Constructor, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "FileToCpp");
+
+   duk_pop(duktapeContext);
+}

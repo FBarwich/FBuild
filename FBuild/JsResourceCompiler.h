@@ -7,19 +7,23 @@
 
 #pragma once
 
-/* TODO
-#include "JavaScriptHelper.h"
 #include "ResourceCompiler.h"
 
-class JsResourceCompiler : public JavaScriptHelper {
+#include "JavaScriptHelper.h"
+
+class JsResourceCompiler {
    ResourceCompiler resourceCompiler;
 
-   static v8::Handle<v8::Value> GetSet (const v8::Arguments& args);
-   static v8::Handle<v8::Value> Compile (const v8::Arguments& args);
+   static duk_ret_t Constructor(duk_context* duktapeContext);
+   static duk_ret_t Destructor(duk_context* duktapeContext);
+   static duk_ret_t Files(duk_context* duktapeContext);
+   static duk_ret_t Outdir(duk_context* duktapeContext);
+   static duk_ret_t DependencyCheck(duk_context* duktapeContext);
+   static duk_ret_t Outfiles(duk_context* duktapeContext);
+
+   static duk_ret_t Compile(duk_context* duktapeContext);
 
 public:
-
-   static void Register (v8::Handle<v8::ObjectTemplate>& global);
+   static void Register(duk_context* duktapeContext);
 };
 
-*/

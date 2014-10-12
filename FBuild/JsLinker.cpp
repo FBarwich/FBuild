@@ -281,7 +281,6 @@ duk_ret_t JsLinker::Link(duk_context* duktapeContext)
    catch (std::exception& e) {
       JavaScriptHelper::Throw(duktapeContext, e.what());
    }
-
 }
 
 void JsLinker::Register(duk_context* duktapeContext)
