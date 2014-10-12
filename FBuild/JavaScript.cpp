@@ -16,6 +16,7 @@
 #include "JsLib.h"
 #include "JsCompiler.h"
 #include "JsLibrarian.h"
+#include "JsExe.h"
 
 #include <Shlwapi.h>
 
@@ -83,9 +84,9 @@ JavaScript::JavaScript (const std::vector<std::string>& args)
    JsLib::Register(duktapeContext);
    JsCompiler::Register(duktapeContext);
    JsLibrarian::Register(duktapeContext);
+   JsExe::Register(duktapeContext);
    //JsLinker::Register(duktapeContext);
    //JsResourceCompiler::Register(duktapeContext);
-   //JsExe::Register(duktapeContext);
    //JsFileToCpp::Register(duktapeContext);
 }
 

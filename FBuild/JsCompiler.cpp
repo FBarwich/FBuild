@@ -284,7 +284,7 @@ duk_ret_t JsCompiler::WarningLevel(duk_context* duktapeContext)
       auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
 
       if (!args) duk_push_int(duktapeContext, obj->compiler.WarnLevel());
-      else if (args == 2) obj->compiler.WarnLevel(duk_require_int(duktapeContext, 0));
+      else if (args == 1) obj->compiler.WarnLevel(duk_require_int(duktapeContext, 0));
       else JavaScriptHelper::Throw(duktapeContext, "One argument for Compiler::WarningLevel() expected");
 
       return 1;
@@ -303,7 +303,7 @@ duk_ret_t JsCompiler::WarningAsError(duk_context* duktapeContext)
       auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
 
       if (!args) duk_push_boolean(duktapeContext, obj->compiler.WarningAsError());
-      else if (args == 2) obj->compiler.WarningAsError(duk_require_boolean(duktapeContext, 0) != 0);
+      else if (args == 1) obj->compiler.WarningAsError(duk_require_boolean(duktapeContext, 0) != 0);
       else JavaScriptHelper::Throw(duktapeContext, "One argument for Compiler::WarningAsError() expected");
 
       return 1;

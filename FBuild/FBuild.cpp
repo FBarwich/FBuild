@@ -28,7 +28,8 @@ int main (int argc, char** argv)
          "   ExecuteFile('FBuild.js');"
          "}"
          "catch (error) {"
-         "   throw error.name + ' in file ' + error.fileName + ' - line ' + error.lineNumber + '\\n' + error.stack;"
+         "   if (error.fileName != undefined) throw error.name + ' in file ' + error.fileName + ' - line ' + error.lineNumber + '\\n' + error.stack;"
+         "   else throw error;"
          "}";
 
       js.ExecuteString(script, "Script");
