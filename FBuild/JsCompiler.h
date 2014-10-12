@@ -7,22 +7,37 @@
 
 #pragma once
 
-/* TODO
-
-#include "JavaScriptHelper.h"
 #include "Compiler.h"
 
-class JsCompiler : public JavaScriptHelper {
+#include "JavaScriptHelper.h"
+
+class JsCompiler {
    Compiler compiler;
 
-   static v8::Handle<v8::Value> GetSet (const v8::Arguments& args);
-   static v8::Handle<v8::Value> Compile (const v8::Arguments& args);
-   static v8::Handle<v8::Value> ObjFiles (const v8::Arguments& args);
-   static v8::Handle<v8::Value> CompiledObjFiles (const v8::Arguments& args);
+   static duk_ret_t Constructor(duk_context* duktapeContext);
+   static duk_ret_t Destructor(duk_context* duktapeContext);
+   static duk_ret_t Build(duk_context* duktapeContext);
+   static duk_ret_t Files(duk_context* duktapeContext);
+   static duk_ret_t DependencyCheck(duk_context* duktapeContext);
+   static duk_ret_t CRT(duk_context* duktapeContext);
+   static duk_ret_t ObjDir(duk_context* duktapeContext);
+   static duk_ret_t Includes(duk_context* duktapeContext);
+   static duk_ret_t Defines(duk_context* duktapeContext);
+   static duk_ret_t Threads(duk_context* duktapeContext);
+   static duk_ret_t CompileArgs(duk_context* duktapeContext);
+   static duk_ret_t PrecompiledHeader(duk_context* duktapeContext);
+   static duk_ret_t WarningLevel(duk_context* duktapeContext);
+   static duk_ret_t WarningAsError(duk_context* duktapeContext);
+   static duk_ret_t WarningDisable(duk_context* duktapeContext);
+   static duk_ret_t ObjFiles(duk_context* duktapeContext);
+   static duk_ret_t CompiledObjFiles(duk_context* duktapeContext);
+
+   static duk_ret_t BeforeCompile(duk_context* duktapeContext);
+
+   static duk_ret_t Compile(duk_context* duktapeContext);
 
 public:
 
-   static void Register (v8::Handle<v8::ObjectTemplate>& global);
+   static void Register(duk_context* duktapeContext);
 };
 
-*/

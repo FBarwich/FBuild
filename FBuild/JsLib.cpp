@@ -97,17 +97,11 @@ duk_ret_t JsLib::Build(duk_context* duktapeContext)
    duk_push_this(duktapeContext);
    auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
 
-   if (!args) {
-      duk_push_string(duktapeContext, obj->compiler.Build().c_str());
-      return 1;
-   }
-   else if (args == 1) {
-      obj->compiler.Build(duk_require_string(duktapeContext, 0));
-      return 1;
-   }
-   else {
-      JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::Build() expected");
-   }
+   if (!args) duk_push_string(duktapeContext, obj->compiler.Build().c_str());
+   else if (args == 1) obj->compiler.Build(duk_require_string(duktapeContext, 0));
+   else JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::Build() expected");
+
+   return 1;
 }
 
 duk_ret_t JsLib::Files(duk_context* duktapeContext)
@@ -117,14 +111,10 @@ duk_ret_t JsLib::Files(duk_context* duktapeContext)
    duk_push_this(duktapeContext);
    auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
 
-   if (!args) {
-      JavaScriptHelper::PushArray(duktapeContext, obj->compiler.Files());
-      return 1;
-   }
-   else {
-      obj->compiler.Files(JavaScriptHelper::AsStringVector(duktapeContext, args));
-      return 1;
-   }
+   if (!args) JavaScriptHelper::PushArray(duktapeContext, obj->compiler.Files());
+   else obj->compiler.Files(JavaScriptHelper::AsStringVector(duktapeContext, args));
+
+   return 1;
 }
 
 duk_ret_t JsLib::DependencyCheck(duk_context* duktapeContext)
@@ -134,17 +124,11 @@ duk_ret_t JsLib::DependencyCheck(duk_context* duktapeContext)
    duk_push_this(duktapeContext);
    auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
 
-   if (!args) {
-      duk_push_boolean(duktapeContext, obj->compiler.DependencyCheck());
-      return 1;
-   }
-   else if (args == 1) {
-      obj->compiler.DependencyCheck(duk_require_boolean(duktapeContext, 0) != 0);
-      return 1;
-   }
-   else {
-      JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::Dependency() expected");
-   }
+   if (!args) duk_push_boolean(duktapeContext, obj->compiler.DependencyCheck());
+   else if (args == 1) obj->compiler.DependencyCheck(duk_require_boolean(duktapeContext, 0) != 0);
+   else JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::DependencyCheck() expected");
+
+   return 1;
 }
 
 duk_ret_t JsLib::Output(duk_context* duktapeContext)
@@ -154,17 +138,11 @@ duk_ret_t JsLib::Output(duk_context* duktapeContext)
    duk_push_this(duktapeContext);
    auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
 
-   if (!args) {
-      duk_push_string(duktapeContext, obj->librarian.Output().c_str());
-      return 1;
-   }
-   else if (args == 1) {
-      obj->librarian.Output(duk_require_string(duktapeContext, 0));
-      return 1;
-   }
-   else {
-      JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::Output() expected");
-   }
+   if (!args) duk_push_string(duktapeContext, obj->librarian.Output().c_str());
+   else if (args == 1) obj->librarian.Output(duk_require_string(duktapeContext, 0));
+   else JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::Output() expected");
+
+   return 1;
 }
 
 duk_ret_t JsLib::CRT(duk_context* duktapeContext)
@@ -174,17 +152,11 @@ duk_ret_t JsLib::CRT(duk_context* duktapeContext)
    duk_push_this(duktapeContext);
    auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
 
-   if (!args) {
-      duk_push_string(duktapeContext, obj->compiler.CRT().c_str());
-      return 1;
-   }
-   else if (args == 1) {
-      obj->compiler.CRT(duk_require_string(duktapeContext, 0));
-      return 1;
-   }
-   else {
-      JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::CRT() expected");
-   }
+   if (!args) duk_push_string(duktapeContext, obj->compiler.CRT().c_str());
+   else if (args == 1) obj->compiler.CRT(duk_require_string(duktapeContext, 0));
+   else JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::CRT() expected");
+
+   return 1;
 }
 
 duk_ret_t JsLib::ObjDir(duk_context* duktapeContext)
@@ -194,17 +166,11 @@ duk_ret_t JsLib::ObjDir(duk_context* duktapeContext)
    duk_push_this(duktapeContext);
    auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
 
-   if (!args) {
-      duk_push_string(duktapeContext, obj->compiler.ObjDir().c_str());
-      return 1;
-   }
-   else if (args == 1) {
-      obj->compiler.ObjDir(duk_require_string(duktapeContext, 0));
-      return 1;
-   }
-   else {
-      JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::ObjDir() expected");
-   }
+   if (!args) duk_push_string(duktapeContext, obj->compiler.ObjDir().c_str());
+   else if (args == 1) obj->compiler.ObjDir(duk_require_string(duktapeContext, 0));
+   else JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::ObjDir() expected");
+
+   return 1;
 }
 
 duk_ret_t JsLib::Includes(duk_context* duktapeContext)
@@ -214,14 +180,10 @@ duk_ret_t JsLib::Includes(duk_context* duktapeContext)
    duk_push_this(duktapeContext);
    auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
 
-   if (!args) {
-      JavaScriptHelper::PushArray(duktapeContext, obj->compiler.Includes());
-      return 1;
-   }
-   else {
-      obj->compiler.Includes(JavaScriptHelper::AsStringVector(duktapeContext, args));
-      return 1;
-   }
+   if (!args) JavaScriptHelper::PushArray(duktapeContext, obj->compiler.Includes());
+   else obj->compiler.Includes(JavaScriptHelper::AsStringVector(duktapeContext, args));
+
+   return 1;
 }
 
 duk_ret_t JsLib::Defines(duk_context* duktapeContext)
@@ -231,14 +193,10 @@ duk_ret_t JsLib::Defines(duk_context* duktapeContext)
    duk_push_this(duktapeContext);
    auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
 
-   if (!args) {
-      JavaScriptHelper::PushArray(duktapeContext, obj->compiler.Defines());
-      return 1;
-   }
-   else {
-      obj->compiler.Defines(JavaScriptHelper::AsStringVector(duktapeContext, args));
-      return 1;
-   }
+   if (!args) JavaScriptHelper::PushArray(duktapeContext, obj->compiler.Defines());
+   else obj->compiler.Defines(JavaScriptHelper::AsStringVector(duktapeContext, args));
+
+   return 1;
 }
 
 duk_ret_t JsLib::Threads(duk_context* duktapeContext)
@@ -248,17 +206,11 @@ duk_ret_t JsLib::Threads(duk_context* duktapeContext)
    duk_push_this(duktapeContext);
    auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
 
-   if (!args) {
-      duk_push_int(duktapeContext, obj->compiler.Threads());
-      return 1;
-   }
-   else if (args == 1) {
-      obj->compiler.Threads(duk_require_int(duktapeContext, 0));
-      return 1;
-   }
-   else {
-      JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::Threads() expected");
-   }
+   if (!args) duk_push_int(duktapeContext, obj->compiler.Threads());
+   else if (args == 1) obj->compiler.Threads(duk_require_int(duktapeContext, 0));
+   else JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::Threads() expected");
+
+   return 1;
 }
 
 duk_ret_t JsLib::CompileArgs(duk_context* duktapeContext)
@@ -268,14 +220,10 @@ duk_ret_t JsLib::CompileArgs(duk_context* duktapeContext)
    duk_push_this(duktapeContext);
    auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
 
-   if (!args) {
-      duk_push_string(duktapeContext, obj->compiler.Args().c_str());
-      return 1;
-   }
-   else {
-      obj->compiler.Args(JavaScriptHelper::AsString(duktapeContext, args));
-      return 1;
-   }
+   if (!args) duk_push_string(duktapeContext, obj->compiler.Args().c_str());
+   else obj->compiler.Args(JavaScriptHelper::AsString(duktapeContext, args));
+
+   return 1;
 }
 
 duk_ret_t JsLib::PrecompiledHeader(duk_context* duktapeContext)
@@ -285,17 +233,11 @@ duk_ret_t JsLib::PrecompiledHeader(duk_context* duktapeContext)
    duk_push_this(duktapeContext);
    auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
 
-   if (!args) {
-      duk_push_string(duktapeContext, obj->compiler.PrecompiledHeader().c_str());
-      return 1;
-   }
-   else if (args == 2) {
-      obj->compiler.PrecompiledHeader(duk_require_string(duktapeContext, 0), duk_require_string(duktapeContext, 1));
-      return 1;
-   }
-   else {
-      JavaScriptHelper::Throw(duktapeContext, "Two arguments for Lib::PrecompiledHeader() expected");
-   }
+   if (!args) duk_push_string(duktapeContext, obj->compiler.PrecompiledHeader().c_str());
+   else if (args == 2) obj->compiler.PrecompiledHeader(duk_require_string(duktapeContext, 0), duk_require_string(duktapeContext, 1));
+   else JavaScriptHelper::Throw(duktapeContext, "Two arguments for Lib::PrecompiledHeader() expected");
+
+   return 1;
 }
 
 duk_ret_t JsLib::WarningLevel(duk_context* duktapeContext)
@@ -305,17 +247,11 @@ duk_ret_t JsLib::WarningLevel(duk_context* duktapeContext)
    duk_push_this(duktapeContext);
    auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
 
-   if (!args) {
-      duk_push_int(duktapeContext, obj->compiler.WarnLevel());
-      return 1;
-   }
-   else if (args == 2) {
-      obj->compiler.WarnLevel(duk_require_int(duktapeContext, 0));
-      return 1;
-   }
-   else {
-      JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::WarningLevel() expected");
-   }
+   if (!args) duk_push_int(duktapeContext, obj->compiler.WarnLevel());
+   else if (args == 2) obj->compiler.WarnLevel(duk_require_int(duktapeContext, 0));
+   else JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::WarningLevel() expected");
+
+   return 1;
 }
 
 duk_ret_t JsLib::WarningAsError(duk_context* duktapeContext)
@@ -325,17 +261,11 @@ duk_ret_t JsLib::WarningAsError(duk_context* duktapeContext)
    duk_push_this(duktapeContext);
    auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
 
-   if (!args) {
-      duk_push_boolean(duktapeContext, obj->compiler.WarningAsError());
-      return 1;
-   }
-   else if (args == 2) {
-      obj->compiler.WarningAsError(duk_require_boolean(duktapeContext, 0) != 0);
-      return 1;
-   }
-   else {
-      JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::WarningAsError() expected");
-   }
+   if (!args) duk_push_boolean(duktapeContext, obj->compiler.WarningAsError());
+   else if (args == 2) obj->compiler.WarningAsError(duk_require_boolean(duktapeContext, 0) != 0);
+   else JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::WarningAsError() expected");
+
+   return 1;
 }
 
 duk_ret_t JsLib::WarningDisable(duk_context* duktapeContext)
@@ -345,14 +275,10 @@ duk_ret_t JsLib::WarningDisable(duk_context* duktapeContext)
    duk_push_this(duktapeContext);
    auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
 
-   if (!args) {
-      JavaScriptHelper::PushArray(duktapeContext, obj->compiler.WarningDisable());
-      return 1;
-   }
-   else {
-      obj->compiler.WarningDisable(JavaScriptHelper::AsIntVector(duktapeContext, args));
-      return 1;
-   }
+   if (!args) JavaScriptHelper::PushArray(duktapeContext, obj->compiler.WarningDisable());
+   else obj->compiler.WarningDisable(JavaScriptHelper::AsIntVector(duktapeContext, args));
+
+   return 1;
 }
 
 duk_ret_t JsLib::BeforeCompile(duk_context* duktapeContext)

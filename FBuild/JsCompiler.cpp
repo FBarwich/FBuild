@@ -8,143 +8,332 @@
 #include "JsCompiler.h"
 
 
-/* TODO
-
-
-v8::Handle<v8::Value> JsCompiler::GetSet (const v8::Arguments& args)
+duk_ret_t JsCompiler::Constructor(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
-   v8::Handle<v8::Value> result;
+   if (duk_get_top(duktapeContext) != 0) JavaScriptHelper::Throw(duktapeContext, "No arguments for Lib constructor expected");
+
+   if (duk_is_constructor_call(duktapeContext)) duk_push_this(duktapeContext);
+   else duk_push_object(duktapeContext);
+
+   duk_push_pointer(duktapeContext, new JsCompiler);
+   duk_put_prop_string(duktapeContext, -2, "__Ptr");
+
+   duk_push_c_function(duktapeContext, JsCompiler::Destructor, 1);
+   duk_set_finalizer(duktapeContext, -2);
+
+   duk_push_c_function(duktapeContext, JsCompiler::Build, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Build");
+
+   duk_push_c_function(duktapeContext, JsCompiler::Files, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Files");
+
+   duk_push_c_function(duktapeContext, JsCompiler::DependencyCheck, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "DependencyCheck");
+
+   duk_push_c_function(duktapeContext, JsCompiler::CRT, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "CRT");
+
+   duk_push_c_function(duktapeContext, JsCompiler::ObjDir, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "ObjDir");
+
+   duk_push_c_function(duktapeContext, JsCompiler::Includes, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Includes");
+
+   duk_push_c_function(duktapeContext, JsCompiler::Defines, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Defines");
+
+   duk_push_c_function(duktapeContext, JsCompiler::Threads, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Threads");
+
+   duk_push_c_function(duktapeContext, JsCompiler::CompileArgs, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "CompileArgs");
+
+   duk_push_c_function(duktapeContext, JsCompiler::CompileArgs, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Args");
+
+   duk_push_c_function(duktapeContext, JsCompiler::PrecompiledHeader, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "PrecompiledHeader");
+
+   duk_push_c_function(duktapeContext, JsCompiler::WarningLevel, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "WarningLevel");
+
+   duk_push_c_function(duktapeContext, JsCompiler::WarningAsError, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "WarningAsError");
+
+   duk_push_c_function(duktapeContext, JsCompiler::WarningDisable, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "WarningDisable");
+
+   duk_push_c_function(duktapeContext, JsCompiler::ObjFiles, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "ObjFiles");
+
+   duk_push_c_function(duktapeContext, JsCompiler::CompiledObjFiles, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "CompiledObjFiles");
+
+   duk_push_c_function(duktapeContext, JsCompiler::BeforeCompile, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "BeforeCompile");
+
+   duk_push_c_function(duktapeContext, JsCompiler::Compile, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Compile");
+
+   return 1;
+}
+
+duk_ret_t JsCompiler::Destructor(duk_context* duktapeContext)
+{
+   delete JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
+   return 0;
+}
+
+duk_ret_t JsCompiler::Build(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
+
+   if (!args) duk_push_string(duktapeContext, obj->compiler.Build().c_str());
+   else if (args == 1) obj->compiler.Build(duk_require_string(duktapeContext, 0));
+   else JavaScriptHelper::Throw(duktapeContext, "One argument for Compiler::Build() expected");
+
+   return 1;
+}
+
+duk_ret_t JsCompiler::Files(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
+
+   if (!args) JavaScriptHelper::PushArray(duktapeContext, obj->compiler.Files());
+   else obj->compiler.Files(JavaScriptHelper::AsStringVector(duktapeContext, args));
+
+   return 1;
+}
+
+duk_ret_t JsCompiler::DependencyCheck(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
+
+   if (!args) duk_push_boolean(duktapeContext, obj->compiler.DependencyCheck());
+   else if (args == 1) obj->compiler.DependencyCheck(duk_require_boolean(duktapeContext, 0) != 0);
+   else JavaScriptHelper::Throw(duktapeContext, "One argument for Compiler::DependencyCheck() expected");
+
+   return 1;
+}
+
+duk_ret_t JsCompiler::CRT(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
+
+   if (!args) duk_push_string(duktapeContext, obj->compiler.CRT().c_str());
+   else if (args == 1) obj->compiler.CRT(duk_require_string(duktapeContext, 0));
+   else JavaScriptHelper::Throw(duktapeContext, "One argument for Compiler::CRT() expected");
+
+   return 1;
+}
+
+duk_ret_t JsCompiler::ObjDir(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
+
+   if (!args) duk_push_string(duktapeContext, obj->compiler.ObjDir().c_str());
+   else if (args == 1) obj->compiler.ObjDir(duk_require_string(duktapeContext, 0));
+   else JavaScriptHelper::Throw(duktapeContext, "One argument for Compiler::ObjDir() expected");
+
+   return 1;
+}
+
+duk_ret_t JsCompiler::Includes(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
+
+   if (!args) JavaScriptHelper::PushArray(duktapeContext, obj->compiler.Includes());
+   else obj->compiler.Includes(JavaScriptHelper::AsStringVector(duktapeContext, args));
+
+   return 1;
+}
+
+duk_ret_t JsCompiler::Defines(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
+
+   if (!args) JavaScriptHelper::PushArray(duktapeContext, obj->compiler.Defines());
+   else obj->compiler.Defines(JavaScriptHelper::AsStringVector(duktapeContext, args));
+
+   return 1;
+}
+
+duk_ret_t JsCompiler::Threads(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
+
+   if (!args) duk_push_int(duktapeContext, obj->compiler.Threads());
+   else if (args == 1) obj->compiler.Threads(duk_require_int(duktapeContext, 0));
+   else JavaScriptHelper::Throw(duktapeContext, "One argument for Compiler::Threads() expected");
+
+   return 1;
+}
+
+duk_ret_t JsCompiler::CompileArgs(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
+
+   if (!args) duk_push_string(duktapeContext, obj->compiler.Args().c_str());
+   else obj->compiler.Args(JavaScriptHelper::AsString(duktapeContext, args));
+
+   return 1;
+}
+
+duk_ret_t JsCompiler::PrecompiledHeader(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
+
+   if (!args) duk_push_string(duktapeContext, obj->compiler.PrecompiledHeader().c_str());
+   else if (args == 2) obj->compiler.PrecompiledHeader(duk_require_string(duktapeContext, 0), duk_require_string(duktapeContext, 1));
+   else JavaScriptHelper::Throw(duktapeContext, "Two arguments for Compiler::PrecompiledHeader() expected");
+
+   return 1;
+}
+
+duk_ret_t JsCompiler::WarningLevel(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
+
+   if (!args) duk_push_int(duktapeContext, obj->compiler.WarnLevel());
+   else if (args == 2) obj->compiler.WarnLevel(duk_require_int(duktapeContext, 0));
+   else JavaScriptHelper::Throw(duktapeContext, "One argument for Compiler::WarningLevel() expected");
+
+   return 1;
+}
+
+duk_ret_t JsCompiler::WarningAsError(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
+
+   if (!args) duk_push_boolean(duktapeContext, obj->compiler.WarningAsError());
+   else if (args == 2) obj->compiler.WarningAsError(duk_require_boolean(duktapeContext, 0) != 0);
+   else JavaScriptHelper::Throw(duktapeContext, "One argument for Compiler::WarningAsError() expected");
+
+   return 1;
+}
+
+duk_ret_t JsCompiler::WarningDisable(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
+
+   if (!args) JavaScriptHelper::PushArray(duktapeContext, obj->compiler.WarningDisable());
+   else obj->compiler.WarningDisable(JavaScriptHelper::AsIntVector(duktapeContext, args));
+
+   return 1;
+}
+
+duk_ret_t JsCompiler::ObjFiles(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
+
+   if (!args) JavaScriptHelper::PushArray(duktapeContext, obj->compiler.ObjFiles());
+   else JavaScriptHelper::Throw(duktapeContext, "No arguments for Compiler::ObjFiles() expected");
+
+   return 1;
+}
+
+duk_ret_t JsCompiler::CompiledObjFiles(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
+
+   if (!args) JavaScriptHelper::PushArray(duktapeContext, obj->compiler.CompiledObjFiles());
+   else JavaScriptHelper::Throw(duktapeContext, "No arguments for Compiler::CompiledObjFiles() expected");
+
+   return 1;
+}
+
+duk_ret_t JsCompiler::BeforeCompile(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
+
+   if (!args) {
+      JavaScriptHelper::PushStashedCallback(duktapeContext, "JsCompiler::BeforeCompile", obj);
+   }
+   else if (args == 1) {
+      JavaScriptHelper::StashCallback(duktapeContext, 0, "JsCompiler::BeforeCompile", obj);
+      obj->compiler.BeforeCompile([=] () { JavaScriptHelper::CallStashedCallback(duktapeContext, "JsCompiler::BeforeCompile", obj); });
+   }
+   else {
+      JavaScriptHelper::Throw(duktapeContext, "One argument for Compiler::BeforeCompile() expected");
+   }
+
+   return 1;
+}
+
+duk_ret_t JsCompiler::Compile(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsCompiler>(duktapeContext);
+
+   if (args != 0) JavaScriptHelper::Throw(duktapeContext, "No arguments for Compiler::Compile() expected");
 
    try {
-      const std::string funcname = AsString(args.Callee()->GetName());
-      JsCompiler* self = Unwrap<JsCompiler>(args);
-
-      if (args.Length() == 0) {
-         if (funcname == "Build") result = Value(self->compiler.Build()); 
-         else if (funcname == "ObjDir") result = Value(self->compiler.ObjDir());
-         else if (funcname == "Includes") result = Value(self->compiler.Includes());
-         else if (funcname == "Defines") result = Value(self->compiler.Defines());
-         else if (funcname == "CRT") result = Value(self->compiler.CRT());
-         else if (funcname == "Threads") result = Value(self->compiler.Threads());
-         else if (funcname == "Args") result = Value(self->compiler.Args());
-         else if (funcname == "PrecompiledHeader") result = Value(self->compiler.PrecompiledHeader());
-         else if (funcname == "DependencyCheck") result = Value(self->compiler.DependencyCheck());
-         else if (funcname == "Files") result = Value(self->compiler.Files());
-         else if (funcname == "WarningLevel") result = Value(self->compiler.WarnLevel());
-         else if (funcname == "WarningAsError") result = Value(self->compiler.WarningAsError());
-         else if (funcname == "WarningDisable") result = Value(self->compiler.WarningDisable());
-         else if (funcname == "BeforeCompile") result = Value(self->compiler.BeforeCompile());
-      }
-      else {
-         if (funcname == "Build") self->compiler.Build(AsString(args[0]));
-         else if (funcname == "ObjDir") self->compiler.ObjDir(AsString(args[0]));
-         else if (funcname == "Includes") self->compiler.Includes(AsStringVector(args));
-         else if (funcname == "Defines") self->compiler.Defines(AsStringVector(args));
-         else if (funcname == "CRT") self->compiler.CRT(AsString(args[0]));
-         else if (funcname == "Threads") self->compiler.Threads(AsInt(args[0]));
-         else if (funcname == "Args") self->compiler.Args(AsString(args));
-         else if (funcname == "PrecompiledHeader") self->compiler.PrecompiledHeader(AsString(args[0]), AsString(args[1]));
-         else if (funcname == "DependencyCheck") self->compiler.DependencyCheck(AsBool(args[0]));
-         else if (funcname == "Files") self->compiler.Files(AsStringVector(args));
-         else if (funcname == "WarningLevel") self->compiler.WarnLevel(AsInt(args[0]));
-         else if (funcname == "WarningAsError") self->compiler.WarningAsError(AsBool(args[0]));
-         else if (funcname == "WarningDisable") self->compiler.WarningDisable(AsIntVector(args));
-         else if (funcname == "BeforeCompile") self->compiler.BeforeCompile(AsCallback(args[0]));
-
-         result = args.This();
-      }
+      obj->compiler.Compile();
    }
    catch (std::exception& e) {
-      return v8::ThrowException(v8::String::New(e.what()));
+      JavaScriptHelper::Throw(duktapeContext, e.what());
    }
 
-   return scope.Close(result);
+   return 1;
 }
 
-v8::Handle<v8::Value> JsCompiler::ObjFiles (const v8::Arguments& args)
+void JsCompiler::Register(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
-   JsCompiler* self = Unwrap<JsCompiler>(args);
+   duk_push_global_object(duktapeContext);
 
-   v8::Handle<v8::Value> result;
+   duk_push_c_function(duktapeContext, JsCompiler::Constructor, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Compiler");
 
-   try {
-      result = Value(self->compiler.ObjFiles());
-   }
-   catch (std::exception& e) {
-      return v8::ThrowException(v8::String::New(e.what()));
-   }
-
-   return scope.Close(result);
+   duk_pop(duktapeContext);
 }
 
-v8::Handle<v8::Value> JsCompiler::CompiledObjFiles (const v8::Arguments& args)
-{
-   v8::HandleScope scope;
-   JsCompiler* self = Unwrap<JsCompiler>(args);
-
-   v8::Handle<v8::Value> result;
-
-   try {
-      result = Value(self->compiler.CompiledObjFiles());
-   }
-   catch (std::exception& e) {
-      return v8::ThrowException(v8::String::New(e.what()));
-   }
-
-   return scope.Close(result);
-}
-
-v8::Handle<v8::Value> JsCompiler::Compile (const v8::Arguments& args)
-{
-   v8::HandleScope scope;
-   v8::Handle<v8::Value> result;
-   JsCompiler* self = Unwrap<JsCompiler>(args);
-
-   try {
-      self->compiler.Compile();
-      result = args.This();
-   }
-   catch (std::exception& e) {
-      return v8::ThrowException(v8::String::New(e.what()));
-   }
-
-   return scope.Close(result);
-}
-
-void JsCompiler::Register (v8::Handle<v8::ObjectTemplate>& global)
-{
-   v8::HandleScope scope;
-
-   v8::Handle<v8::FunctionTemplate> funcTemplate = v8::FunctionTemplate::New(JavaScriptHelper::Construct<JsCompiler>);
-   funcTemplate->SetClassName(v8::String::New("Compiler"));
-
-   v8::Handle<v8::ObjectTemplate> proto = funcTemplate->PrototypeTemplate();
-   proto->Set("Build", v8::FunctionTemplate::New(GetSet));
-   proto->Set("ObjDir", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Includes", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Defines", v8::FunctionTemplate::New(GetSet));
-   proto->Set("CRT", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Threads", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Args", v8::FunctionTemplate::New(GetSet));
-   proto->Set("PrecompiledHeader", v8::FunctionTemplate::New(GetSet));
-   proto->Set("DependencyCheck", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Files", v8::FunctionTemplate::New(GetSet));
-   proto->Set("WarningLevel", v8::FunctionTemplate::New(GetSet));
-   proto->Set("WarningAsError", v8::FunctionTemplate::New(GetSet));
-   proto->Set("WarningDisable", v8::FunctionTemplate::New(GetSet));
-   proto->Set("BeforeCompile", v8::FunctionTemplate::New(GetSet));
-
-   proto->Set("Compile", v8::FunctionTemplate::New(Compile));
-   proto->Set("ObjFiles", v8::FunctionTemplate::New(ObjFiles));
-   proto->Set("CompiledObjFiles", v8::FunctionTemplate::New(CompiledObjFiles));
-
-   v8::Handle<v8::ObjectTemplate> inst = funcTemplate->InstanceTemplate();
-   inst->SetInternalFieldCount(1);
-
-   global->Set(v8::String::New("Compiler"), funcTemplate);
-}
-
-
-*/
