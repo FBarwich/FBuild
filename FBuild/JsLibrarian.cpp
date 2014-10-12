@@ -7,77 +7,157 @@
 
 #include "JsLibrarian.h"
 
-/* TODO
 
-
-v8::Handle<v8::Value> JsLibrarian::GetSet (const v8::Arguments& args)
+duk_ret_t JsLibrarian::Constructor(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
-   v8::Handle<v8::Value> result;
-
-   JsLibrarian* self = Unwrap<JsLibrarian>(args);
-   const std::string funcname = AsString(args.Callee()->GetName());
-
    try {
-      if (args.Length() == 0) {
-         if (funcname == "Output") result = Value(self->librarian.Output());
-         else if (funcname == "Files") result = Value(self->librarian.Files());
-         else if (funcname == "DependencyCheck") result = Value(self->librarian.DependencyCheck());
-         else if (funcname == "BeforeLink") result = Value(self->librarian.BeforeLink());
+      if (duk_get_top(duktapeContext) != 0) JavaScriptHelper::Throw(duktapeContext, "No arguments for Librarian constructor expected");
+
+      if (duk_is_constructor_call(duktapeContext)) duk_push_this(duktapeContext);
+      else duk_push_object(duktapeContext);
+
+      duk_push_pointer(duktapeContext, new JsLibrarian);
+      duk_put_prop_string(duktapeContext, -2, "__Ptr");
+
+      duk_push_c_function(duktapeContext, JsLibrarian::Destructor, 1);
+      duk_set_finalizer(duktapeContext, -2);
+
+      duk_push_c_function(duktapeContext, JsLibrarian::Files, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "Files");
+
+      duk_push_c_function(duktapeContext, JsLibrarian::DependencyCheck, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "DependencyCheck");
+
+      duk_push_c_function(duktapeContext, JsLibrarian::Output, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "Output");
+
+      duk_push_c_function(duktapeContext, JsLibrarian::BeforeLink, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "BeforeLink");
+
+      duk_push_c_function(duktapeContext, JsLibrarian::Create, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "Create");
+
+      return 1;
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
+}
+
+duk_ret_t JsLibrarian::Destructor(duk_context* duktapeContext)
+{
+   delete JavaScriptHelper::CppObject<JsLibrarian>(duktapeContext);
+   return 0;
+}
+
+duk_ret_t JsLibrarian::Files(duk_context* duktapeContext)
+{
+   try {
+      int args = duk_get_top(duktapeContext);
+
+      duk_push_this(duktapeContext);
+      auto obj = JavaScriptHelper::CppObject<JsLibrarian>(duktapeContext);
+
+      if (!args) JavaScriptHelper::PushArray(duktapeContext, obj->librarian.Files());
+      else obj->librarian.Files(JavaScriptHelper::AsStringVector(duktapeContext, args));
+
+      return 1;
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
+}
+
+duk_ret_t JsLibrarian::DependencyCheck(duk_context* duktapeContext)
+{
+   try {
+      int args = duk_get_top(duktapeContext);
+
+      duk_push_this(duktapeContext);
+      auto obj = JavaScriptHelper::CppObject<JsLibrarian>(duktapeContext);
+
+      if (!args) duk_push_boolean(duktapeContext, obj->librarian.DependencyCheck());
+      else if (args == 1) obj->librarian.DependencyCheck(duk_require_boolean(duktapeContext, 0) != 0);
+      else JavaScriptHelper::Throw(duktapeContext, "One argument for Librarian::DependencyCheck() expected");
+
+      return 1;
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
+}
+
+duk_ret_t JsLibrarian::Output(duk_context* duktapeContext)
+{
+   try {
+      int args = duk_get_top(duktapeContext);
+
+      duk_push_this(duktapeContext);
+      auto obj = JavaScriptHelper::CppObject<JsLibrarian>(duktapeContext);
+
+      if (!args) duk_push_string(duktapeContext, obj->librarian.Output().c_str());
+      else if (args == 1) obj->librarian.Output(duk_require_string(duktapeContext, 0));
+      else JavaScriptHelper::Throw(duktapeContext, "One argument for Librarian::Output() expected");
+
+      return 1;
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
+}
+
+duk_ret_t JsLibrarian::BeforeLink(duk_context* duktapeContext)
+{
+   try {
+      int args = duk_get_top(duktapeContext);
+
+      duk_push_this(duktapeContext);
+      auto obj = JavaScriptHelper::CppObject<JsLibrarian>(duktapeContext);
+
+      if (!args) {
+         JavaScriptHelper::PushStashedCallback(duktapeContext, "JsLibrarian::BeforeLink", obj);
+      }
+      else if (args == 1) {
+         JavaScriptHelper::StashCallback(duktapeContext, 0, "JsLibrarian::BeforeLink", obj);
+         obj->librarian.BeforeLink([=] () { JavaScriptHelper::CallStashedCallback(duktapeContext, "JsLibrarian::BeforeLink", obj); });
       }
       else {
-         if (funcname == "Output") self->librarian.Output(AsString(args[0]));
-         else if (funcname == "Files") self->librarian.Files(AsStringVector(args));
-         else if (funcname == "DependencyCheck") self->librarian.DependencyCheck(AsBool(args[0]));
-         else if (funcname == "BeforeLink") self->librarian.BeforeLink(AsCallback(args[0]));
-
-         result = args.This();
+         JavaScriptHelper::Throw(duktapeContext, "One argument for Librarian::BeforeLink() expected");
       }
+
+      return 1;
    }
    catch (std::exception& e) {
-      return v8::ThrowException(v8::String::New(e.what()));
+      JavaScriptHelper::Throw(duktapeContext, e.what());
    }
-
-   return scope.Close(result);
 }
 
-
-v8::Handle<v8::Value> JsLibrarian::Create (const v8::Arguments& args)
+duk_ret_t JsLibrarian::Create(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
-   v8::Handle<v8::Value> result;
-   JsLibrarian* self = Unwrap<JsLibrarian>(args);
-
    try {
-      self->librarian.Create();
-      result = args.This();
+      int args = duk_get_top(duktapeContext);
+
+      duk_push_this(duktapeContext);
+      auto obj = JavaScriptHelper::CppObject<JsLibrarian>(duktapeContext);
+
+      if (args != 0) JavaScriptHelper::Throw(duktapeContext, "No arguments for Librarian::Create() expected");
+
+      obj->librarian.Create();
+
+      return 1;
    }
    catch (std::exception& e) {
-      return v8::ThrowException(v8::String::New(e.what()));
+      JavaScriptHelper::Throw(duktapeContext, e.what());
    }
-
-   return scope.Close(result);
 }
 
-void JsLibrarian::Register (v8::Handle<v8::ObjectTemplate>& global)
+void JsLibrarian::Register(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
+   duk_push_global_object(duktapeContext);
 
-   v8::Handle<v8::FunctionTemplate> funcTemplate = v8::FunctionTemplate::New(JavaScriptHelper::Construct<JsLibrarian>);
-   funcTemplate->SetClassName(v8::String::New("Librarian"));
+   duk_push_c_function(duktapeContext, JsLibrarian::Constructor, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Librarian");
 
-   v8::Handle<v8::ObjectTemplate> proto = funcTemplate->PrototypeTemplate();
-   proto->Set("Output", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Files", v8::FunctionTemplate::New(GetSet));
-   proto->Set("DependencyCheck", v8::FunctionTemplate::New(GetSet));
-   proto->Set("BeforeLink", v8::FunctionTemplate::New(GetSet));
-
-   proto->Set("Create", v8::FunctionTemplate::New(Create));
-
-
-   v8::Handle<v8::ObjectTemplate> inst = funcTemplate->InstanceTemplate();
-   inst->SetInternalFieldCount(1);
-
-   global->Set(v8::String::New("Librarian"), funcTemplate);
+   duk_pop(duktapeContext);
 }
-*/
+

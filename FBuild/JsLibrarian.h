@@ -7,20 +7,24 @@
 
 #pragma once
 
-/* TODO
-
-#include "JavaScriptHelper.h"
 #include "Librarian.h"
 
-class JsLibrarian : public JavaScriptHelper {
+#include "JavaScriptHelper.h"
+
+class JsLibrarian {
    Librarian librarian;
 
-   static v8::Handle<v8::Value> GetSet (const v8::Arguments& args);
-   static v8::Handle<v8::Value> Create (const v8::Arguments& args);
+   static duk_ret_t Constructor(duk_context* duktapeContext);
+   static duk_ret_t Destructor(duk_context* duktapeContext);
+   static duk_ret_t Files(duk_context* duktapeContext);
+   static duk_ret_t DependencyCheck(duk_context* duktapeContext);
+   static duk_ret_t Output(duk_context* duktapeContext);
+   static duk_ret_t BeforeLink(duk_context* duktapeContext);
+
+   static duk_ret_t Create(duk_context* duktapeContext);
 
 public:
 
-   static void Register (v8::Handle<v8::ObjectTemplate>& global);
+   static void Register(duk_context* duktapeContext);
 };
 
-*/
