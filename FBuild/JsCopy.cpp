@@ -67,7 +67,6 @@ duk_ret_t JsCopy::Constructor(duk_context* duktapeContext)
 duk_ret_t JsCopy::Destructor(duk_context* duktapeContext)
 {
    delete JavaScriptHelper::CppObject<JsCopy>(duktapeContext);
-
    return 0;
 }
 

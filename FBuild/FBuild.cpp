@@ -23,7 +23,7 @@ int main (int argc, char** argv)
 
       JavaScript js(args);
 
-      const char* script =  // The stacktrace is not accessible from C, thus throwing it from ecmascript.
+      const char* script =  // The stacktrace is not accessible from C, thus we're throwing it from ecmascript.
          "try {"
          "   ExecuteFile('FBuild.js');"
          "}"

@@ -13,6 +13,7 @@
 #include "FileOutOfDate.h"
 
 #include "JsCopy.h"
+#include "JsLib.h"
 
 #include <Shlwapi.h>
 
@@ -77,13 +78,13 @@ JavaScript::JavaScript (const std::vector<std::string>& args)
    duk_pop(duktapeContext);
 
    JsCopy::Register(duktapeContext);
-   //JsCompiler::Register(global);
-   //JsLinker::Register(global);
-   //JsResourceCompiler::Register(global);
-   //JsExe::Register(global);
-   //JsLibrarian::Register(global);
-   //JsLib::Register(global);
-   //JsFileToCpp::Register(global);
+   JsLib::Register(duktapeContext);
+   //JsCompiler::Register(duktapeContext);
+   //JsLinker::Register(duktapeContext);
+   //JsResourceCompiler::Register(duktapeContext);
+   //JsExe::Register(duktapeContext);
+   //JsLibrarian::Register(duktapeContext);
+   //JsFileToCpp::Register(duktapeContext);
 }
 
 JavaScript::~JavaScript ()

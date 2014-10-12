@@ -7,119 +7,426 @@
 
 #include "JsLib.h"
 
-/* TODO
+#include <iostream>
 
-v8::Handle<v8::Value> JsLib::GetSet (const v8::Arguments& args)
+#include <boost/lexical_cast.hpp>
+
+
+duk_ret_t JsLib::Constructor(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
-   v8::Handle<v8::Value> result;
+   if (duk_get_top(duktapeContext) != 0) JavaScriptHelper::Throw(duktapeContext, "No arguments for Lib constructor expected");
+
+   if (duk_is_constructor_call(duktapeContext)) duk_push_this(duktapeContext);
+   else duk_push_object(duktapeContext);
+
+   JsLib* lib = new JsLib;
+
+   duk_push_pointer(duktapeContext, lib);
+   duk_put_prop_string(duktapeContext, -2, "__Ptr");
+
+   duk_push_c_function(duktapeContext, JsLib::Destructor, 1);
+   duk_set_finalizer(duktapeContext, -2);
+
+   duk_push_c_function(duktapeContext, JsLib::Build, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Build");
+
+   duk_push_c_function(duktapeContext, JsLib::Files, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Files");
+
+   duk_push_c_function(duktapeContext, JsLib::DependencyCheck, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "DependencyCheck");
+
+   duk_push_c_function(duktapeContext, JsLib::Output, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Output");
+
+   duk_push_c_function(duktapeContext, JsLib::CRT, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "CRT");
+
+   duk_push_c_function(duktapeContext, JsLib::ObjDir, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "ObjDir");
+
+   duk_push_c_function(duktapeContext, JsLib::Includes, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Includes");
+
+   duk_push_c_function(duktapeContext, JsLib::Defines, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Defines");
+
+   duk_push_c_function(duktapeContext, JsLib::Threads, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Threads");
+
+   duk_push_c_function(duktapeContext, JsLib::CompileArgs, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "CompileArgs");
+
+   duk_push_c_function(duktapeContext, JsLib::CompileArgs, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Args");
+
+   duk_push_c_function(duktapeContext, JsLib::PrecompiledHeader, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "PrecompiledHeader");
+
+   duk_push_c_function(duktapeContext, JsLib::WarningLevel, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "WarningLevel");
+
+   duk_push_c_function(duktapeContext, JsLib::WarningAsError, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "WarningAsError");
+
+   duk_push_c_function(duktapeContext, JsLib::WarningDisable, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "WarningDisable");
+
+   duk_push_c_function(duktapeContext, JsLib::BeforeCompile, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "BeforeCompile");
+
+   duk_push_c_function(duktapeContext, JsLib::BeforeLink, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "BeforeLink");
+
+   duk_push_c_function(duktapeContext, JsLib::Create, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Create");
+
+   return 1;
+}
+
+duk_ret_t JsLib::Destructor(duk_context* duktapeContext)
+{
+   delete JavaScriptHelper::CppObject<JsLib>(duktapeContext);
+   return 0;
+}
+
+duk_ret_t JsLib::Build(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
+
+   if (!args) {
+      duk_push_string(duktapeContext, obj->compiler.Build().c_str());
+      return 1;
+   }
+   else if (args == 1) {
+      obj->compiler.Build(duk_require_string(duktapeContext, 0));
+      return 1;
+   }
+   else {
+      JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::Build() expected");
+   }
+}
+
+duk_ret_t JsLib::Files(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
+
+   if (!args) {
+      JavaScriptHelper::PushArray(duktapeContext, obj->compiler.Files());
+      return 1;
+   }
+   else {
+      obj->compiler.Files(JavaScriptHelper::AsStringVector(duktapeContext, args));
+      return 1;
+   }
+}
+
+duk_ret_t JsLib::DependencyCheck(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
+
+   if (!args) {
+      duk_push_boolean(duktapeContext, obj->compiler.DependencyCheck());
+      return 1;
+   }
+   else if (args == 1) {
+      obj->compiler.DependencyCheck(duk_require_boolean(duktapeContext, 0) != 0);
+      return 1;
+   }
+   else {
+      JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::Dependency() expected");
+   }
+}
+
+duk_ret_t JsLib::Output(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
+
+   if (!args) {
+      duk_push_string(duktapeContext, obj->librarian.Output().c_str());
+      return 1;
+   }
+   else if (args == 1) {
+      obj->librarian.Output(duk_require_string(duktapeContext, 0));
+      return 1;
+   }
+   else {
+      JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::Output() expected");
+   }
+}
+
+duk_ret_t JsLib::CRT(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
+
+   if (!args) {
+      duk_push_string(duktapeContext, obj->compiler.CRT().c_str());
+      return 1;
+   }
+   else if (args == 1) {
+      obj->compiler.CRT(duk_require_string(duktapeContext, 0));
+      return 1;
+   }
+   else {
+      JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::CRT() expected");
+   }
+}
+
+duk_ret_t JsLib::ObjDir(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
+
+   if (!args) {
+      duk_push_string(duktapeContext, obj->compiler.ObjDir().c_str());
+      return 1;
+   }
+   else if (args == 1) {
+      obj->compiler.ObjDir(duk_require_string(duktapeContext, 0));
+      return 1;
+   }
+   else {
+      JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::ObjDir() expected");
+   }
+}
+
+duk_ret_t JsLib::Includes(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
+
+   if (!args) {
+      JavaScriptHelper::PushArray(duktapeContext, obj->compiler.Includes());
+      return 1;
+   }
+   else {
+      obj->compiler.Includes(JavaScriptHelper::AsStringVector(duktapeContext, args));
+      return 1;
+   }
+}
+
+duk_ret_t JsLib::Defines(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
+
+   if (!args) {
+      JavaScriptHelper::PushArray(duktapeContext, obj->compiler.Defines());
+      return 1;
+   }
+   else {
+      obj->compiler.Defines(JavaScriptHelper::AsStringVector(duktapeContext, args));
+      return 1;
+   }
+}
+
+duk_ret_t JsLib::Threads(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
+
+   if (!args) {
+      duk_push_int(duktapeContext, obj->compiler.Threads());
+      return 1;
+   }
+   else if (args == 1) {
+      obj->compiler.Threads(duk_require_int(duktapeContext, 0));
+      return 1;
+   }
+   else {
+      JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::Threads() expected");
+   }
+}
+
+duk_ret_t JsLib::CompileArgs(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
+
+   if (!args) {
+      duk_push_string(duktapeContext, obj->compiler.Args().c_str());
+      return 1;
+   }
+   else {
+      obj->compiler.Args(JavaScriptHelper::AsString(duktapeContext, args));
+      return 1;
+   }
+}
+
+duk_ret_t JsLib::PrecompiledHeader(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
+
+   if (!args) {
+      duk_push_string(duktapeContext, obj->compiler.PrecompiledHeader().c_str());
+      return 1;
+   }
+   else if (args == 2) {
+      obj->compiler.PrecompiledHeader(duk_require_string(duktapeContext, 0), duk_require_string(duktapeContext, 1));
+      return 1;
+   }
+   else {
+      JavaScriptHelper::Throw(duktapeContext, "Two arguments for Lib::PrecompiledHeader() expected");
+   }
+}
+
+duk_ret_t JsLib::WarningLevel(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
+
+   if (!args) {
+      duk_push_int(duktapeContext, obj->compiler.WarnLevel());
+      return 1;
+   }
+   else if (args == 2) {
+      obj->compiler.WarnLevel(duk_require_int(duktapeContext, 0));
+      return 1;
+   }
+   else {
+      JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::WarningLevel() expected");
+   }
+}
+
+duk_ret_t JsLib::WarningAsError(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
+
+   if (!args) {
+      duk_push_boolean(duktapeContext, obj->compiler.WarningAsError());
+      return 1;
+   }
+   else if (args == 2) {
+      obj->compiler.WarningAsError(duk_require_boolean(duktapeContext, 0) != 0);
+      return 1;
+   }
+   else {
+      JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::WarningAsError() expected");
+   }
+}
+
+duk_ret_t JsLib::WarningDisable(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
+
+   if (!args) {
+      JavaScriptHelper::PushArray(duktapeContext, obj->compiler.WarningDisable());
+      return 1;
+   }
+   else {
+      obj->compiler.WarningDisable(JavaScriptHelper::AsIntVector(duktapeContext, args));
+      return 1;
+   }
+}
+
+duk_ret_t JsLib::BeforeCompile(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
+
+   if (!args) {
+      JavaScriptHelper::PushStashedCallback(duktapeContext, "JsLib::BeforeCompile", obj);
+   }
+   else if (args == 1) {
+      JavaScriptHelper::StashCallback(duktapeContext, 0, "JsLib::BeforeCompile", obj);
+      obj->compiler.BeforeCompile([=] () { JavaScriptHelper::CallStashedCallback(duktapeContext, "JsLib::BeforeCompile", obj); });
+   }
+   else {
+      JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::BeforeCompile() expected");
+   }
+
+   return 1;
+}
+
+duk_ret_t JsLib::BeforeLink(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
+
+   if (!args) {
+      JavaScriptHelper::PushStashedCallback(duktapeContext, "JsLib::BeforeLink", obj);
+   }
+   else if (args == 1) {
+      JavaScriptHelper::StashCallback(duktapeContext, 0, "JsLib::BeforeLink", obj);
+      obj->librarian.BeforeLink([=] () { JavaScriptHelper::CallStashedCallback(duktapeContext, "JsLib::BeforeLink", obj); });
+   }
+   else {
+      JavaScriptHelper::Throw(duktapeContext, "One argument for Lib::BeforeLink() expected");
+   }
+
+   return 1;
+}
+
+duk_ret_t JsLib::Create(duk_context* duktapeContext)
+{
+   int args = duk_get_top(duktapeContext);
+
+   duk_push_this(duktapeContext);
+   auto obj = JavaScriptHelper::CppObject<JsLib>(duktapeContext);
+
+   if (args != 0) JavaScriptHelper::Throw(duktapeContext, "No arguments for Lib::Create() expected");
 
    try {
-      const std::string funcname = AsString(args.Callee()->GetName());
-      JsLib* self = Unwrap<JsLib>(args);
+      obj->compiler.Compile();
 
-      if (args.Length() == 0) {
-         if (funcname == "Build") result = Value(self->compiler.Build()); 
-         else if (funcname == "ObjDir") result = Value(self->compiler.ObjDir());
-         else if (funcname == "Includes") result = Value(self->compiler.Includes());
-         else if (funcname == "Defines") result = Value(self->compiler.Defines());
-         else if (funcname == "CRT") result = Value(self->compiler.CRT());
-         else if (funcname == "Threads") result = Value(self->compiler.Threads());
-         else if (funcname == "Args" || funcname == "CompileArgs") result = Value(self->compiler.Args());
-         else if (funcname == "PrecompiledHeader") result = Value(self->compiler.PrecompiledHeader());
-         else if (funcname == "DependencyCheck") result = Value(self->compiler.DependencyCheck());
-         else if (funcname == "Files") result = Value(self->compiler.Files());
-         else if (funcname == "WarningLevel") result = Value(self->compiler.WarnLevel());
-         else if (funcname == "WarningAsError") result = Value(self->compiler.WarningAsError());
-         else if (funcname == "WarningDisable") result = Value(self->compiler.WarningDisable());
-         else if (funcname == "BeforeCompile") result = Value(self->compiler.BeforeCompile());
-
-         else if (funcname == "BeforeLink") result = Value(self->librarian.BeforeLink());
-         else if (funcname == "Output") result = Value(self->librarian.Output());
-      }
-      else {
-         if (funcname == "Build") self->compiler.Build(AsString(args[0]));
-         else if (funcname == "ObjDir") self->compiler.ObjDir(AsString(args[0]));
-         else if (funcname == "Includes") self->compiler.Includes(AsStringVector(args));
-         else if (funcname == "Defines") self->compiler.Defines(AsStringVector(args));
-         else if (funcname == "CRT") self->compiler.CRT(AsString(args[0]));
-         else if (funcname == "Threads") self->compiler.Threads(AsInt(args[0]));
-         else if (funcname == "Args" || funcname == "CompileArgs") self->compiler.Args(AsString(args));
-         else if (funcname == "PrecompiledHeader") self->compiler.PrecompiledHeader(AsString(args[0]), AsString(args[1]));
-         else if (funcname == "DependencyCheck") self->compiler.DependencyCheck(AsBool(args[0]));
-         else if (funcname == "Files") self->compiler.Files(AsStringVector(args));
-         else if (funcname == "WarningLevel") self->compiler.WarnLevel(AsInt(args[0]));
-         else if (funcname == "WarningAsError") self->compiler.WarningAsError(AsBool(args[0]));
-         else if (funcname == "WarningDisable") self->compiler.WarningDisable(AsIntVector(args));
-         else if (funcname == "BeforeCompile") self->compiler.BeforeCompile(AsCallback(args[0]));
-
-         else if (funcname == "BeforeLink") self->librarian.BeforeLink(AsCallback(args[0]));
-         else if (funcname == "Output") self->librarian.Output(AsString(args[0]));
-
-         result = args.This();
-      }
+      obj->librarian.Files(obj->compiler.ObjFiles());
+      obj->librarian.DependencyCheck(obj->compiler.DependencyCheck());
+      obj->librarian.Create();
    }
    catch (std::exception& e) {
-      return v8::ThrowException(v8::String::New(e.what()));
+      JavaScriptHelper::Throw(duktapeContext, e.what());
    }
 
-   return scope.Close(result);
+   return 1;
 }
 
-v8::Handle<v8::Value> JsLib::Create (const v8::Arguments& args)
+void JsLib::Register(duk_context* duktapeContext)
 {
-   v8::HandleScope scope;
-   v8::Handle<v8::Value> result;
-   JsLib* self = Unwrap<JsLib>(args);
+   duk_push_global_object(duktapeContext);
 
-   try {
-      self->compiler.Compile();
+   duk_push_c_function(duktapeContext, JsLib::Constructor, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "Lib");
 
-      self->librarian.Files(self->compiler.ObjFiles());
-      self->librarian.DependencyCheck(self->compiler.DependencyCheck());
-      self->librarian.Create();
-
-      result = args.This();
-   }
-   catch (std::exception& e) {
-      return v8::ThrowException(v8::String::New(e.what()));
-   }
-
-   return scope.Close(result);
+   duk_pop(duktapeContext);
 }
 
-void JsLib::Register (v8::Handle<v8::ObjectTemplate>& global)
-{
-   v8::HandleScope scope;
-
-   v8::Handle<v8::FunctionTemplate> funcTemplate = v8::FunctionTemplate::New(JavaScriptHelper::Construct<JsLib>);
-   funcTemplate->SetClassName(v8::String::New("Lib"));
-
-   v8::Handle<v8::ObjectTemplate> proto = funcTemplate->PrototypeTemplate();
-   proto->Set("Build", v8::FunctionTemplate::New(GetSet));
-   proto->Set("ObjDir", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Includes", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Defines", v8::FunctionTemplate::New(GetSet));
-   proto->Set("CRT", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Threads", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Args", v8::FunctionTemplate::New(GetSet));
-   proto->Set("CompileArgs", v8::FunctionTemplate::New(GetSet));
-   proto->Set("PrecompiledHeader", v8::FunctionTemplate::New(GetSet));
-   proto->Set("DependencyCheck", v8::FunctionTemplate::New(GetSet));
-   proto->Set("Files", v8::FunctionTemplate::New(GetSet));
-   proto->Set("WarningLevel", v8::FunctionTemplate::New(GetSet));
-   proto->Set("WarningAsError", v8::FunctionTemplate::New(GetSet));
-   proto->Set("WarningDisable", v8::FunctionTemplate::New(GetSet));
-
-   proto->Set("Output", v8::FunctionTemplate::New(GetSet));
-
-   proto->Set("Create", v8::FunctionTemplate::New(Create));
-
-   v8::Handle<v8::ObjectTemplate> inst = funcTemplate->InstanceTemplate();
-   inst->SetInternalFieldCount(1);
-
-   global->Set(v8::String::New("Lib"), funcTemplate);
-
-}
-
-*/
