@@ -18,50 +18,60 @@ duk_ret_t JsCopy::Function(duk_context* duktapeContext)
 
 duk_ret_t JsCopy::Standalone(duk_context* duktapeContext)
 {
-   int args = duk_get_top(duktapeContext);
-   if (args < 2) JavaScriptHelper::Throw(duktapeContext, "Expected two or three arguments for Copy()");
+   try {
+      int args = duk_get_top(duktapeContext);
+      if (args < 2) JavaScriptHelper::Throw(duktapeContext, "Expected two or three arguments for Copy()");
 
-   Copy copy;
-   copy.Source(duk_require_string(duktapeContext, 0));
-   copy.Dest(duk_require_string(duktapeContext, 1));
-   if (args > 2) copy.DependencyCheck(duk_to_boolean(duktapeContext, 2) != 0);
+      Copy copy;
+      copy.Source(duk_require_string(duktapeContext, 0));
+      copy.Dest(duk_require_string(duktapeContext, 1));
+      if (args > 2) copy.DependencyCheck(duk_to_boolean(duktapeContext, 2) != 0);
 
-   int copied = copy.Go();
+      int copied = copy.Go();
 
-   duk_push_int(duktapeContext, copied);
-   return 1;
+      duk_push_int(duktapeContext, copied);
+      return 1;
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
 }
 
 duk_ret_t JsCopy::Constructor(duk_context* duktapeContext)
 {
-   if (duk_get_top(duktapeContext) != 0) JavaScriptHelper::Throw(duktapeContext, "No arguments for constructor for Copy expected");
+   try {
+      if (duk_get_top(duktapeContext) != 0) JavaScriptHelper::Throw(duktapeContext, "No arguments for constructor for Copy expected");
 
-   JsCopy* copy = new JsCopy;
+      JsCopy* copy = new JsCopy;
 
-   duk_push_this(duktapeContext);
+      duk_push_this(duktapeContext);
 
-   duk_push_pointer(duktapeContext, copy);
-   duk_put_prop_string(duktapeContext, -2, "__Ptr");
+      duk_push_pointer(duktapeContext, copy);
+      duk_put_prop_string(duktapeContext, -2, "__Ptr");
 
-   duk_push_c_function(duktapeContext, JsCopy::Destructor, 1);
-   duk_set_finalizer(duktapeContext, -2);
+      duk_push_c_function(duktapeContext, JsCopy::Destructor, 1);
+      duk_set_finalizer(duktapeContext, -2);
 
-   duk_push_c_function(duktapeContext, JsCopy::Source, DUK_VARARGS);
-   duk_put_prop_string(duktapeContext, -2, "Source");
+      duk_push_c_function(duktapeContext, JsCopy::Source, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "Source");
 
-   duk_push_c_function(duktapeContext, JsCopy::Dest, DUK_VARARGS);
-   duk_put_prop_string(duktapeContext, -2, "Dest");
+      duk_push_c_function(duktapeContext, JsCopy::Dest, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "Dest");
 
-   duk_push_c_function(duktapeContext, JsCopy::DependencyCheck, DUK_VARARGS);
-   duk_put_prop_string(duktapeContext, -2, "DependencyCheck");
+      duk_push_c_function(duktapeContext, JsCopy::DependencyCheck, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "DependencyCheck");
 
-   duk_push_c_function(duktapeContext, JsCopy::NeedsCopy, DUK_VARARGS);
-   duk_put_prop_string(duktapeContext, -2, "NeedsCopy");
+      duk_push_c_function(duktapeContext, JsCopy::NeedsCopy, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "NeedsCopy");
 
-   duk_push_c_function(duktapeContext, JsCopy::Go, DUK_VARARGS);
-   duk_put_prop_string(duktapeContext, -2, "Go");
+      duk_push_c_function(duktapeContext, JsCopy::Go, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "Go");
 
-   return 1;
+      return 1;
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
 }
 
 duk_ret_t JsCopy::Destructor(duk_context* duktapeContext)
@@ -72,94 +82,98 @@ duk_ret_t JsCopy::Destructor(duk_context* duktapeContext)
 
 duk_ret_t JsCopy::Source(duk_context* duktapeContext)
 {
-   int args = duk_get_top(duktapeContext);
+   try {
+      int args = duk_get_top(duktapeContext);
 
-   duk_push_this(duktapeContext);
-   JsCopy* obj = JavaScriptHelper::CppObject<JsCopy>(duktapeContext);
+      duk_push_this(duktapeContext);
+      JsCopy* obj = JavaScriptHelper::CppObject<JsCopy>(duktapeContext);
 
-   if (!args) {
-      duk_push_string(duktapeContext, obj->copy.Source().c_str());
+      if (!args) duk_push_string(duktapeContext, obj->copy.Source().c_str());
+      else if (args == 1) obj->copy.Source(duk_require_string(duktapeContext, 0));
+      else JavaScriptHelper::Throw(duktapeContext, "Expected one argument for Copy::Source()");
+
       return 1;
    }
-   else if (args == 1) {
-      obj->copy.Source(duk_require_string(duktapeContext, 0));
-      return 1;
-   }
-   else {
-      JavaScriptHelper::Throw(duktapeContext, "Expected one argument for Copy::Source()");
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
    }
 }
 
 duk_ret_t JsCopy::Dest(duk_context* duktapeContext)
 {
-   int args = duk_get_top(duktapeContext);
+   try {
+      int args = duk_get_top(duktapeContext);
 
-   duk_push_this(duktapeContext);
-   JsCopy* obj = JavaScriptHelper::CppObject<JsCopy>(duktapeContext);
+      duk_push_this(duktapeContext);
+      JsCopy* obj = JavaScriptHelper::CppObject<JsCopy>(duktapeContext);
 
-   if (!args) {
-      duk_push_string(duktapeContext, obj->copy.Dest().c_str());
+      if (!args) duk_push_string(duktapeContext, obj->copy.Dest().c_str());
+      else if (args == 1) obj->copy.Dest(duk_require_string(duktapeContext, 0));
+      else JavaScriptHelper::Throw(duktapeContext, "Expected one argument for Copy::Dest()");
+
       return 1;
    }
-   else if (args == 1) {
-      obj->copy.Dest(duk_require_string(duktapeContext, 0));
-      return 1;
-   }
-   else {
-      JavaScriptHelper::Throw(duktapeContext, "Expected one argument for Copy::Dest()");
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
    }
 }
 
 duk_ret_t JsCopy::DependencyCheck(duk_context* duktapeContext)
 {
-   int args = duk_get_top(duktapeContext);
+   try {
+      int args = duk_get_top(duktapeContext);
 
-   duk_push_this(duktapeContext);
-   JsCopy* obj = JavaScriptHelper::CppObject<JsCopy>(duktapeContext);
+      duk_push_this(duktapeContext);
+      JsCopy* obj = JavaScriptHelper::CppObject<JsCopy>(duktapeContext);
 
-   if (!args) {
-      duk_push_boolean(duktapeContext, obj->copy.DependencyCheck());
+      if (!args) duk_push_boolean(duktapeContext, obj->copy.DependencyCheck());
+      else if (args == 1) obj->copy.DependencyCheck(duk_require_boolean(duktapeContext, 0) != 0);
+      else JavaScriptHelper::Throw(duktapeContext, "Expected one argument for Copy::DependencyCheck()");
+
       return 1;
    }
-   else if (args == 1) {
-      obj->copy.DependencyCheck(duk_require_boolean(duktapeContext, 0) != 0);
-      return 1;
-   }
-   else {
-      JavaScriptHelper::Throw(duktapeContext, "Expected one argument for Copy::DependencyCheck()");
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
    }
 }
 
 duk_ret_t JsCopy::NeedsCopy(duk_context* duktapeContext)
 {
-   int args = duk_get_top(duktapeContext);
+   try {
+      int args = duk_get_top(duktapeContext);
 
-   duk_push_this(duktapeContext);
-   JsCopy* obj = JavaScriptHelper::CppObject<JsCopy>(duktapeContext);
+      duk_push_this(duktapeContext);
+      JsCopy* obj = JavaScriptHelper::CppObject<JsCopy>(duktapeContext);
 
-   if (!args) {
-      duk_push_boolean(duktapeContext, obj->copy.NeedsCopy());
+      if (!args) duk_push_boolean(duktapeContext, obj->copy.NeedsCopy());
+      else JavaScriptHelper::Throw(duktapeContext, "Expected no arguments for Copy::NeedsCopy()");
+
       return 1;
    }
-   else {
-      JavaScriptHelper::Throw(duktapeContext, "Expected no arguments for Copy::NeedsCopy()");
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
    }
 }
 
 duk_ret_t JsCopy::Go(duk_context* duktapeContext)
 {
-   int args = duk_get_top(duktapeContext);
+   try {
+      int args = duk_get_top(duktapeContext);
 
-   duk_push_this(duktapeContext);
-   JsCopy* obj = JavaScriptHelper::CppObject<JsCopy>(duktapeContext);
+      duk_push_this(duktapeContext);
+      JsCopy* obj = JavaScriptHelper::CppObject<JsCopy>(duktapeContext);
 
-   if (!args) {
-      int copied = obj->copy.Go();
-      duk_push_int(duktapeContext, copied);
-      return 1;
+      if (!args) {
+         int copied = obj->copy.Go();
+         duk_push_int(duktapeContext, copied);
+         return 1;
+      }
+      else {
+         JavaScriptHelper::Throw(duktapeContext, "Expected no arguments for Copy::Go()");
+      }
    }
-   else {
-      JavaScriptHelper::Throw(duktapeContext, "Expected no arguments for Copy::Go()");
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
    }
 }
 
