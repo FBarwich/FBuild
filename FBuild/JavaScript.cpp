@@ -157,10 +157,11 @@ void JavaScript::ExecuteFile (const boost::filesystem::path& script)
 
 duk_ret_t JavaScript::JsQuit (duk_context* duktapeContext)
 {
-   if (duk_get_top(duktapeContext) != 1) JavaScriptHelper::Throw(duktapeContext, "One argument for Quit() expected");
    if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "Quit() can't be constructed");
 
-   int exitCode = duk_to_int(duktapeContext, 0);
+   int exitCode = 0;
+   if (duk_get_top(duktapeContext) != 0) exitCode = duk_to_int(duktapeContext, 0);
+
    exit(exitCode);
 }
 
