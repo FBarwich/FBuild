@@ -67,6 +67,18 @@ inline std::string O (bool debug)
    else return "-Ox ";
 }
 
+inline std::string RTC (bool debug)
+{
+   if (debug) return "-RTC1 ";
+   else return "";
+}
+
+inline std::string GS (bool debug)
+{
+   if (debug) return "-GS ";
+   else return "-GS- ";
+}
+
 inline std::string Z (bool debug)
 {
    if (debug) return "-Zi ";
@@ -134,6 +146,8 @@ std::string Compiler::CommandLine () const
    command += MP(threads);
    command += MT(debug, crtStatic);
    command += O(debug);
+   command += RTC(debug);
+   command += GS(debug);
    command += Z(debug);
    command += I(includes);
    command += W(warnLevel, warningAsError, warningDisable);
