@@ -23,6 +23,25 @@ inline bool Exe (const std::string& filename)
    else throw std::runtime_error("Invalid fileextension for Link()");
 }
 
+inline std::string Einvironment(bool debug)
+{
+   std::string ret;
+
+   const char* env = std::getenv("FB_LINKER");
+   if (env) ret += std::string(env) + " ";
+
+   if (debug) {
+      env = std::getenv("FB_LINKER_DEBUG");
+      if (env) ret += std::string(env) + " ";
+   }
+   else {
+      env = std::getenv("FB_LINKER_RELEASE");
+      if (env) ret += std::string(env) + " ";
+   }
+
+   return ret;
+}
+
 void Linker::Link ()
 {
    if (files.empty()) return;
@@ -49,8 +68,7 @@ void Linker::Link ()
    std::for_each(libs.cbegin(), libs.cend(), [&command] (const std::string& f) { command += "\"" + f + "\" "; });
    std::for_each(files.cbegin(), files.cend(), [&command] (const std::string& f) { command += "\"" + f + "\" "; });
 
-   const char* env = std::getenv("LINK");
-   if (env) command += " " + std::string(env) + " ";
+   command += Einvironment(debug);
 
    if (command.size() > 8000) {
       auto rsp = boost::filesystem::temp_directory_path() / boost::filesystem::path(output).filename();

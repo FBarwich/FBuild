@@ -125,6 +125,25 @@ inline std::string W (int warningLevel, bool warningAsError, const std::vector<i
    return ret;
 }
 
+inline std::string Einvironment(bool debug)
+{
+   std::string ret;
+
+   const char* env = std::getenv("FB_COMPILER");
+   if (env) ret += std::string(env) + " ";
+
+   if (debug) {
+      env = std::getenv("FB_COMPILER_DEBUG");
+      if (env) ret += std::string(env) + " ";
+   }
+   else {
+      env = std::getenv("FB_COMPILER_RELEASE");
+      if (env) ret += std::string(env) + " ";
+   }
+
+   return ret;
+}
+
 void Compiler::Compile ()
 {
    CheckParams();
@@ -154,8 +173,7 @@ std::string Compiler::CommandLine () const
    command += args + " ";
    command += Fo(objDir);
    command += Fp(objDir);
-   const char* env = std::getenv("CL");
-   if (env) command += " " + std::string(env) + " ";
+   command += Einvironment(debug);
 
    return command;
 }
