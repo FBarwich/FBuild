@@ -125,7 +125,7 @@ inline std::string W (int warningLevel, bool warningAsError, const std::vector<i
    return ret;
 }
 
-inline std::string Einvironment(bool debug)
+inline std::string EnvironmentCompiler(bool debug)
 {
    std::string ret;
 
@@ -173,7 +173,7 @@ std::string Compiler::CommandLine () const
    command += args + " ";
    command += Fo(objDir);
    command += Fp(objDir);
-   command += Einvironment(debug);
+   command += EnvironmentCompiler(debug);
 
    return command;
 }

@@ -23,7 +23,7 @@ inline bool Exe (const std::string& filename)
    else throw std::runtime_error("Invalid fileextension for Link()");
 }
 
-inline std::string Einvironment(bool debug)
+inline std::string EnvironmentLinker(bool debug)
 {
    std::string ret;
 
@@ -68,7 +68,7 @@ void Linker::Link ()
    std::for_each(libs.cbegin(), libs.cend(), [&command] (const std::string& f) { command += "\"" + f + "\" "; });
    std::for_each(files.cbegin(), files.cend(), [&command] (const std::string& f) { command += "\"" + f + "\" "; });
 
-   command += Einvironment(debug);
+   command += EnvironmentLinker(debug);
 
    if (command.size() > 8000) {
       auto rsp = boost::filesystem::temp_directory_path() / boost::filesystem::path(output).filename();
