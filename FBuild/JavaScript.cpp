@@ -11,6 +11,7 @@
 #include "JavaScriptHelper.h"
 
 #include "FileOutOfDate.h"
+#include "DirectorySync.h"
 
 #include "JsCopy.h"
 #include "JsLib.h"
@@ -80,6 +81,9 @@ JavaScript::JavaScript (const std::vector<std::string>& args)
 
    duk_push_c_function(duktapeContext, JsSetEnv, 2);
    duk_put_prop_string(duktapeContext, -2, "SetEnv");
+
+   duk_push_c_function(duktapeContext, JsDirectorySync, 2);
+   duk_put_prop_string(duktapeContext, -2, "DirectorySync");
 
    duk_pop(duktapeContext);
 
@@ -451,6 +455,19 @@ duk_ret_t JavaScript::JsSetEnv(duk_context* duktapeContext)
 
    int rc = _putenv(arg.c_str());
    if (rc) JavaScriptHelper::Throw(duktapeContext, "Error putting environment " + arg);
+
+   return 0;
+}
+
+duk_ret_t JavaScript::JsDirectorySync(duk_context* duktapeContext)
+{
+   if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "DirectorySanc() can't be constructed");
+
+   std::string source = duk_require_string(duktapeContext, 0);
+   std::string dest = duk_require_string(duktapeContext, 1);
+
+   DirectorySync sync(source, dest);
+   sync.Go();
 
    return 0;
 }

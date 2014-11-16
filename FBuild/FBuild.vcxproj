@@ -115,6 +115,7 @@
     <ClCompile Include="Compiler.cpp" />
     <ClCompile Include="Copy.cpp" />
     <ClCompile Include="CppDepends.cpp" />
+    <ClCompile Include="DirectorySync.cpp" />
     <ClCompile Include="FBuild.cpp" />
     <ClCompile Include="FileOutOfDate.cpp" />
     <ClCompile Include="FileToCpp.cpp" />
@@ -137,6 +138,7 @@
     <ClInclude Include="Copy.h" />
     <ClInclude Include="CppDepends.h" />
     <ClInclude Include="CppOutOfDate.h" />
+    <ClInclude Include="DirectorySync.h" />
     <ClInclude Include="FileOutOfDate.h" />
     <ClInclude Include="FileToCpp.h" />
     <ClInclude Include="JavaScript.h" />
