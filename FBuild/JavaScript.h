@@ -36,6 +36,7 @@ class JavaScript {
    static duk_ret_t JsGetEnv(duk_context* duktapeContext);
    static duk_ret_t JsSetEnv(duk_context* duktapeContext);
    static duk_ret_t JsDirectorySync(duk_context* duktapeContext);
+   static duk_ret_t JsToolChain(duk_context* duktapeContext);
 
 public:
    JavaScript (const std::vector<std::string>& args);

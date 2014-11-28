@@ -12,6 +12,7 @@
 
 #include "FileOutOfDate.h"
 #include "DirectorySync.h"
+#include "ToolChain.h"
 
 #include "JsCopy.h"
 #include "JsLib.h"
@@ -84,6 +85,9 @@ JavaScript::JavaScript (const std::vector<std::string>& args)
 
    duk_push_c_function(duktapeContext, JsDirectorySync, 2);
    duk_put_prop_string(duktapeContext, -2, "DirectorySync");
+
+   duk_push_c_function(duktapeContext, JsToolChain, DUK_VARARGS);
+   duk_put_prop_string(duktapeContext, -2, "ToolChain");
 
    duk_pop(duktapeContext);
 
@@ -468,6 +472,33 @@ duk_ret_t JavaScript::JsDirectorySync(duk_context* duktapeContext)
 
    DirectorySync sync(source, dest);
    sync.Go();
+
+   return 0;
+}
+
+duk_ret_t JavaScript::JsToolChain(duk_context* duktapeContext)
+{
+   if (duk_is_constructor_call(duktapeContext)) JavaScriptHelper::Throw(duktapeContext, "ToolChain() can't be constructed");
+
+   auto argc = duk_get_top(duktapeContext);
+
+   if (argc == 0) {
+      std::string ret = ToolChain::ToolChain() + ", " + ToolChain::Platform();
+      duk_push_string(duktapeContext, ret.c_str());
+      return 1;
+   }
+   else if (argc == 1 || argc == 2) {
+      std::string arg1 = duk_require_string(duktapeContext, 0);
+      if (argc == 1 && (arg1 == "x86" || arg1 == "x64")) ToolChain::Platform(arg1);
+      else ToolChain::ToolChain(arg1);
+
+      if (argc == 2) ToolChain::Platform(duk_require_string(duktapeContext, 1));
+
+      return 0;
+   }
+   else {
+      JavaScriptHelper::Throw(duktapeContext, "To many arguments for ToolChain");
+   }
 
    return 0;
 }

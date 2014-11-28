@@ -131,6 +131,7 @@
     <ClCompile Include="Librarian.cpp" />
     <ClCompile Include="Linker.cpp" />
     <ClCompile Include="ResourceCompiler.cpp" />
+    <ClCompile Include="ToolChain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BinaryStream.h" />
@@ -156,6 +157,7 @@
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Precompiled.h" />
     <ClInclude Include="ResourceCompiler.h" />
+    <ClInclude Include="ToolChain.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FBuild.js" />
