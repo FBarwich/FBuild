@@ -204,7 +204,8 @@ void Compiler::CompilePrecompiledHeaders ()
    command += "-Yc\"" + boost::filesystem::path(precompiledHeader).filename().string() + "\" ";
    command += cpp.string();
 
-   int rc = std::system(command.c_str());
+   std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
+   int rc = std::system(cmd.c_str());
    if (rc != 0) throw std::runtime_error("Compile Error");
 }
 
