@@ -8,6 +8,7 @@
 
 #include "Compiler.h"
 #include "CppOutOfDate.h"
+#include "ToolChain.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -160,7 +161,8 @@ void Compiler::Compile ()
 
 std::string Compiler::CommandLine () const
 {
-   std::string command = "-nologo -c -EHa -GF -Gm- -FC -DWIN32 -DWINDOWS -arch:SSE2 ";
+   std::string command = "-nologo -c -EHa -GF -Gm- -FC -DWIN32 -DWINDOWS ";
+   if (ToolChain::Platform() == "x86") command += "-arch:SSE2 ";
    command += D(debug, defines);
    command += MP(threads);
    command += MT(debug, crtStatic);
@@ -249,18 +251,20 @@ void Compiler::CompileFiles ()
          command.insert(0, "cl.exe ");
       }
 
-      int rc = std::system(command.c_str());
+      std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
+      int rc = std::system(cmd.c_str());
       if (rc != 0) throw std::runtime_error("Compile Error");
    }
 
-   // These are the files that using #import, which prevents them from compiling them with multipble threads
+   // These are the files that are using #import, which prevents them from compiling them with multiple threads
    // TODO: Do the multithreading myself, by using multiple instances of cl.exe
 
    for (size_t i = 0; i < cantMP.size(); ++i) {
-      command =  "cl.exe " + CommandLine() + FI(precompiledHeader) + Yu(precompiledHeader) + "-MP1 ";
+      command = "cl.exe " + CommandLine() + FI(precompiledHeader) + Yu(precompiledHeader) + "-MP1 ";
       command += "\"" + cantMP[i] + "\" ";
 
-      int rc = std::system(command.c_str());
+      std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
+      int rc = std::system(cmd.c_str());
       if (rc != 0) throw std::runtime_error("Compile Error");
    }
 }

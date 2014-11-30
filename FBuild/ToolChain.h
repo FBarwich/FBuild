@@ -13,10 +13,12 @@
 
 namespace ToolChain {
 
+   void        ToolChain(boost::string_ref toolchain);
    std::string ToolChain();
+
+   void        Platform(boost::string_ref platform);
    std::string Platform();
 
-   void ToolChain(boost::string_ref toolchain);
-   void Platform(boost::string_ref platform);
+   std::string SetEnvBatchCall();
 }
 

@@ -7,6 +7,7 @@
 
 #include "ResourceCompiler.h"
 #include "CppDepends.h"
+#include "ToolChain.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -45,8 +46,9 @@ void ResourceCompiler::Compile () const
          if (boost::filesystem::exists(outfile)) boost::filesystem::remove(outfile);
          std::string command = "RC -nologo -fo\"" + outfile + "\" " + file;
 
-         int r = std::system(command.c_str());
-         if (r != 0) throw std::runtime_error("Error compiling resources");
+         std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
+         int rc = std::system(cmd.c_str());
+         if (rc != 0) throw std::runtime_error("Error compiling resources");
       }
    });
 }

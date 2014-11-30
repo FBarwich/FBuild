@@ -6,6 +6,7 @@
  */
 
 #include "Librarian.h"
+#include "ToolChain.h"
 
 #include <cstdlib>
 #include <algorithm>
@@ -46,7 +47,8 @@ void Librarian::Create () const
    
    std::for_each(files.cbegin(), files.cend(), [&command] (const std::string& f) { command += "\"" + f + "\" "; });
 
-   int rc = std::system(command.c_str());
+   std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
+   int rc = std::system(cmd.c_str());
    if (rc != 0) throw std::runtime_error("Error creating lib");
 }
 
