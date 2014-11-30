@@ -115,8 +115,6 @@ namespace ToolChain {
       if (platform == "x64") cmd += "x86_amd64";
       else cmd += "x86";
 
-      std::cout << "Batch:" << cmd << std::endl;
-
       return "CALL " + cmd;
    }
 }
