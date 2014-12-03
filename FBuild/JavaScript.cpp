@@ -278,7 +278,8 @@ duk_ret_t JavaScript::JsRun(duk_context* duktapeContext)
 
    if (catchOutput) command += " 1>" + tmpfile.string() + " 2>&1";
 
-   int rc = std::system(command.c_str());
+   std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
+   int rc = std::system(cmd.c_str()); 
    if (rc) JavaScriptHelper::Throw(duktapeContext, "Error running command " + command);
 
    if (catchOutput) {
