@@ -20,8 +20,7 @@ inline bool Exe (const std::string& filename)
    std::string ext = file.extension().string();
    boost::to_upper(ext);
    if (ext == ".EXE") return true;
-   else if (ext == ".DLL") return false;
-   else throw std::runtime_error("Invalid fileextension for Link()");
+   else return false;
 }
 
 inline std::string EnvironmentLinker(bool debug)
