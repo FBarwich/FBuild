@@ -35,6 +35,9 @@ duk_ret_t JsResourceCompiler::Constructor(duk_context* duktapeContext)
       duk_push_c_function(duktapeContext, JsResourceCompiler::Outfiles, DUK_VARARGS);
       duk_put_prop_string(duktapeContext, -2, "Outfiles");
 
+      duk_push_c_function(duktapeContext, JsResourceCompiler::Includes, DUK_VARARGS);
+      duk_put_prop_string(duktapeContext, -2, "Includes");
+
       duk_push_c_function(duktapeContext, JsResourceCompiler::Compile, DUK_VARARGS);
       duk_put_prop_string(duktapeContext, -2, "Compile");
 
