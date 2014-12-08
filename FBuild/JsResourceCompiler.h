@@ -20,6 +20,7 @@ class JsResourceCompiler {
    static duk_ret_t Outdir(duk_context* duktapeContext);
    static duk_ret_t DependencyCheck(duk_context* duktapeContext);
    static duk_ret_t Outfiles(duk_context* duktapeContext);
+   static duk_ret_t Includes(duk_context* duktapeContext);
 
    static duk_ret_t Compile(duk_context* duktapeContext);
 

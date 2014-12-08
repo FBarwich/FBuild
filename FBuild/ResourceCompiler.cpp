@@ -15,6 +15,18 @@
 #include <boost/filesystem.hpp>
 
 
+inline std::string Inc(const std::vector<std::string>& includes)
+{
+   std::string ret;
+   
+   for (const auto& include : includes) {
+      ret += "-I\"" + include + "\" ";
+   }
+
+   return ret;
+}
+
+
 std::string ResourceCompiler::Outfile (const std::string& infile) const
 {
    boost::filesystem::path rc(infile);
@@ -44,7 +56,7 @@ void ResourceCompiler::Compile () const
       std::string outfile = Outfile(file);
       if (NeedsRebuild(file, outfile)) {
          if (boost::filesystem::exists(outfile)) boost::filesystem::remove(outfile);
-         std::string command = "RC -nologo -fo\"" + outfile + "\" " + file;
+         std::string command = "RC -nologo " + Inc(includes) + " -fo\"" + outfile + "\" " + file;
 
          std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
          int rc = std::system(cmd.c_str());

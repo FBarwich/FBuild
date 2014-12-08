@@ -69,6 +69,27 @@ duk_ret_t JsResourceCompiler::Files(duk_context* duktapeContext)
    }
 }
 
+duk_ret_t JsResourceCompiler::Includes(duk_context* duktapeContext)
+{
+   try {
+      int args = duk_get_top(duktapeContext);
+
+      duk_push_this(duktapeContext);
+      auto obj = JavaScriptHelper::CppObject<JsResourceCompiler>(duktapeContext);
+
+      if (!args) JavaScriptHelper::PushArray(duktapeContext, obj->resourceCompiler.Includes());
+      else {
+         auto includes = JavaScriptHelper::AsStringVector(duktapeContext, args);
+         obj->resourceCompiler.Includes(includes);
+      }
+
+      return 1;
+   }
+   catch (std::exception& e) {
+      JavaScriptHelper::Throw(duktapeContext, e.what());
+   }
+}
+
 duk_ret_t JsResourceCompiler::Outdir(duk_context* duktapeContext)
 {
    try {

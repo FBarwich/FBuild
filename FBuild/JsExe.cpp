@@ -210,7 +210,11 @@ duk_ret_t JsExe::Includes(duk_context* duktapeContext)
       auto obj = JavaScriptHelper::CppObject<JsExe>(duktapeContext);
 
       if (!args) JavaScriptHelper::PushArray(duktapeContext, obj->compiler.Includes());
-      else obj->compiler.Includes(JavaScriptHelper::AsStringVector(duktapeContext, args));
+      else {
+         auto includes = JavaScriptHelper::AsStringVector(duktapeContext, args);
+         obj->compiler.Includes(includes);
+         obj->resourceCompiler.Includes(includes);
+      }
 
       return 1;
    }
