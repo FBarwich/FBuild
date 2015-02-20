@@ -182,7 +182,7 @@ duk_ret_t JavaScript::JsPrint (duk_context* duktapeContext)
       std::cout << duk_to_string(duktapeContext, i) << " ";
    }
 
-   std::cout << "\n";
+   std::cout << std::endl;
 
    return 0;
 }
