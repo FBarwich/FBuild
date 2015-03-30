@@ -342,24 +342,24 @@ duk_ret_t JavaScript::JsGlob(duk_context* duktapeContext)
       JavaScriptHelper::Throw(duktapeContext, "Expected one or two arguments for Glob()");
    }
 
-   std::vector<std::string> files;
-   files.reserve(250);
+   duk_push_array(duktapeContext);
+   size_t idx = 0;
+
+   char buffer[8192];
 
    if (boost::filesystem::exists(path)) {
       std::for_each(boost::filesystem::directory_iterator(path), boost::filesystem::directory_iterator(), [&] (const boost::filesystem::directory_entry& entry) {
          if (boost::filesystem::is_regular_file(entry.path())) {
             if (PathMatchSpec(entry.path().filename().string().c_str(), pattern.c_str())) {
-               files.push_back(boost::filesystem::canonical(entry.path()).make_preferred().string());
+               char* fullpath = _fullpath(buffer, entry.path().string().c_str(), 8192);
+               if (!fullpath) JavaScriptHelper::Throw(duktapeContext, "Error getting full path for " + entry.path().string());
+
+               duk_push_string(duktapeContext, fullpath);
+               duk_put_prop_index(duktapeContext, -2, idx);
+               ++idx;
             }
          }
       });
-   }
-
-   duk_push_array(duktapeContext);
-
-   for (size_t i = 0; i < files.size(); ++i) {
-      duk_push_string(duktapeContext, files[i].c_str());
-      duk_put_prop_index(duktapeContext, -2, i);
    }
 
    return 1;
