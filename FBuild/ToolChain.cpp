@@ -13,7 +13,7 @@
 namespace ToolChain {
 
    static std::string toolchain;
-   static std::string platform;
+   static std::string platform = "x86";
 
    static void CurrentFromEnvironment()
    {
@@ -29,9 +29,6 @@ namespace ToolChain {
       for (char ch : version) if (ch != '.') toolchain += ch;
 
       std::string path = envPath;
-      
-      if (path.find("\\VC\\BIN\\x86_amd64") != std::string::npos || path.find("\\VC\\BIN\\amd64") != std::string::npos) platform = "x64";
-      else platform = "x86";
    }
 
    static void LatestInstalledVersion()
@@ -43,7 +40,6 @@ namespace ToolChain {
          const char* env = std::getenv(envString.c_str());
          if (env) {
             toolchain = "MSVC" + std::to_string(i) + "0";
-            if (platform.empty()) platform = "x86";
             break;
          }
       }
@@ -85,13 +81,7 @@ namespace ToolChain {
 
    std::string Platform()
    {
-      if (platform.size()) return platform;
-      CurrentFromEnvironment();
-      if (platform.size()) return platform;
-      LatestInstalledVersion();
-      if (platform.size()) return platform;
-
-      throw std::runtime_error("Unable to deduce Toolchain");
+      return platform;
    }
 
    std::string SetEnvBatchCall()
@@ -112,7 +102,7 @@ namespace ToolChain {
 
       std::string cmd = "\"" + batch + "\" ";
 
-      if (platform == "x64") cmd += "x86_amd64";
+      if (platform == "x64") cmd += "amd64";
       else cmd += "x86";
 
       return "CALL " + cmd;
