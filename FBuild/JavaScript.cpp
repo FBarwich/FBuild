@@ -25,6 +25,8 @@
 
 #include <Shlwapi.h>
 
+#include <filesystem>
+
 
 JavaScript::JavaScript (const std::vector<std::string>& args)
 {
@@ -348,9 +350,9 @@ duk_ret_t JavaScript::JsGlob(duk_context* duktapeContext)
    char buffer[8192];
 
    if (boost::filesystem::exists(path)) {
-      std::for_each(boost::filesystem::directory_iterator(path), boost::filesystem::directory_iterator(), [&] (const boost::filesystem::directory_entry& entry) {
-         if (boost::filesystem::is_regular_file(entry.path())) {
-            if (PathMatchSpec(entry.path().filename().string().c_str(), pattern.c_str())) {
+      std::for_each(std::tr2::sys::directory_iterator(path), std::tr2::sys::directory_iterator(), [&] (const std::tr2::sys::directory_entry& entry) {
+         if (std::tr2::sys::is_regular_file(entry.path())) {
+            if (PathMatchSpec(entry.path().filename().c_str(), pattern.c_str())) {
                char* fullpath = _fullpath(buffer, entry.path().string().c_str(), sizeof(buffer));
                if (!fullpath) JavaScriptHelper::Throw(duktapeContext, "Error getting full path for " + entry.path().string());
 
