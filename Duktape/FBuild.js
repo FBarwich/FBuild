@@ -4,6 +4,8 @@ if (args.build != "Debug" && args.build != "Release") throw "Build='<Release|Deb
 
 if (args.rebuild == undefined) args.rebuild = false;
 
+ToolChain("x64");
+
 var lib = new Lib;
 lib.Build(args.build);
 lib.Files(Glob("*.c"));

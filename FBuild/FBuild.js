@@ -4,6 +4,8 @@ if (args.build != "Debug" && args.build != "Release") throw "build='<Release|Deb
 
 if (args.rebuild == undefined) args.rebuild = false;
 
+ToolChain("x64");
+
 var exe = new Exe;
 exe.Build(args.build);
 exe.Files(Glob("*.cpp"));

@@ -343,7 +343,7 @@ duk_ret_t JavaScript::JsGlob(duk_context* duktapeContext)
    }
 
    duk_push_array(duktapeContext);
-   size_t idx = 0;
+   unsigned int idx = 0;
 
    char buffer[8192];
 
@@ -351,7 +351,7 @@ duk_ret_t JavaScript::JsGlob(duk_context* duktapeContext)
       std::for_each(boost::filesystem::directory_iterator(path), boost::filesystem::directory_iterator(), [&] (const boost::filesystem::directory_entry& entry) {
          if (boost::filesystem::is_regular_file(entry.path())) {
             if (PathMatchSpec(entry.path().filename().string().c_str(), pattern.c_str())) {
-               char* fullpath = _fullpath(buffer, entry.path().string().c_str(), 8192);
+               char* fullpath = _fullpath(buffer, entry.path().string().c_str(), sizeof(buffer));
                if (!fullpath) JavaScriptHelper::Throw(duktapeContext, "Error getting full path for " + entry.path().string());
 
                duk_push_string(duktapeContext, fullpath);

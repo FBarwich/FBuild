@@ -90,7 +90,7 @@ namespace JavaScriptHelper {
    {
       duk_push_array(duktapeContext);
 
-      for (size_t i = 0; i < array.size(); ++i) {
+      for (unsigned int i = 0; i < array.size(); ++i) {
          duk_push_string(duktapeContext, array[i].c_str());
          duk_put_prop_index(duktapeContext, -2, i);
       }
@@ -100,7 +100,7 @@ namespace JavaScriptHelper {
    {
       duk_push_array(duktapeContext);
 
-      for (size_t i = 0; i < array.size(); ++i) {
+      for (unsigned int i = 0; i < array.size(); ++i) {
          duk_push_int(duktapeContext, array[i]);
          duk_put_prop_index(duktapeContext, -2, i);
       }
