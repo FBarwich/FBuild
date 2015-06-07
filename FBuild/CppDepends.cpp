@@ -171,13 +171,16 @@ std::vector<std::pair<char, std::string>> CppDepends::Includes (const boost::fil
 
 bool CppDepends::CheckCache (const boost::filesystem::path& file)
 {
-   std::ifstream stream(file.string() + ":CppDepends_Cache3", std::ofstream::in | std::ofstream::ate | std::ofstream::binary);
+   std::ifstream stream(file.string() + ":CppDepends_Cache4", std::ofstream::in | std::ofstream::ate | std::ofstream::binary);
    if (!stream.good()) return false;
    if (stream.tellg() < sizeof(size_t)) return false;
    stream.seekg(0);
 
    std::string tmp;
    std::time_t ts;
+
+   stream > tmp;
+   if (tmp != file.string()) return false;
 
    size_t count = 0;
    stream > count;
@@ -197,20 +200,21 @@ void CppDepends::WriteCache (const boost::filesystem::path& file)
 
    {
       std::stringstream ss;
+      ss < file.string();
       ss < dependencies.size();
-      std::for_each(dependencies.begin(), dependencies.end(), [&] (const std::string& p) {
-         std::time_t ts = LastWriteTime(p);
-         ss < p < ts;
+      for (auto&& dep : dependencies) {
+         std::time_t ts = LastWriteTime(dep);
+         ss < dep < ts;
          if (ts > maxTime) maxTime = ts;
-      });
+      }
 
-      writeMe = std::move(ss.str());
+      writeMe = ss.str();
    }
 
    std::time_t ts = boost::filesystem::last_write_time(file);
 
    {
-      std::ofstream stream(file.string() + ":CppDepends_Cache3", std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
+      std::ofstream stream(file.string() + ":CppDepends_Cache4", std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
       if (!stream.good()) {
          std::cerr << "Error on writing cache for " << file << std::endl;
          return;
