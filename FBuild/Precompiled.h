@@ -18,12 +18,14 @@
 #include <cstdlib>
 #include <ctime>
 
+#pragma warning(disable:4100) // Unreferenced variable in Boost
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/thread.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
+#pragma warning(default:4100)
 
 #include "../Duktape/duktape.h"
 
