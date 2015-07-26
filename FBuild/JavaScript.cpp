@@ -352,7 +352,7 @@ duk_ret_t JavaScript::JsGlob(duk_context* duktapeContext)
    if (boost::filesystem::exists(path)) {
       std::for_each(std::tr2::sys::directory_iterator(path), std::tr2::sys::directory_iterator(), [&] (const std::tr2::sys::directory_entry& entry) {
          if (std::tr2::sys::is_regular_file(entry.path())) {
-            if (PathMatchSpec(entry.path().filename().c_str(), pattern.c_str())) {
+            if (PathMatchSpec(entry.path().filename().string().c_str(), pattern.c_str())) {
                char* fullpath = _fullpath(buffer, entry.path().string().c_str(), sizeof(buffer));
                if (!fullpath) JavaScriptHelper::Throw(duktapeContext, "Error getting full path for " + entry.path().string());
 

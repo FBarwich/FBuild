@@ -46,19 +46,19 @@ namespace ToolChain {
    }
    
 
-   void ToolChain(boost::string_ref toolchain)
+   void ToolChain(boost::string_ref newToolchain)
    {
-      if (toolchain.substr(0, 4) != "MSVC") throw std::runtime_error("Unbekannte Toolchain " + toolchain.to_string());
+      if (newToolchain.substr(0, 4) != "MSVC") throw std::runtime_error("Unknown ToolChain " + newToolchain.to_string());
       
-      std::string envname = toolchain.to_string();
+      std::string envname = newToolchain.to_string();
       envname.erase(0, 4);
       envname.insert(0, "VS");
       envname += "COMNTOOLS";
 
       const char* commtoolsPathEnv = std::getenv(envname.c_str());
-      if (!commtoolsPathEnv) throw std::runtime_error("Invalid ToolChain '" + toolchain.to_string() + "' " + envname + " not found");
+      if (!commtoolsPathEnv) throw std::runtime_error("Invalid ToolChain '" + newToolchain.to_string() + "' " + envname + " not found");
 
-      ToolChain::toolchain.assign(toolchain.begin(), toolchain.end());
+      ToolChain::toolchain.assign(newToolchain.begin(), newToolchain.end());
    }
 
    std::string ToolChain()
@@ -72,10 +72,10 @@ namespace ToolChain {
       throw std::runtime_error("Unable to deduce Toolchain");
    }
 
-   void Platform(boost::string_ref platform)
+   void Platform(boost::string_ref newPlatform)
    {
-      if (platform != "x86" && platform != "x64") throw std::runtime_error("Only x86 and x64 platforms are supported");
-      ToolChain::platform.assign(platform.begin(), platform.end());
+      if (newPlatform != "x86" && newPlatform != "x64") throw std::runtime_error("Only x86 and x64 platforms are supported");
+      ToolChain::platform.assign(newPlatform.begin(), newPlatform.end());
    }
 
 

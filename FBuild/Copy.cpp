@@ -46,28 +46,28 @@ static std::vector<boost::filesystem::path> CollectSourceFiles (const std::strin
    return result;
 }
 
-void Copy::DoFile (boost::filesystem::path source, boost::filesystem::path dest)
+void Copy::DoFile (boost::filesystem::path sourceFile, boost::filesystem::path destFile)
 {
-   source.make_preferred();
-   dest.make_preferred();
+   sourceFile.make_preferred();
+   destFile.make_preferred();
 
-   if (boost::filesystem::exists(dest) && !ignoreTimestamp) {
-      std::time_t sourceTime = boost::filesystem::last_write_time(source);
-      std::time_t destTime = boost::filesystem::last_write_time(dest);
+   if (boost::filesystem::exists(destFile) && !ignoreTimestamp) {
+      std::time_t sourceTime = boost::filesystem::last_write_time(sourceFile);
+      std::time_t destTime = boost::filesystem::last_write_time(destFile);
 
       if (destTime >= sourceTime) return;
    }
 
-   std::cout << "Copy " << source << " to " << dest << "...";
+   std::cout << "Copy " << sourceFile << " to " << destFile << "...";
 
    {
-      std::ifstream in(source.string(), std::ifstream::binary);
-      std::ofstream out(dest.string(), std::ofstream::trunc | std::ofstream::binary);
+      std::ifstream in(sourceFile.string(), std::ifstream::binary);
+      std::ofstream out(destFile.string(), std::ofstream::trunc | std::ofstream::binary);
       out << in.rdbuf();
    }
 
-   std::time_t sourceTime = boost::filesystem::last_write_time(source);
-   boost::filesystem::last_write_time(dest, sourceTime);
+   std::time_t sourceTime = boost::filesystem::last_write_time(sourceFile);
+   boost::filesystem::last_write_time(destFile, sourceTime);
 
    ++copied;
 

@@ -25,7 +25,7 @@ class Copy {
 
    std::vector<CopyMe> copyMe;
 
-   void DoFile (boost::filesystem::path source, boost::filesystem::path dest);
+   void DoFile (boost::filesystem::path sourceFile, boost::filesystem::path destFile);
 
    void CheckParams () const;
 
