@@ -52,9 +52,12 @@ void ResourceCompiler::Compile () const
 
    if (!boost::filesystem::exists(outdir)) boost::filesystem::create_directories(outdir);
 
+   size_t count = 0;
+
    std::for_each(files.cbegin(), files.cend(), [&] (const std::string& file) {
       std::string outfile = Outfile(file);
       if (NeedsRebuild(file, outfile)) {
+         if (++count) std::cout << "\nCompiling Resources (" << ToolChain::ToolChain() << " " << ToolChain::Platform() << ")" << std::endl;
          if (boost::filesystem::exists(outfile)) boost::filesystem::remove(outfile);
          std::string command = "RC -nologo " + Inc(includes) + " -fo\"" + outfile + "\" " + file;
 

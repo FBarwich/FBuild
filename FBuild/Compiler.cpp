@@ -152,6 +152,8 @@ void Compiler::Compile ()
 
    if (!NeedsRebuild()) return;
 
+   std::cout << "\nCompiling (" << ToolChain::ToolChain() << " " << ToolChain::Platform() << ")"<< std::endl;
+
    if (beforeCompile) beforeCompile();
 
    DeleteOutOfDateObjectFiles();

@@ -10,6 +10,7 @@
 
 #include <cstdlib>
 #include <algorithm>
+#include <iostream>
 
 #include <boost/filesystem.hpp>
 
@@ -35,6 +36,8 @@ void Librarian::Create () const
    if (output.empty()) throw std::runtime_error("Mising 'Output'");
 
    if (!NeedsRebuild()) return;
+
+   std::cout << "\nCreating Lib (" << ToolChain::ToolChain() << " " << ToolChain::Platform() << ")" << std::endl;
 
    if (beforeLink) beforeLink();
 

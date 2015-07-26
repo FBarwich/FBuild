@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <iostream>
 
 #include <boost/filesystem.hpp>
 
@@ -48,6 +49,8 @@ void Linker::Link ()
    if (output.empty()) throw std::runtime_error("Mising 'Output'");
 
    if (!NeedsRebuild()) return;
+
+   std::cout << "\nLinking (" << ToolChain::ToolChain() << " " << ToolChain::Platform() << ")" << std::endl;
 
    if (beforeLink) beforeLink();
 
