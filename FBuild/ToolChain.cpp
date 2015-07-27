@@ -86,24 +86,33 @@ namespace ToolChain {
 
    std::string SetEnvBatchCall()
    {
-      std::string envname = ToolChain();
+      auto envname = ToolChain();
       envname.erase(0, 4);
       envname.insert(0, "VS");
       envname += "COMNTOOLS";
 
-      const char* commtoolsPathEnv = std::getenv(envname.c_str());
+      const auto commtoolsPathEnv = std::getenv(envname.c_str());
       if (!commtoolsPathEnv) throw std::runtime_error("Environmentvariable " + envname + " not found");
 
-      std::string batch = commtoolsPathEnv;
+      auto batch = std::string{commtoolsPathEnv};
       batch += "../../VC/vcvarsall.bat";
 
       batch = boost::filesystem::canonical(batch).string();
       if (!boost::filesystem::exists(batch)) throw std::runtime_error(batch + " does not exist");
 
-      std::string cmd = "\"" + batch + "\" ";
+      auto cmd = "\"" + batch + "\" ";
 
-      if (platform == "x64") cmd += "x86_amd64";
-      else cmd += "x86";
+      auto bin = std::string{commtoolsPathEnv};
+      bin += "../../VC/bin";
+
+      if (platform == "x64") {
+         if (boost::filesystem::exists(bin + "/amd64")) cmd += "amd64";
+         else cmd += "x86_amd64";
+      }
+      else {
+         if (boost::filesystem::exists(bin + "/amd64_x86")) cmd += "amd64_x86";
+         else cmd += "x86";
+      }
 
       return "CALL " + cmd;
    }
