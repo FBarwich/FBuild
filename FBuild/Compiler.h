@@ -9,16 +9,71 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #include <boost/algorithm/string.hpp>
 
+
+
+class Compiler;
+
+
+class ActualCompiler {
+protected:
+   Compiler& compiler;
+
+   std::vector<std::string> outOfDate;
+
+   std::vector<std::string> ObjFiles (const std::string& extension);
+   std::vector<std::string> CompiledObjFiles (const std::string& extension);
+
+public:
+   ActualCompiler (Compiler& compiler) : compiler{compiler} { }
+   virtual ~ActualCompiler () { }
+
+   virtual void Compile () { }
+
+   virtual std::vector<std::string> ObjFiles ()          { return std::vector<std::string>{}; }
+   virtual std::vector<std::string> CompiledObjFiles ()  { return std::vector<std::string>{}; }
+};
+
+
+
+
+
+
+
+class ActualCompilerVisualStudio : public ActualCompiler {
+   void CheckParams ();
+   bool NeedsRebuild ();
+   void DeleteOutOfDateObjectFiles ();
+   void CompilePrecompiledHeaders ();
+   void CompileFiles ();
+   std::string CommandLine ();
+
+public:
+   ActualCompilerVisualStudio (Compiler& compiler) : ActualCompiler{compiler} { }
+
+   void Compile () override;
+
+   std::vector<std::string> ObjFiles() override         { return ActualCompiler::ObjFiles("obj"); }
+   std::vector<std::string> CompiledObjFiles() override { return ActualCompiler::CompiledObjFiles("obj"); }
+};
+
+
+
+
+
+
+
 class Compiler {
+   std::unique_ptr<ActualCompiler> actualCompiler;
+
    bool                     debug;
    std::string              objDir;
    std::vector<std::string> includes;
    std::vector<std::string> defines;
    std::vector<std::string> allFiles;
-   std::vector<std::string> outOfDate;
    bool                     crtStatic;
    int                      threads;
    std::string              args;
@@ -30,18 +85,8 @@ class Compiler {
    std::vector<int>         warningDisable;
    std::function<void()>    beforeCompile;
 
-   std::string CommandLine () const;
-
-   void CompilePrecompiledHeaders ();
-   void CompileFiles ();
-   void DeleteOutOfDateObjectFiles ();
-
-   bool NeedsRebuild ();
-
-   void CheckParams ();
-
 public:
-   Compiler () : threads(0), debug(false), crtStatic(false), dependencyCheck(true), warnLevel(1), warningAsError(false) { }
+   Compiler () : actualCompiler{new ActualCompiler{*this}}, threads{0}, debug{false}, crtStatic{false}, dependencyCheck{true}, warnLevel{1}, warningAsError{false} { }
    ~ Compiler () { }
 
    void Build (std::string build) 
@@ -79,15 +124,19 @@ public:
    int                             Threads () const           { return threads; }
    const std::string&              Args () const              { return args; }
    std::string                     PrecompiledHeader () const { return precompiledHeader.empty() ? "" : precompiledHeader + "; " + precompiledCpp; }
+   std::string                     PrecompiledCPP () const    { return precompiledCpp; }
+   std::string                     PrecompiledH () const      { return precompiledHeader; }
    bool                            DependencyCheck () const   { return dependencyCheck; }
    int                             WarnLevel () const         { return warnLevel; }
    bool                            WarningAsError () const    { return warningAsError; }
    const std::vector<int>&         WarningDisable () const    { return warningDisable; }
    const std::function<void()>&    BeforeCompile () const     { return beforeCompile; }
 
+   void DoBeforeCompile () { if (beforeCompile) beforeCompile(); }
+
    void Compile ();
 
-   std::vector<std::string> ObjFiles () const;
-   std::vector<std::string> CompiledObjFiles () const;
+   std::vector<std::string> ObjFiles ()         { return actualCompiler->ObjFiles(); }
+   std::vector<std::string> CompiledObjFiles () { return actualCompiler->CompiledObjFiles(); }
 };
 

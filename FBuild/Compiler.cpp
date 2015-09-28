@@ -13,182 +13,170 @@
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
+#include <thread>
+#include <mutex>
 
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include <boost/interprocess/file_mapping.hpp>
-#include <boost/interprocess/mapped_region.hpp>
 
 
-inline std::string MP (int threads)
+
+
+
+std::vector<std::string> ActualCompiler::ObjFiles (const std::string& extension)
 {
-   std::string mp = "-MP";
-   if (threads) mp += boost::lexical_cast<std::string>(threads);
-   return mp + " ";
+   boost::filesystem::path outpath{compiler.ObjDir()};
+
+   std::vector<std::string> result{};
+
+   for (auto&& file : compiler.Files()) {
+      boost::filesystem::path f{file};
+      auto outfile = outpath / f.filename();
+      outfile.replace_extension(extension);
+      result.push_back(outfile.string());
+   }
+
+   return result;
 }
 
-inline std::string Fo (const std::string& outDir)
+std::vector<std::string> ActualCompiler::CompiledObjFiles (const std::string& extension)
 {
-   boost::filesystem::path out(outDir);
+   boost::filesystem::path outpath{compiler.ObjDir()};
+
+   std::vector<std::string> result{};
+
+   for (auto&& file : outOfDate) {
+      boost::filesystem::path f {file};
+      auto outfile = outpath / f.filename();
+      outfile.replace_extension(extension);
+      result.push_back(outfile.string());
+   }
+
+   return result;
+}
+
+
+
+
+
+
+
+void ActualCompilerVisualStudio::CheckParams ()
+{
+   if (compiler.ObjDir().empty()) compiler.ObjDir(compiler.Build());
+}
+
+bool ActualCompilerVisualStudio::NeedsRebuild ()
+{
+   CheckParams();
+   outOfDate.clear();
+
+   if (!compiler.DependencyCheck()) {
+      outOfDate = compiler.Files();
+   }
+   else {
+      ::CppOutOfDate checker{};
+      checker.OutDir(compiler.ObjDir());
+      checker.Threads(compiler.Threads());
+      checker.Files(compiler.Files());
+      checker.Include(compiler.Includes());
+      checker.PrecompiledHeader(compiler.PrecompiledH());
+      checker.Go();
+
+      outOfDate = checker.OutOfDate();
+   }
+
+   return !outOfDate.empty();
+}
+
+void ActualCompilerVisualStudio::DeleteOutOfDateObjectFiles ()
+{
+   const auto files = CompiledObjFiles();
+
+   for (auto&& file : files) boost::filesystem::remove(file);
+}
+
+std::string ActualCompilerVisualStudio::CommandLine ()
+{
+   bool debug = compiler.Build() == "Debug";
+
+   std::string command = "-nologo -c -EHa -GF -Gm- -FC -MP1 -DWIN32 -DWINDOWS -D_SCL_SECURE_NO_WARNINGS ";
+   
+
+   if (debug) command += "-D_DEBUG ";
+   else command += "-DNDEBUG ";
+
+   for (auto&& define : compiler.Defines()) command += "-D" + define + " ";
+
+
+   if (ToolChain::Platform() == "x86") command += "-arch:SSE2 ";
+
+
+   if (compiler.CRT() == "Static") command += "-MT";
+   else command += "-MD";
+
+   if (debug) command += "d";
+
+   command += " ";
+
+
+   if (debug) command += "-Od ";
+   else command += "-Ox ";
+
+
+   if (debug) command += "-RTC1 ";
+
+
+   if (debug) command += "-GS ";
+   else command += "-GS- ";
+
+
+   if (debug) command += "-Zi ";
+
+
+   for (auto&& include : compiler.Includes()) command += "-I\"" + include + "\" ";
+
+
+   command += "-W" + boost::lexical_cast<std::string>(compiler.WarnLevel()) + " ";
+   if (compiler.WarningAsError()) command += "-WX ";
+
+   for (auto&& disabledWarning : compiler.WarningDisable()) command += "-wd" + boost::lexical_cast<std::string>(disabledWarning) + " ";
+
+
+   command += compiler.Args() + " ";
+
+
+   boost::filesystem::path out(compiler.ObjDir());
    if (!boost::filesystem::exists(out)) boost::filesystem::create_directories(out);
 
-   return "-Fo\"" + out.string() + "/\" ";
-}
+   command += "-Fo\"" + out.string() + "/\" ";
 
-inline std::string Fp (const std::string& outDir)
-{
-   boost::filesystem::path out(outDir);
-   if (!boost::filesystem::exists(out)) boost::filesystem::create_directories(out);
 
-   return "-Fp\"" + out.string() + "\"/PrecompiledHeader.pch ";
-}
+   command += "-Fp\"" + out.string() + "\"/PrecompiledHeader.pch ";
 
-inline std::string I (const std::vector<std::string>& includes)
-{
-   std::string ret;
-   std::for_each(includes.begin(), includes.end(), [&ret] (const std::string& s) { ret += "-I\"" + s + "\" "; });
-   return ret;
-}
-
-inline std::string MT (bool debug, bool crtStatic)
-{
-   std::string ret;
-   if (crtStatic) ret = "-MT";
-   else ret = "-MD";
-
-   if (debug) ret += "d";
-
-   return ret + " ";
-}
-
-inline std::string O (bool debug)
-{
-   if (debug) return "-Od ";
-   else return "-Ox ";
-}
-
-inline std::string RTC (bool debug)
-{
-   if (debug) return "-RTC1 ";
-   else return "";
-}
-
-inline std::string GS (bool debug)
-{
-   if (debug) return "-GS ";
-   else return "-GS- ";
-}
-
-inline std::string Z (bool debug)
-{
-   if (debug) return "-Zi ";
-   else return "";
-}
-
-inline std::string Yu (const std::string& precompiledHeader)
-{
-   std::string ret;
-   if (precompiledHeader.size()) ret += "-Yu\"" + precompiledHeader + "\" ";
-   return ret;
-}
-
-inline std::string FI (const std::string& precompiledHeader)
-{
-   std::string ret;
-   if (precompiledHeader.size()) ret += "-FI\"" + precompiledHeader + "\" ";
-   return ret;
-}
-
-inline std::string D (bool debug, const std::vector<std::string>& defines)
-{
-   std::string ret = "-D_SCL_SECURE_NO_WARNINGS ";
-
-   if (debug) ret += "-D_DEBUG ";
-   else ret += "-DNDEBUG ";
-
-   std::for_each(defines.begin(), defines.end(), [&ret] (const std::string& s) { ret += "-D" + s + " "; });
-
-   return ret;
-}
-
-inline std::string W (int warningLevel, bool warningAsError, const std::vector<int>& warningDisable)
-{
-   std::string ret;
-
-   ret = "-W" + boost::lexical_cast<std::string>(warningLevel) + " ";
-   if (warningAsError) ret += "-WX ";
-
-   std::for_each(warningDisable.begin(), warningDisable.end(), [&ret] (int d) {
-      ret += "-wd" + boost::lexical_cast<std::string>(d) + " ";
-   });
-
-   return ret;
-}
-
-inline std::string EnvironmentCompiler(bool debug)
-{
-   std::string ret;
 
    const char* env = std::getenv("FB_COMPILER");
-   if (env) ret += std::string(env) + " ";
+   if (env) command += std::string(env) + " ";
 
    if (debug) {
       env = std::getenv("FB_COMPILER_DEBUG");
-      if (env) ret += std::string(env) + " ";
+      if (env) command += std::string(env) + " ";
    }
    else {
       env = std::getenv("FB_COMPILER_RELEASE");
-      if (env) ret += std::string(env) + " ";
+      if (env) command += std::string(env) + " ";
    }
-
-   return ret;
-}
-
-void Compiler::Compile ()
-{
-   CheckParams();
-   if (objDir.empty()) throw std::runtime_error("Missing 'Outdir'");
-
-   if (!NeedsRebuild()) return;
-
-   std::cout << "\nCompiling (" << ToolChain::ToolChain() << " " << ToolChain::Platform() << ")"<< std::endl;
-
-   if (beforeCompile) beforeCompile();
-
-   DeleteOutOfDateObjectFiles();
-   CompilePrecompiledHeaders();
-   CompileFiles();
-}
-
-std::string Compiler::CommandLine () const
-{
-   std::string command = "-nologo -c -EHa -GF -Gm- -FC -DWIN32 -DWINDOWS ";
-   if (ToolChain::Platform() == "x86") command += "-arch:SSE2 ";
-   command += D(debug, defines);
-   command += MP(threads);
-   command += MT(debug, crtStatic);
-   command += O(debug);
-   command += RTC(debug);
-   command += GS(debug);
-   command += Z(debug);
-   command += I(includes);
-   command += W(warnLevel, warningAsError, warningDisable);
-   command += args + " ";
-   command += Fo(objDir);
-   command += Fp(objDir);
-   command += EnvironmentCompiler(debug);
 
    return command;
 }
 
-void Compiler::CompilePrecompiledHeaders ()
+void ActualCompilerVisualStudio::CompilePrecompiledHeaders ()
 {
    if (outOfDate.empty()) return;
+   if (compiler.PrecompiledCPP().empty()) return;
 
-   if (!precompiledCpp.size()) return;
-
-   boost::filesystem::path cpp = boost::filesystem::canonical(precompiledCpp);
+   boost::filesystem::path cpp = boost::filesystem::canonical(compiler.PrecompiledCPP());
    cpp.make_preferred();
 
    auto it = std::find_if(outOfDate.cbegin(), outOfDate.cend(), [&cpp] (const std::string& f) -> bool {
@@ -199,11 +187,11 @@ void Compiler::CompilePrecompiledHeaders ()
 
    outOfDate.erase(it);
 
-   boost::filesystem::path pch = boost::filesystem::path(objDir) / "PrecompiledHeader.pch";
+   boost::filesystem::path pch = boost::filesystem::path(compiler.ObjDir()) / "PrecompiledHeader.pch";
    if (boost::filesystem::exists(pch)) boost::filesystem::remove(pch);
 
    std::string command =  "CL " + CommandLine();
-   command += "-Yc\"" + boost::filesystem::path(precompiledHeader).filename().string() + "\" ";
+   command += "-Yc\"" + boost::filesystem::path{compiler.PrecompiledH()}.filename().string() + "\" ";
    command += cpp.string();
 
    std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
@@ -211,132 +199,89 @@ void Compiler::CompilePrecompiledHeaders ()
    if (rc != 0) throw std::runtime_error("Compile Error");
 }
 
-static bool CanMultiThread (const std::string& file)
-{
-   size_t size = static_cast<size_t>(boost::filesystem::file_size(file));
-
-   boost::interprocess::file_mapping mapping(file.c_str(), boost::interprocess::read_only);
-   boost::interprocess::mapped_region region(mapping, boost::interprocess::read_only, 0, size);
-
-   const char* it = static_cast<const char*>(region.get_address());
-   const char* end = it + size;
-
-   static const std::string findMe = "#import";
-
-   if (std::search(it, end, findMe.begin(), findMe.end()) != end) return false;
-
-   return true;
-}
-
-void Compiler::CompileFiles ()
+void ActualCompilerVisualStudio::CompileFiles ()
 {
    if (outOfDate.empty()) return;
 
-   std::vector<std::string> cantMP;
+   std::string commandLine = CommandLine();
 
-   std::string command =  CommandLine() + FI(precompiledHeader) + Yu(precompiledHeader);
-
-   std::string sources;
-   std::for_each(outOfDate.begin(), outOfDate.end(), [&] (const std::string& s) {
-      if (CanMultiThread(s)) sources += "\"" + s + "\" ";
-      else cantMP.push_back(s);
-   });
-
-   if (sources.size()) {
-      command += sources;
-
-      if (command.size() > 8000) {
-         std::ofstream responseFile(objDir + "/cl.rsp", std::fstream::trunc);
-         responseFile << command;
-         command = "cl.exe @" + objDir + "/cl.rsp";
-      }
-      else {
-         command.insert(0, "cl.exe ");
-      }
-
-      std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
-      int rc = std::system(cmd.c_str());
-      if (rc != 0) throw std::runtime_error("Compile Error");
+   if (compiler.PrecompiledH().size()) {
+      commandLine += "-FI\"" + compiler.PrecompiledH() + "\" ";
+      commandLine += "-Yu\"" + compiler.PrecompiledH() + "\" ";
    }
 
-   // These are the files that are using #import, which prevents them from compiling them with multiple threads
-   // TODO: Do the multithreading myself, by using multiple instances of cl.exe
+   std::vector<std::string> todo = outOfDate;
+   size_t errors = 0;
+   std::mutex mutex{};
 
-   for (size_t i = 0; i < cantMP.size(); ++i) {
-      command = "cl.exe " + CommandLine() + FI(precompiledHeader) + Yu(precompiledHeader) + "-MP1 ";
-      command += "\"" + cantMP[i] + "\" ";
+   auto threadFunction = [&] () {
+      std::string cpp;
+      std::string command;
 
-      std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
-      int rc = std::system(cmd.c_str());
-      if (rc != 0) throw std::runtime_error("Compile Error");
+      for (;;) {
+         {
+            std::lock_guard<std::mutex> lock{mutex};
+            auto it = todo.rbegin();
+            if (it == todo.rend()) break;
+            cpp = (*it);
+            todo.pop_back();
+         }
+
+         command = "cl.exe " + commandLine + "\"" + cpp + "\" ";
+
+         std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
+         int rc = std::system(cmd.c_str());
+         if (rc != 0) {
+            std::lock_guard<std::mutex> lock{mutex};
+            ++errors;
+         }
+      }
+   };
+
+   size_t threads = compiler.Threads();
+   if (!threads) {
+      threads = std::thread::hardware_concurrency();
+      if (!threads) threads = 2;
    }
+
+   std::vector<std::thread> threadGroup;
+   for (size_t i = 0; i < threads; ++i) threadGroup.push_back(std::thread{threadFunction});
+
+   for (auto&& thread : threadGroup) thread.join();
+
+   if (errors) throw std::runtime_error("Compile Error");
 }
 
-bool Compiler::NeedsRebuild ()
+void ActualCompilerVisualStudio::Compile ()
 {
    CheckParams();
+   if (!NeedsRebuild()) return;
 
-   outOfDate.clear();
+   std::cout << "\nCompiling (" << ToolChain::ToolChain() << " " << ToolChain::Platform() << ")" << std::endl;
 
-   if (!dependencyCheck) {
-      std::copy(allFiles.cbegin(), allFiles.cend(), std::back_inserter(outOfDate));
-   }
-   else {
-      ::CppOutOfDate checker;
-      checker.OutDir(objDir);
-      checker.Threads(threads);
-      checker.Files(allFiles);
-      checker.Include(includes);
-      checker.PrecompiledHeader(precompiledHeader);
-      checker.Go();
+   compiler.DoBeforeCompile();
 
-      outOfDate = checker.OutOfDate();
-   }
-
-   return !outOfDate.empty();
+   DeleteOutOfDateObjectFiles();
+   CompilePrecompiledHeaders();
+   CompileFiles();
 }
 
-void Compiler::DeleteOutOfDateObjectFiles ()
+
+
+
+
+
+
+
+
+
+
+void Compiler::Compile ()
 {
-   const std::vector<std::string> files = CompiledObjFiles();
-   std::for_each(files.begin(), files.end(), [] (const std::string& file) {
-      boost::filesystem::remove(file);
-   });
+   const auto toolChain = ToolChain::ToolChain();
+   if (toolChain.substr(0, 4) == "MSVC") actualCompiler.reset(new ActualCompilerVisualStudio{*this});
+   else throw std::runtime_error("Unbekannte Toolchain: " + toolChain);
+
+   actualCompiler->Compile();
 }
 
-std::vector<std::string> Compiler::ObjFiles () const
-{
-   boost::filesystem::path outpath(objDir);
-
-   std::vector<std::string> result;
-
-   std::for_each(allFiles.begin(), allFiles.end(), [&] (const std::string& file) {
-      boost::filesystem::path f(file);
-      auto outfile = outpath / f.filename();
-      outfile.replace_extension(".obj");
-      result.push_back(outfile.string());
-   });
-
-   return result;
-}
-
-std::vector<std::string> Compiler::CompiledObjFiles () const
-{
-   boost::filesystem::path outpath(objDir);
-
-   std::vector<std::string> result;
-
-   std::for_each(outOfDate.begin(), outOfDate.end(), [&] (const std::string& file) {
-      boost::filesystem::path f(file);
-      auto outfile = outpath / f.filename();
-      outfile.replace_extension(".obj");
-      result.push_back(outfile.string());
-   });
-
-   return result;
-}
-
-void Compiler::CheckParams ()
-{
-   if (objDir.empty()) objDir = debug ? "Debug" : "Release";
-}
