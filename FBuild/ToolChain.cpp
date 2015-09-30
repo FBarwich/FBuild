@@ -133,12 +133,15 @@ namespace ToolChain {
          if (!emscriptenEnv) throw std::runtime_error("Could not find environment variable 'EMSCRIPTEN'");
 
          std::string batchfile = emscriptenEnv;
-         batchfile += "/emsdk.bat";
+         auto pos = batchfile.rfind('\\');      // The environment holds the path to enscripten
+         pos = batchfile.rfind('\\', pos - 1);  // plus the string "\emscripten\<version>", where version ist the version, eg 1.34.1
+         batchfile.erase(pos);                  // We have to erase the information after the actual path.
 
-         batchfile = boost::filesystem::canonical(batchfile).string();
+         batchfile += "\\emsdk_env.bat";
+
          if (!boost::filesystem::exists(batchfile)) throw std::runtime_error(batchfile + " does not exist");
 
-         return "CALL \"" + batchfile + "\" ";
+         return "CALL \"" + batchfile + "\" >nul ";
       }
       else {
          throw std::runtime_error("Unknown ToolChain " + toolschain);

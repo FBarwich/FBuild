@@ -11,16 +11,20 @@
 
 #include <algorithm>
 #include <ctime>
+#include <string>
+#include <vector>
 
 #include <boost/thread.hpp>
 
 
 class CppOutOfDate {
+
    boost::thread_group threadGroup;
    boost::mutex        filesMutex;
    boost::mutex        outOfDateMutex;
    size_t              current;
    time_t              scriptTime;
+   std::string         objectFileExtension;
 
    std::string              outdir;
    bool                     ignoreCache;
@@ -60,7 +64,7 @@ class CppOutOfDate {
          CppDepends dep(file, ignoreCache);
 
          auto obj = objdir / file.filename();
-         obj.replace_extension(".obj");
+         obj.replace_extension(objectFileExtension);
 
          if (!boost::filesystem::exists(obj)) AddOutOfDate(file.string());
          else if (boost::filesystem::last_write_time(obj) < dep.MaxTime()) AddOutOfDate(file.string());
@@ -70,7 +74,7 @@ class CppOutOfDate {
 
 
 public:
-   CppOutOfDate ()
+   CppOutOfDate (const std::string& objectFileExtension) : objectFileExtension{"." + objectFileExtension}
    {
       current = 0;
       ignoreCache = false;

@@ -65,6 +65,27 @@ public:
 
 
 
+class ActualCompilerEmscripten : public ActualCompiler {
+   void CheckParams ();
+   bool NeedsRebuild ();
+   void DeleteOutOfDateObjectFiles ();
+   void CompilePrecompiledHeaders ();
+   void CompileFiles ();
+   std::string CommandLine ();
+
+public:
+   ActualCompilerEmscripten (Compiler& compiler) : ActualCompiler{compiler} { }
+
+   void Compile () override;
+
+   std::vector<std::string> ObjFiles() override         { return ActualCompiler::ObjFiles("o"); }
+   std::vector<std::string> CompiledObjFiles() override { return ActualCompiler::CompiledObjFiles("o"); }
+};
+
+
+
+
+
 
 class Compiler {
    std::unique_ptr<ActualCompiler> actualCompiler;

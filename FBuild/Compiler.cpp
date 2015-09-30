@@ -76,7 +76,7 @@ bool ActualCompilerVisualStudio::NeedsRebuild ()
       outOfDate = compiler.Files();
    }
    else {
-      ::CppOutOfDate checker{};
+      ::CppOutOfDate checker{"obj"};
       checker.OutDir(compiler.ObjDir());
       checker.Threads(compiler.Threads());
       checker.Files(compiler.Files());
@@ -219,19 +219,30 @@ void ActualCompilerVisualStudio::CompileFiles ()
       std::string command;
 
       for (;;) {
-         {
-            std::lock_guard<std::mutex> lock{mutex};
-            auto it = todo.rbegin();
-            if (it == todo.rend()) break;
-            cpp = (*it);
-            todo.pop_back();
+         try {
+            {
+               std::lock_guard<std::mutex> lock{mutex};
+               auto it = todo.rbegin();
+               if (it == todo.rend()) break;
+               cpp = (*it);
+               todo.pop_back();
+            }
+
+            command = "cl.exe " + commandLine + "\"" + cpp + "\" ";
+
+            std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
+            int rc = std::system(cmd.c_str());
+            if (rc != 0) {
+               std::lock_guard<std::mutex> lock{mutex};
+               ++errors;
+            }
          }
-
-         command = "cl.exe " + commandLine + "\"" + cpp + "\" ";
-
-         std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
-         int rc = std::system(cmd.c_str());
-         if (rc != 0) {
+         catch (std::exception& e) {
+            std::cout << e.what() << std::endl;
+            std::lock_guard<std::mutex> lock{mutex};
+            ++errors;
+         }
+         catch (...) {
             std::lock_guard<std::mutex> lock{mutex};
             ++errors;
          }
@@ -243,6 +254,7 @@ void ActualCompilerVisualStudio::CompileFiles ()
       threads = std::thread::hardware_concurrency();
       if (!threads) threads = 2;
    }
+   if (threads > todo.size()) threads = todo.size();
 
    std::vector<std::thread> threadGroup;
    for (size_t i = 0; i < threads; ++i) threadGroup.push_back(std::thread{threadFunction});
@@ -272,6 +284,140 @@ void ActualCompilerVisualStudio::Compile ()
 
 
 
+void ActualCompilerEmscripten::CheckParams ()
+{
+   if (compiler.ObjDir().empty()) compiler.ObjDir(compiler.Build());
+   if (!boost::filesystem::exists(compiler.ObjDir())) boost::filesystem::create_directories(compiler.ObjDir());
+}
+
+bool ActualCompilerEmscripten::NeedsRebuild ()
+{
+   CheckParams();
+   outOfDate.clear();
+
+   if (!compiler.DependencyCheck()) {
+      outOfDate = compiler.Files();
+   }
+   else {
+      ::CppOutOfDate checker{"o"};
+      checker.OutDir(compiler.ObjDir());
+      checker.Threads(compiler.Threads());
+      checker.Files(compiler.Files());
+      checker.Include(compiler.Includes());
+      checker.PrecompiledHeader(compiler.PrecompiledH());
+      checker.Go();
+
+      outOfDate = checker.OutOfDate();
+   }
+
+   return !outOfDate.empty();
+}
+
+void ActualCompilerEmscripten::DeleteOutOfDateObjectFiles ()
+{
+   const auto files = CompiledObjFiles();
+
+   for (auto&& file : files) boost::filesystem::remove(file);
+}
+
+void ActualCompilerEmscripten::CompilePrecompiledHeaders ()
+{
+   // TODO
+}
+
+void ActualCompilerEmscripten::CompileFiles ()
+{
+   if (outOfDate.empty()) return;
+
+   std::string commandLine = CommandLine();
+
+   std::vector<std::string> todo = outOfDate;
+   size_t errors = 0;
+   std::mutex mutex{};
+
+   auto threadFunction = [&] () {
+      std::string cpp;
+      std::string command;
+
+      for (;;) {
+         try {
+            {
+               std::lock_guard<std::mutex> lock{mutex};
+               auto it = todo.rbegin();
+               if (it == todo.rend()) break;
+               cpp = (*it);
+               todo.pop_back();
+            }
+
+            std::cout << cpp << std::endl;
+
+            command = "emcc " + commandLine + "\"" + cpp + "\" ";
+
+            std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
+            int rc = std::system(cmd.c_str());
+            if (rc != 0) {
+               std::lock_guard<std::mutex> lock{mutex};
+               ++errors;
+            }
+         }
+         catch (std::exception& e) {
+            std::cout << e.what() << std::endl;
+            std::lock_guard<std::mutex> lock{mutex};
+            ++errors;
+         }
+         catch (...) {
+            std::lock_guard<std::mutex> lock{mutex};
+            ++errors;
+         }
+      }
+   };
+
+   size_t threads = compiler.Threads();
+   if (!threads) {
+      threads = std::thread::hardware_concurrency();
+      if (!threads) threads = 2;
+   }
+   if (threads > todo.size()) threads = todo.size();
+
+   std::vector<std::thread> threadGroup;
+   for (size_t i = 0; i < threads; ++i) threadGroup.push_back(std::thread{threadFunction});
+
+   for (auto&& thread : threadGroup) thread.join();
+
+   if (errors) throw std::runtime_error("Compile Error");
+}
+
+std::string ActualCompilerEmscripten::CommandLine ()
+{
+   bool debug = compiler.Build() == "Debug";
+
+   std::string command = "-c -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 --memory-init-file 0 ";
+
+   if (debug) command += "-g ";
+   else command += "-O3 ";
+
+   command += "-o " + compiler.ObjDir() + "/ ";
+
+   return command;
+}
+
+void ActualCompilerEmscripten::Compile ()
+{
+   CheckParams();
+   if (!NeedsRebuild()) return;
+
+   std::cout << "\nCompiling (" << ToolChain::ToolChain() << ")" << std::endl;
+
+   compiler.DoBeforeCompile();
+
+   DeleteOutOfDateObjectFiles();
+   CompilePrecompiledHeaders();
+   CompileFiles();
+}
+
+
+
+
 
 
 
@@ -280,6 +426,7 @@ void Compiler::Compile ()
 {
    const auto toolChain = ToolChain::ToolChain();
    if (toolChain.substr(0, 4) == "MSVC") actualCompiler.reset(new ActualCompilerVisualStudio{*this});
+   else if (toolChain == "EMSCRIPTEN") actualCompiler.reset(new ActualCompilerEmscripten{*this});
    else throw std::runtime_error("Unbekannte Toolchain: " + toolChain);
 
    actualCompiler->Compile();
