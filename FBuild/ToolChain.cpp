@@ -48,17 +48,26 @@ namespace ToolChain {
 
    void ToolChain(boost::string_ref newToolchain)
    {
-      if (newToolchain.substr(0, 4) != "MSVC") throw std::runtime_error("Unknown ToolChain " + newToolchain.to_string());
-      
-      std::string envname = newToolchain.to_string();
-      envname.erase(0, 4);
-      envname.insert(0, "VS");
-      envname += "COMNTOOLS";
+      if (newToolchain.substr(0, 4) == "MSVC") {
+         std::string envname = newToolchain.to_string();
+         envname.erase(0, 4);
+         envname.insert(0, "VS");
+         envname += "COMNTOOLS";
 
-      const char* commtoolsPathEnv = std::getenv(envname.c_str());
-      if (!commtoolsPathEnv) throw std::runtime_error("Invalid ToolChain '" + newToolchain.to_string() + "' " + envname + " not found");
+         const char* commtoolsPathEnv = std::getenv(envname.c_str());
+         if (!commtoolsPathEnv) throw std::runtime_error("Invalid ToolChain '" + newToolchain.to_string() + "' " + envname + " not found");
 
-      ToolChain::toolchain.assign(newToolchain.begin(), newToolchain.end());
+         ToolChain::toolchain.assign(newToolchain.begin(), newToolchain.end());
+      }
+      else if (newToolchain == "EMSCRIPTEN") {
+         const char* emscriptenEnv = std::getenv("EMSCRIPTEN");
+         if (!emscriptenEnv) throw std::runtime_error("Could not find environment variable 'EMSCRIPTEN'");
+
+         ToolChain::toolchain.assign(newToolchain.begin(), newToolchain.end());
+      }
+      else {
+         throw std::runtime_error("Unknown ToolChain " + newToolchain.to_string());
+      }
    }
 
    std::string ToolChain()
@@ -86,34 +95,54 @@ namespace ToolChain {
 
    std::string SetEnvBatchCall()
    {
-      auto envname = ToolChain();
-      envname.erase(0, 4);
-      envname.insert(0, "VS");
-      envname += "COMNTOOLS";
+      auto toolschain = ToolChain();
 
-      const auto commtoolsPathEnv = std::getenv(envname.c_str());
-      if (!commtoolsPathEnv) throw std::runtime_error("Environmentvariable " + envname + " not found");
+      if (toolchain.substr(0, 4) == "MSVC") {
+         auto envname = ToolChain();
+         envname.erase(0, 4);
+         envname.insert(0, "VS");
+         envname += "COMNTOOLS";
 
-      auto batch = std::string{commtoolsPathEnv};
-      batch += "../../VC/vcvarsall.bat";
+         const auto commtoolsPathEnv = std::getenv(envname.c_str());
+         if (!commtoolsPathEnv) throw std::runtime_error("Environmentvariable " + envname + " not found");
 
-      batch = boost::filesystem::canonical(batch).string();
-      if (!boost::filesystem::exists(batch)) throw std::runtime_error(batch + " does not exist");
+         auto batch = std::string{commtoolsPathEnv};
+         batch += "../../VC/vcvarsall.bat";
 
-      auto cmd = "\"" + batch + "\" ";
+         batch = boost::filesystem::canonical(batch).string();
+         if (!boost::filesystem::exists(batch)) throw std::runtime_error(batch + " does not exist");
 
-      auto bin = std::string{commtoolsPathEnv};
-      bin += "../../VC/bin";
+         auto cmd = "\"" + batch + "\" ";
 
-      if (platform == "x64") {
-         if (boost::filesystem::exists(bin + "/amd64")) cmd += "amd64";
-         else cmd += "x86_amd64";
+         auto bin = std::string{commtoolsPathEnv};
+         bin += "../../VC/bin";
+
+         if (platform == "x64") {
+            if (boost::filesystem::exists(bin + "/amd64")) cmd += "amd64";
+            else cmd += "x86_amd64";
+         }
+         else {
+            if (boost::filesystem::exists(bin + "/amd64_x86")) cmd += "amd64_x86";
+            else cmd += "x86";
+         }
+
+         return "CALL " + cmd;
+      }
+      else if (toolchain == "EMSCRIPTEN") {
+         const char* emscriptenEnv = std::getenv("EMSCRIPTEN");
+         if (!emscriptenEnv) throw std::runtime_error("Could not find environment variable 'EMSCRIPTEN'");
+
+         std::string batchfile = emscriptenEnv;
+         batchfile += "/emsdk.bat";
+
+         batchfile = boost::filesystem::canonical(batchfile).string();
+         if (!boost::filesystem::exists(batchfile)) throw std::runtime_error(batchfile + " does not exist");
+
+         return "CALL \"" + batchfile + "\" ";
       }
       else {
-         if (boost::filesystem::exists(bin + "/amd64_x86")) cmd += "amd64_x86";
-         else cmd += "x86";
+         throw std::runtime_error("Unknown ToolChain " + toolschain);
       }
 
-      return "CALL " + cmd;
    }
 }
