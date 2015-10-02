@@ -71,7 +71,7 @@ class ActualCompilerEmscripten : public ActualCompiler {
    void DeleteOutOfDateObjectFiles ();
    void CompilePrecompiledHeaders ();
    void CompileFiles ();
-   std::string CommandLine ();
+   std::string CommandLine (bool omitObjDir);
 
 public:
    ActualCompilerEmscripten (Compiler& compiler) : ActualCompiler{compiler} { }

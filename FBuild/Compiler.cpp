@@ -322,14 +322,46 @@ void ActualCompilerEmscripten::DeleteOutOfDateObjectFiles ()
 
 void ActualCompilerEmscripten::CompilePrecompiledHeaders ()
 {
-   // TODO
+   if (outOfDate.empty()) return;
+   if (compiler.PrecompiledCPP().empty()) return;
+
+   boost::filesystem::path cpp = boost::filesystem::canonical(compiler.PrecompiledCPP());
+   cpp.make_preferred();
+
+   auto it = std::find_if(outOfDate.cbegin(), outOfDate.cend(), [&cpp] (const std::string& f) -> bool {
+      return boost::filesystem::equivalent(cpp, f);
+   });
+
+   if (it == outOfDate.cend()) return;
+
+   outOfDate.erase(it);
+
+   boost::filesystem::path hpp = boost::filesystem::canonical(compiler.PrecompiledH());
+   hpp.make_preferred();
+
+   std::cout << hpp.string() << std::endl;
+
+   std::string command = "emcc " + CommandLine(true) + "\"" + hpp.string() + "\" -x c++-header -o \"" + hpp.string() + ".pch\" ";
+
+   std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
+   int rc = std::system(cmd.c_str());
+   if (rc != 0) throw std::runtime_error("Compile Error");
+
+   std::ofstream obj(compiler.ObjDir() + "/" + cpp.filename().replace_extension("o").string());
+   obj << "Dummy";
 }
 
 void ActualCompilerEmscripten::CompileFiles ()
 {
    if (outOfDate.empty()) return;
 
-   std::string commandLine = CommandLine();
+   std::string commandLine = CommandLine(false);
+   if (compiler.PrecompiledH().size()) {
+      boost::filesystem::path hpp = boost::filesystem::canonical(compiler.PrecompiledH());
+      hpp.make_preferred();
+
+      commandLine += " -include \"" + hpp.string() + "\" ";
+   }
 
    std::vector<std::string> todo = outOfDate;
    size_t errors = 0;
@@ -387,7 +419,7 @@ void ActualCompilerEmscripten::CompileFiles ()
    if (errors) throw std::runtime_error("Compile Error");
 }
 
-std::string ActualCompilerEmscripten::CommandLine ()
+std::string ActualCompilerEmscripten::CommandLine (bool omitObjDir)
 {
    bool debug = compiler.Build() == "Debug";
 
@@ -396,7 +428,7 @@ std::string ActualCompilerEmscripten::CommandLine ()
    if (debug) command += "-g ";
    else command += "-O3 ";
 
-   command += "-o " + compiler.ObjDir() + "/ ";
+   if (!omitObjDir) command += "-o " + compiler.ObjDir() + "/ ";
 
    return command;
 }
