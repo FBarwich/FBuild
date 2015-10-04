@@ -425,10 +425,30 @@ std::string ActualCompilerEmscripten::CommandLine (bool omitObjDir)
 
    std::string command = "-c -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 --memory-init-file 0 ";
 
+
    if (debug) command += "-g ";
    else command += "-O3 ";
 
+
+   for (auto&& define : compiler.Defines()) command += "-D" + define + " ";
+
+
+   for (auto&& include : compiler.Includes()) command += "-I\"" + include + "\" ";
+
+
+   if (compiler.WarnLevel() == 0) command += "-w ";
+   else if (compiler.WarnLevel() == 4) {
+      if (compiler.WarningAsError()) command += "-pedantic-errors ";
+      else command += "-pedantic ";
+   }
+
+   if (compiler.WarningAsError()) command += "-Werror ";
+
+   for (auto&& disabledWarning : compiler.WarningDisable()) command += "-Wno-" + boost::lexical_cast<std::string>(disabledWarning) + " ";
+
+
    if (!omitObjDir) command += "-o " + compiler.ObjDir() + "/ ";
+
 
    return command;
 }
