@@ -10,10 +10,46 @@
 #include <string>
 #include <vector>
 #include <iterator>
+#include <memory>
 
 #include <boost/algorithm/string.hpp>
 
+
+class Linker;
+
+class ActualLinker {
+protected:
+   Linker& linker;
+
+   bool NeedsRebuild () const;
+
+public:
+   ActualLinker (Linker& linker) : linker{linker} { }
+   virtual ~ActualLinker () { }
+
+   virtual void Link () { }
+};
+
+
+
+
+
+
+class ActualLinkerVisualStudio : public ActualLinker {
+public:
+   ActualLinkerVisualStudio (Linker& linker) : ActualLinker{linker} { }
+
+   void Link () override;
+};
+
+
+
+
+
+
 class Linker {
+   std::unique_ptr<ActualLinker> actualLinker;
+
    bool                     debug;
    std::string              output;
    std::string              importLib;
@@ -25,10 +61,8 @@ class Linker {
    std::string              args;
    std::function<void()>    beforeLink;
 
-   bool NeedsRebuild () const;
-
 public:
-   Linker () : debug(false), dependencyCheck(true) { }
+   Linker () : actualLinker{new ActualLinker{*this}}, debug{false}, dependencyCheck{true} { }
 
    void Build (std::string v)
    {
@@ -58,6 +92,8 @@ public:
    bool                            DependencyCheck () const { return dependencyCheck; }
    const std::string&              Args () const            { return args; }
    const std::function<void()>&    BeforeLink () const      { return beforeLink; }
+
+   void DoBeforeLink () { if (beforeLink) beforeLink(); }
 
    void Link ();
 };

@@ -15,6 +15,7 @@
 #include <boost/filesystem.hpp>
 
 
+
 inline bool Exe (const std::string& filename)
 {
    boost::filesystem::path file(filename);
@@ -24,57 +25,81 @@ inline bool Exe (const std::string& filename)
    else return false;
 }
 
-inline std::string EnvironmentLinker(bool debug)
+
+
+
+bool ActualLinker::NeedsRebuild () const
 {
-   std::string ret;
+   if (!linker.DependencyCheck()) return true;
+   if (!boost::filesystem::exists(linker.Output())) return true;
 
-   const char* env = std::getenv("FB_LINKER");
-   if (env) ret += std::string(env) + " ";
+   std::time_t parentTime = boost::filesystem::last_write_time(linker.Output());
 
-   if (debug) {
-      env = std::getenv("FB_LINKER_DEBUG");
-      if (env) ret += std::string(env) + " ";
-   }
-   else {
-      env = std::getenv("FB_LINKER_RELEASE");
-      if (env) ret += std::string(env) + " ";
+   for (auto&& file : linker.Files()) {
+      if (boost::filesystem::last_write_time(file) > parentTime) return true;
    }
 
-   return ret;
+   for (auto&& lib : linker.Libs()) {
+      for (auto&& path : linker.Libpath()) {
+         const auto file = path + "/" + lib;
+         if (boost::filesystem::exists(file)) {
+            if (boost::filesystem::last_write_time(file) > parentTime) return true;
+         }
+      }
+   }
+
+   return false;
 }
 
-void Linker::Link ()
+
+
+
+
+
+void ActualLinkerVisualStudio::Link ()
 {
-   if (files.empty()) return;
-   if (output.empty()) throw std::runtime_error("Mising 'Output'");
+   if (linker.Files().empty()) return;
+   if (linker.Output().empty()) throw std::runtime_error("Mising 'Output'");
 
    if (!NeedsRebuild()) return;
 
    std::cout << "\nLinking (" << ToolChain::ToolChain() << " " << ToolChain::Platform() << ")" << std::endl;
 
-   if (beforeLink) beforeLink();
+   linker.DoBeforeLink();
 
-   if (boost::filesystem::exists(output)) boost::filesystem::remove(output);
-   if (importLib.size() && boost::filesystem::exists(importLib)) boost::filesystem::remove(importLib);
+   if (boost::filesystem::exists(linker.Output())) boost::filesystem::remove(linker.Output());
+   if (linker.ImportLib().size() && boost::filesystem::exists(linker.ImportLib())) boost::filesystem::remove(linker.ImportLib());
 
-   boost::filesystem::create_directories(boost::filesystem::path(output).remove_filename());
+   boost::filesystem::create_directories(boost::filesystem::path(linker.Output()).remove_filename());
+
+   bool debug = linker.Build() == "Debug";
 
    std::string command = "-NOLOGO -INCREMENTAL:NO -LARGEADDRESSAWARE -STACK:3000000 ";
    if (debug) command += "-DEBUG ";
-   if (!Exe(output)) command += "-DLL ";
-   command += "-OUT:\"" + output + "\" ";
-   if (!importLib.empty()) command += "-IMPLIB:\"" + importLib + "\" ";
-   if (!def.empty()) command += "-DEF:\"" + def + "\" ";
-   if (!args.empty()) command += args + " ";
+   if (!Exe(linker.Output())) command += "-DLL ";
+   command += "-OUT:\"" + linker.Output() + "\" ";
+   if (!linker.ImportLib().empty()) command += "-IMPLIB:\"" + linker.ImportLib() + "\" ";
+   if (!linker.Def().empty()) command += "-DEF:\"" + linker.Def() + "\" ";
+   if (!linker.Args().empty()) command += linker.Args() + " ";
 
-   std::for_each(libpath.cbegin(), libpath.cend(), [&command] (const std::string& f) { command += "-LIBPATH:\"" + f + "\" "; });
-   std::for_each(libs.cbegin(), libs.cend(), [&command] (const std::string& f) { command += "\"" + f + "\" "; });
-   std::for_each(files.cbegin(), files.cend(), [&command] (const std::string& f) { command += "\"" + f + "\" "; });
+   for (auto&& f : linker.Libpath()) command += "-LIBPATH:\"" + f + "\" ";
+   for (auto&& f : linker.Libs()) command += "\"" + f + "\" ";
+   for (auto&& f : linker.Files()) command += "\"" + f + "\" ";
 
-   command += EnvironmentLinker(debug);
+   const char* env = std::getenv("FB_LINKER");
+   if (env) command += std::string(env) + " ";
+
+   if (debug) {
+      env = std::getenv("FB_LINKER_DEBUG");
+      if (env) command += std::string(env) + " ";
+   }
+   else {
+      env = std::getenv("FB_LINKER_RELEASE");
+      if (env) command += std::string(env) + " ";
+   }
 
    if (command.size() > 8000) {
-      auto rsp = boost::filesystem::temp_directory_path() / boost::filesystem::path(output).filename();
+      auto rsp = boost::filesystem::temp_directory_path() / boost::filesystem::path(linker.Output()).filename();
       rsp.replace_extension(".rsp");
       std::ofstream responseFile(rsp.string(), std::fstream::trunc);
       responseFile << command;
@@ -84,32 +109,27 @@ void Linker::Link ()
       command.insert(0, "link ");
    }
 
-
    std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
    int rc = std::system(cmd.c_str());
    if (rc != 0) throw std::runtime_error("Link-Error");
 }
 
-bool Linker::NeedsRebuild () const
+
+
+
+
+
+
+
+
+
+void Linker::Link ()
 {
-   if (!dependencyCheck) return true;
-   if (!boost::filesystem::exists(output)) return true;
+   const auto toolChain = ToolChain::ToolChain();
+   if (toolChain.substr(0, 4) == "MSVC") actualLinker.reset(new ActualLinkerVisualStudio{*this});
+   //else if (toolChain == "EMSCRIPTEN") actualLinker.reset(new ActualLinkerEmscripten{*this});
+   else throw std::runtime_error("Unbekannte Toolchain: " + toolChain);
 
-   std::time_t parentTime = boost::filesystem::last_write_time(output);
-
-   for (size_t i = 0; i < files.size(); ++i) {
-      if (boost::filesystem::last_write_time(files[i]) > parentTime) return true;
-   }
-
-   for (size_t l = 0; l < libs.size(); ++l) {
-      for (size_t p = 0; p < libpath.size(); ++p) {
-         const auto file = libpath[p] + "/" + libs[l];
-         if (boost::filesystem::exists(file)) {
-            if (boost::filesystem::last_write_time(file) > parentTime) return true;
-         }
-      }
-   }
-
-   return false;
+   actualLinker->Link();
 }
 
