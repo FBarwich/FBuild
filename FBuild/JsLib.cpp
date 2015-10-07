@@ -10,6 +10,7 @@
 #include <iostream>
 
 #include <boost/lexical_cast.hpp>
+#include <boost/filesystem.hpp>
 
 
 duk_ret_t JsLib::Constructor(duk_context* duktapeContext)
@@ -420,7 +421,13 @@ duk_ret_t JsLib::Create(duk_context* duktapeContext)
 
       obj->compiler.Compile();
 
-      obj->librarian.Files(obj->compiler.ObjFiles());
+      std::vector<std::string> objFiles;
+      for (auto&& f : obj->compiler.ObjFiles()) {
+         if (boost::filesystem::file_size(f) != 0) objFiles.push_back(f);
+      }
+      obj->librarian.Files(objFiles);
+
+
       obj->librarian.DependencyCheck(obj->compiler.DependencyCheck());
       obj->librarian.Create();
 

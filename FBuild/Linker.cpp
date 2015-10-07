@@ -147,8 +147,7 @@ void ActualLinkerEmscripten::Link ()
    for (auto&& f : linker.Files()) command += "\"" + f + "\" ";
    for (auto&& f : linker.Libs()) command += "\"" + f + "\" ";
 
-   std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
-   int rc = std::system(cmd.c_str());
+   int rc = std::system(command.c_str());
    if (rc != 0) throw std::runtime_error("Link-Error");
 }
 

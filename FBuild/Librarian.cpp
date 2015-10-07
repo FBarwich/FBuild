@@ -16,43 +16,89 @@
 
 
 
-bool Librarian::NeedsRebuild () const
+bool ActualLibrarian::NeedsRebuild () const
 {
-   if (!dependencyCheck) return true;
-   if (!boost::filesystem::exists(output)) return true;
+   if (!librarian.DependencyCheck()) return true;
+   if (!boost::filesystem::exists(librarian.Output())) return true;
 
-   std::time_t parentTime = boost::filesystem::last_write_time(output);
+   std::time_t parentTime = boost::filesystem::last_write_time(librarian.Output());
 
-   for (size_t i = 0; i < files.size(); ++i) {
-      if (boost::filesystem::last_write_time(files[i]) > parentTime) return true;
+   for (auto&& f : librarian.Files()) {
+      if (boost::filesystem::last_write_time(f) > parentTime) return true;
    }
 
    return false;
 }
 
-void Librarian::Create () const
+
+
+
+void ActualLibrarianVisualStudio::Create ()
 {
-   if (files.empty()) return;
-   if (output.empty()) throw std::runtime_error("Mising 'Output'");
+   if (librarian.Files().empty()) return;
+   if (librarian.Output().empty()) throw std::runtime_error("Mising 'Output'");
 
    if (!NeedsRebuild()) return;
 
    std::cout << "\nCreating Lib (" << ToolChain::ToolChain() << " " << ToolChain::Platform() << ")" << std::endl;
 
-   if (beforeLink) beforeLink();
+   librarian.DoBeforeLink();
 
-   if (boost::filesystem::exists(output)) boost::filesystem::remove(output);
+   if (boost::filesystem::exists(librarian.Output())) boost::filesystem::remove(librarian.Output());
 
-   boost::filesystem::create_directories(boost::filesystem::path(output).remove_filename());
+   boost::filesystem::create_directories(boost::filesystem::path(librarian.Output()).remove_filename());
 
    std::string command = "Lib -NOLOGO ";
-   command += "-OUT:\"" + output + "\" ";
+   command += "-OUT:\"" + librarian.Output() + "\" ";
    
-   std::for_each(files.cbegin(), files.cend(), [&command] (const std::string& f) { command += "\"" + f + "\" "; });
+   for (auto&& f : librarian.Files()) command += "\"" + f + "\" ";
 
    std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
    int rc = std::system(cmd.c_str());
    if (rc != 0) throw std::runtime_error("Error creating lib");
+}
+
+
+
+
+
+void ActualLibrarianEmscripten::Create ()
+{
+   if (librarian.Files().empty()) return;
+   if (librarian.Output().empty()) throw std::runtime_error("Mising 'Output'");
+
+   if (!NeedsRebuild()) return;
+
+   std::cout << "\nCreating Lib (" << ToolChain::ToolChain() << ")" << std::endl;
+
+   librarian.DoBeforeLink();
+
+   if (boost::filesystem::exists(librarian.Output())) boost::filesystem::remove(librarian.Output());
+
+   boost::filesystem::create_directories(boost::filesystem::path(librarian.Output()).remove_filename());
+
+   std::string command = "emcc -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 --memory-init-file 0 ";
+
+   command += "-o \"" + librarian.Output() + "\" ";
+
+   for (auto&& f : librarian.Files()) command += "\"" + f + "\" ";
+
+   int rc = std::system(command.c_str());
+   if (rc != 0) throw std::runtime_error("Error creating lib");
+}
+
+
+
+
+
+void Librarian::Create ()
+{
+   const auto toolChain = ToolChain::ToolChain();
+   if (toolChain.substr(0, 4) == "MSVC") actualLibrarian.reset(new ActualLibrarianVisualStudio{*this});
+   else if (toolChain == "EMSCRIPTEN") actualLibrarian.reset(new ActualLibrarianEmscripten{*this});
+   else throw std::runtime_error("Unbekannte Toolchain: " + toolChain);
+
+   actualLibrarian->Create();
 }
 
 

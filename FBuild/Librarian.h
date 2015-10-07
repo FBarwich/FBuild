@@ -9,17 +9,58 @@
 
 #include <string>
 #include <vector>
-#include <iterator>
+#include <memory>
+
+class Librarian;
+
+class ActualLibrarian {
+protected:
+   Librarian& librarian;
+
+   bool NeedsRebuild () const;
+
+public:
+   ActualLibrarian (Librarian& librarian) : librarian{librarian} { }
+   virtual ~ActualLibrarian () { }
+
+   virtual void Create () { }
+};
+
+
+
+
+
+class ActualLibrarianVisualStudio : public ActualLibrarian {
+public:
+   ActualLibrarianVisualStudio (Librarian& librarian) : ActualLibrarian{librarian} { }
+
+   void Create () override;
+};
+
+
+
+
+
+class ActualLibrarianEmscripten : public ActualLibrarian {
+public:
+   ActualLibrarianEmscripten (Librarian& librarian) : ActualLibrarian{librarian} { }
+
+   void Create () override;
+};
+
+
+
 
 class Librarian {
+   std::unique_ptr<ActualLibrarian> actualLibrarian;
+
    std::string              output;
    std::vector<std::string> files;
    bool                     dependencyCheck;
    std::function<void()>    beforeLink;
 
-   bool NeedsRebuild () const;
-
 public:
+   Librarian () : actualLibrarian{new ActualLibrarian{*this}} { }
 
    void Output (std::string v)                       { output = std::move(v); }
    void Files (std::vector<std::string> v)           { files = std::move(v); }
@@ -33,6 +74,8 @@ public:
    bool                            DependencyCheck () const { return dependencyCheck; }
    const std::function<void()>&    BeforeLink () const      { return beforeLink; }
 
-   void Create () const;
+   void DoBeforeLink () { if (beforeLink) beforeLink(); }
+
+   void Create ();
 };
 
