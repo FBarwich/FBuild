@@ -119,6 +119,42 @@ void ActualLinkerVisualStudio::Link ()
 
 
 
+void ActualLinkerEmscripten::Link ()
+{
+   if (linker.Files().empty()) return;
+   if (linker.Output().empty()) throw std::runtime_error("Mising 'Output'");
+
+   if (!NeedsRebuild()) return;
+
+   std::cout << "\nLinking (" << ToolChain::ToolChain() << ")" << std::endl;
+
+   linker.DoBeforeLink();
+
+   if (boost::filesystem::exists(linker.Output())) boost::filesystem::remove(linker.Output());
+
+   boost::filesystem::create_directories(boost::filesystem::path(linker.Output()).remove_filename());
+
+   bool debug = linker.Build() == "Debug";
+
+
+   std::string command = "emcc -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 --memory-init-file 0 ";
+
+   if (debug) command += "-g ";
+   else command += "-O3 ";
+
+   command += "-o \"" + linker.Output() + "\" ";
+
+   for (auto&& f : linker.Files()) command += "\"" + f + "\" ";
+   for (auto&& f : linker.Libs()) command += "\"" + f + "\" ";
+
+   std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
+   int rc = std::system(cmd.c_str());
+   if (rc != 0) throw std::runtime_error("Link-Error");
+}
+
+
+
+
 
 
 
@@ -127,7 +163,7 @@ void Linker::Link ()
 {
    const auto toolChain = ToolChain::ToolChain();
    if (toolChain.substr(0, 4) == "MSVC") actualLinker.reset(new ActualLinkerVisualStudio{*this});
-   //else if (toolChain == "EMSCRIPTEN") actualLinker.reset(new ActualLinkerEmscripten{*this});
+   else if (toolChain == "EMSCRIPTEN") actualLinker.reset(new ActualLinkerEmscripten{*this});
    else throw std::runtime_error("Unbekannte Toolchain: " + toolChain);
 
    actualLinker->Link();

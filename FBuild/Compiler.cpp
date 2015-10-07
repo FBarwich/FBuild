@@ -348,7 +348,6 @@ void ActualCompilerEmscripten::CompilePrecompiledHeaders ()
    if (rc != 0) throw std::runtime_error("Compile Error");
 
    std::ofstream obj(compiler.ObjDir() + "/" + cpp.filename().replace_extension("o").string());
-   obj << "Dummy";
 }
 
 void ActualCompilerEmscripten::CompileFiles ()

@@ -47,6 +47,19 @@ public:
 
 
 
+class ActualLinkerEmscripten : public ActualLinker {
+public:
+   ActualLinkerEmscripten (Linker& linker) : ActualLinker{linker} { }
+
+   void Link () override;
+};
+
+
+
+
+
+
+
 class Linker {
    std::unique_ptr<ActualLinker> actualLinker;
 

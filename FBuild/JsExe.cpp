@@ -7,6 +7,8 @@
 
 #include "JsExe.h"
 
+#include <boost/filesystem.hpp>
+
 
 duk_ret_t JsExe::Constructor(duk_context* duktapeContext)
 {
@@ -554,7 +556,13 @@ duk_ret_t JsExe::Create(duk_context* duktapeContext)
       }
 
       obj->linker.Build(obj->compiler.Build());
-      obj->linker.Files(obj->compiler.ObjFiles());
+
+      std::vector<std::string> objFiles;
+      for (auto&& f : obj->compiler.ObjFiles()) {
+         if (boost::filesystem::file_size(f) != 0) objFiles.push_back(f);
+      }
+      obj->linker.Files(objFiles);
+
       if (rc) obj->linker.AddFiles(obj->resourceCompiler.Outfiles());
       obj->linker.DependencyCheck(obj->compiler.DependencyCheck());
       obj->linker.Link();
