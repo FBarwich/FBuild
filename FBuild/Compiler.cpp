@@ -343,8 +343,7 @@ void ActualCompilerEmscripten::CompilePrecompiledHeaders ()
 
    std::string command = "emcc " + CommandLine(true) + "\"" + hpp.string() + "\" -x c++-header -o \"" + hpp.string() + ".pch\" ";
 
-   std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
-   int rc = std::system(cmd.c_str());
+   int rc = std::system(command.c_str());
    if (rc != 0) throw std::runtime_error("Compile Error");
 
    std::ofstream obj(compiler.ObjDir() + "/" + cpp.filename().replace_extension("o").string());
@@ -378,14 +377,13 @@ void ActualCompilerEmscripten::CompileFiles ()
                if (it == todo.rend()) break;
                cpp = (*it);
                todo.pop_back();
-            }
 
-            std::cout << cpp << std::endl;
+               std::cout << cpp << std::endl;
+            }
 
             command = "emcc " + commandLine + "\"" + cpp + "\" ";
 
-            std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
-            int rc = std::system(cmd.c_str());
+            int rc = std::system(command.c_str());
             if (rc != 0) {
                std::lock_guard<std::mutex> lock{mutex};
                ++errors;
@@ -422,7 +420,7 @@ std::string ActualCompilerEmscripten::CommandLine (bool omitObjDir)
 {
    bool debug = compiler.Build() == "Debug";
 
-   std::string command = "-c -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 --memory-init-file 0 ";
+   std::string command = "-c -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 --memory-init-file 0 -std=c++14 ";
 
 
    if (debug) command += "-g ";

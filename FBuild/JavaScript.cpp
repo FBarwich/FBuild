@@ -492,7 +492,10 @@ duk_ret_t JavaScript::JsToolChain(duk_context* duktapeContext)
    }
    else if (argc == 1 || argc == 2) {
       std::string arg1 = duk_require_string(duktapeContext, 0);
-      if (argc == 1 && (arg1 == "x86" || arg1 == "x64")) ToolChain::Platform(arg1);
+      if (argc == 1 && (arg1 == "x86" || arg1 == "x64")) {
+         ToolChain::ToolChain("MSVC");
+         ToolChain::Platform(arg1);
+      }
       else ToolChain::ToolChain(arg1);
 
       if (argc == 2) ToolChain::Platform(duk_require_string(duktapeContext, 1));

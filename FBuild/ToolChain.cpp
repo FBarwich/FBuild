@@ -48,7 +48,10 @@ namespace ToolChain {
 
    void ToolChain(boost::string_ref newToolchain)
    {
-      if (newToolchain.substr(0, 4) == "MSVC") {
+      if (newToolchain == "MSVC") {
+         LatestInstalledVersion();
+      }
+      else if (newToolchain.substr(0, 4) == "MSVC") {
          std::string envname = newToolchain.to_string();
          envname.erase(0, 4);
          envname.insert(0, "VS");
