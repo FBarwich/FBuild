@@ -101,7 +101,7 @@ std::string ActualCompilerVisualStudio::CommandLine ()
 {
    bool debug = compiler.Build() == "Debug";
 
-   std::string command = "-nologo -c -EHa -GF -Gm- -FC -MP1 -DWIN32 -DWINDOWS -D_SCL_SECURE_NO_WARNINGS ";
+   std::string command = "-nologo -c -EHa -GF -Gm- -FC -MP1 -FS -DWIN32 -DWINDOWS -D_SCL_SECURE_NO_WARNINGS ";
    
 
    if (debug) command += "-D_DEBUG ";
@@ -420,7 +420,7 @@ std::string ActualCompilerEmscripten::CommandLine (bool omitObjDir)
 {
    bool debug = compiler.Build() == "Debug";
 
-   std::string command = "-c -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 --memory-init-file 0 -std=c++14 ";
+   std::string command = "-c -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 --memory-init-file 0 -Wno-warn-absolute-paths -std=c++14 ";
 
 
    if (debug) command += "-g ";
