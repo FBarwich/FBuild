@@ -420,8 +420,9 @@ std::string ActualCompilerEmscripten::CommandLine (bool omitObjDir)
 {
    bool debug = compiler.Build() == "Debug";
 
-   std::string command = "-c -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 --memory-init-file 0 -Wno-warn-absolute-paths -std=c++14 ";
+   std::string command = "-c -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 --memory-init-file 0 -std=c++14 ";
 
+   command += "-fdiagnostics-format=msvc -Wno-invalid-source-encoding -Wno-warn-absolute-paths ";
 
    if (debug) command += "-g ";
    else command += "-O3 ";
@@ -442,6 +443,9 @@ std::string ActualCompilerEmscripten::CommandLine (bool omitObjDir)
    if (compiler.WarningAsError()) command += "-Werror ";
 
    for (auto&& disabledWarning : compiler.WarningDisable()) command += "-Wno-" + boost::lexical_cast<std::string>(disabledWarning) + " ";
+
+
+   command += compiler.Args() + " ";
 
 
    if (!omitObjDir) command += "-o " + compiler.ObjDir() + "/ ";

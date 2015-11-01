@@ -119,6 +119,29 @@ void ActualLinkerVisualStudio::Link ()
 
 
 
+
+std::vector<std::string> ActualLinkerEmscripten::LibsWithPath () const
+{
+   std::vector<std::string> result;
+
+   const auto& libs = linker.Libs();
+
+   for (auto&& lib : libs) {
+      bool gotIt = false;
+
+      for (auto&& path : linker.Libpath()) {
+         if (boost::filesystem::exists(path + "/" + lib)) {
+            result.push_back(path + "/" + lib);
+            gotIt = true;
+         }
+      }
+
+      if (!gotIt) result.push_back(lib);
+   }
+
+   return result;
+}
+
 void ActualLinkerEmscripten::Link ()
 {
    if (linker.Files().empty()) return;
@@ -142,10 +165,12 @@ void ActualLinkerEmscripten::Link ()
    if (debug) command += "-g ";
    else command += "-O3 ";
 
+   if (!linker.Args().empty()) command += linker.Args() + " ";
+
    command += "-o \"" + linker.Output() + "\" ";
 
    for (auto&& f : linker.Files()) command += "\"" + f + "\" ";
-   for (auto&& f : linker.Libs()) command += "\"" + f + "\" ";
+   for (auto&& f : LibsWithPath()) command += "\"" + f + "\" ";
 
    int rc = std::system(command.c_str());
    if (rc != 0) throw std::runtime_error("Link-Error");

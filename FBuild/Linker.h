@@ -48,6 +48,8 @@ public:
 
 
 class ActualLinkerEmscripten : public ActualLinker {
+   std::vector<std::string> LibsWithPath () const;
+
 public:
    ActualLinkerEmscripten (Linker& linker) : ActualLinker{linker} { }
 
