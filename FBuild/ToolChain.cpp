@@ -136,6 +136,7 @@ namespace ToolChain {
          if (!emscriptenEnv) throw std::runtime_error("Could not find environment variable 'EMSCRIPTEN'");
 
          std::string batchfile = emscriptenEnv;
+         for (auto&& ch : batchfile) if (ch == '/') ch = '\\';  // 1.35 writes it's Environment-Variable with Slashes. Previous Versions used Backslashes (at least the 1.34.1 that's on their webpage did).
          auto pos = batchfile.rfind('\\');      // The environment holds the path to enscripten
          pos = batchfile.rfind('\\', pos - 1);  // plus the string "\emscripten\<version>", where version ist the version, eg 1.34.1
          batchfile.erase(pos);                  // We have to erase the information after the actual path.
