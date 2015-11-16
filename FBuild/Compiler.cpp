@@ -422,7 +422,7 @@ std::string ActualCompilerEmscripten::CommandLine (bool omitObjDir)
 
    std::string command = "-c -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 --memory-init-file 0 -std=c++14 ";
 
-   command += "-fdiagnostics-format=msvc -Wno-invalid-source-encoding -Wno-warn-absolute-paths ";
+   command += "-fdiagnostics-format=msvc -Wno-invalid-source-encoding ";
 
    if (debug) command += "-g ";
    else command += "-O3 ";
