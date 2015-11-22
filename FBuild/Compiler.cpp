@@ -424,8 +424,8 @@ std::string ActualCompilerEmscripten::CommandLine (bool omitObjDir)
 
    command += "-fdiagnostics-format=msvc -Wno-invalid-source-encoding ";
 
-   if (debug) command += "-g ";
-   else command += "-O3 ";
+   if (debug) command += "-g -O1 -D_DEBUG ";
+   else command += "-O3 -DNDEBUG ";
 
 
    for (auto&& define : compiler.Defines()) command += "-D" + define + " ";
