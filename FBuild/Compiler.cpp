@@ -420,7 +420,7 @@ std::string ActualCompilerEmscripten::CommandLine (bool omitObjDir)
 {
    bool debug = compiler.Build() == "Debug";
 
-   std::string command = "-c -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 --memory-init-file 0 -std=c++14 ";
+   std::string command = "-c -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 --memory-init-file 0 -std=c++1z ";
 
    command += "-fdiagnostics-format=msvc -Wno-invalid-source-encoding ";
 
