@@ -505,6 +505,4 @@ duk_ret_t JavaScript::JsToolChain(duk_context* duktapeContext)
    else {
       JavaScriptHelper::Throw(duktapeContext, "To many arguments for ToolChain");
    }
-
-   return 0;
 }
