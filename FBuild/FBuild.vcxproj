@@ -42,17 +42,21 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <NMakeBuildCommandLine>..\FBuild.exe build=Debug</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine>..\FBuild.exe build=$(Configuration)</NMakeBuildCommandLine>
     <NMakeOutput>$(SolutionDir)$(Configuration)\FBuild.exe</NMakeOutput>
-    <NMakeIncludeSearchPath>../Boost</NMakeIncludeSearchPath>
-    <NMakeReBuildCommandLine>..\FBuild.exe build=Debug rebuild=true</NMakeReBuildCommandLine>
+    <NMakeIncludeSearchPath>
+    </NMakeIncludeSearchPath>
+    <NMakeReBuildCommandLine>..\FBuild.exe build=$(Configuration) rebuild=true</NMakeReBuildCommandLine>
+    <AdditionalOptions>-I../Boost</AdditionalOptions>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <NMakeBuildCommandLine>..\FBuild.exe build=Release</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine>..\FBuild.exe build=$(Configuration)</NMakeBuildCommandLine>
     <NMakeOutput>$(SolutionDir)$(Configuration)\FBuild.exe</NMakeOutput>
-    <NMakeIncludeSearchPath>../Boost</NMakeIncludeSearchPath>
-    <NMakeReBuildCommandLine>..\FBuild.exe build=Release rebuild=true</NMakeReBuildCommandLine>
+    <NMakeIncludeSearchPath>
+    </NMakeIncludeSearchPath>
+    <NMakeReBuildCommandLine>..\FBuild.exe build=$(Configuration) rebuild=true</NMakeReBuildCommandLine>
+    <AdditionalOptions>-I../Boost</AdditionalOptions>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
