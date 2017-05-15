@@ -98,9 +98,9 @@ namespace ToolChain {
 
    std::string SetEnvBatchCall()
    {
-      auto toolschain = ToolChain();
+      auto tchain = ToolChain();
 
-      if (toolchain.substr(0, 4) == "MSVC") {
+      if (tchain.substr(0, 4) == "MSVC") {
          auto envname = ToolChain();
          envname.erase(0, 4);
          envname.insert(0, "VS");
@@ -131,7 +131,7 @@ namespace ToolChain {
 
          return "CALL " + cmd;
       }
-      else if (toolchain == "EMSCRIPTEN") {
+      else if (tchain == "EMSCRIPTEN") {
          const char* emscriptenEnv = std::getenv("EMSCRIPTEN");
          if (!emscriptenEnv) throw std::runtime_error("Could not find environment variable 'EMSCRIPTEN'");
 
@@ -148,7 +148,7 @@ namespace ToolChain {
          return "CALL \"" + batchfile + "\" >nul ";
       }
       else {
-         throw std::runtime_error("Unknown ToolChain " + toolschain);
+         throw std::runtime_error("Unknown ToolChain " + tchain);
       }
 
    }
