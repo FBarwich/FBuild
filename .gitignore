@@ -1,9 +1,10 @@
 Release
 Debug
 ipch
+.vs
 *.sdf
 *.suo
 *.user
 *.opensdf
 *.exe
-/.vs/config
+*.db

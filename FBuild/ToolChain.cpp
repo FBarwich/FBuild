@@ -9,6 +9,8 @@
 
 #include <boost/filesystem.hpp>
 
+#include <iostream>
+
 
 namespace ToolChain {
 
@@ -18,7 +20,7 @@ namespace ToolChain {
    static void CurrentFromEnvironment()
    {
       const char* envVersion = std::getenv("VisualStudioVersion");
-      if (!envVersion) return;
+      if (!envVersion) return;    
 
       const char* envPath = std::getenv("PATH");
       if (!envPath) return;
@@ -27,8 +29,6 @@ namespace ToolChain {
       toolchain = "MSVC";
 
       for (char ch : version) if (ch != '.') toolchain += ch;
-
-      std::string path = envPath;
    }
 
    static void LatestInstalledVersion()
@@ -49,7 +49,9 @@ namespace ToolChain {
    void ToolChain(boost::string_ref newToolchain)
    {
       if (newToolchain == "MSVC") {
-         LatestInstalledVersion();
+         CurrentFromEnvironment();
+         if (toolchain.empty()) LatestInstalledVersion();
+         if (toolchain.empty()) throw std::runtime_error("Unable to deduce MSVC-Version");
       }
       else if (newToolchain.substr(0, 4) == "MSVC") {
          std::string envname = newToolchain.to_string();
@@ -106,14 +108,28 @@ namespace ToolChain {
          envname.insert(0, "VS");
          envname += "COMNTOOLS";
 
-         const auto commtoolsPathEnv = std::getenv(envname.c_str());
-         if (!commtoolsPathEnv) throw std::runtime_error("Environmentvariable " + envname + " not found");
+         auto commtoolsPathEnv = std::getenv(envname.c_str());
+         if (!commtoolsPathEnv) {
+            commtoolsPathEnv = std::getenv("VSAPPIDDIR"); // Aaaaargh. This points to the IDE-Directory. VS2017 no longer sets an COMTOOLSxxx Env. Except if you're building from the VS2017 commandline, then COMTOOLSxxx is set. So... Yeah...
+
+            if (!commtoolsPathEnv) throw std::runtime_error("Environmentvariable " + envname + " not found");
+         }
 
          auto batch = std::string{commtoolsPathEnv};
          batch += "../../VC/vcvarsall.bat";
 
+         if (!boost::filesystem::exists(batch)) {
+            auto batch2 = std::string{commtoolsPathEnv};
+            batch2 += "../../VC/Auxiliary/Build/vcvarsall.bat";  // New path in VC2017
+            if (!boost::filesystem::exists(batch2)) {
+               throw std::runtime_error("Neither\n" + batch + "\nor\n" + batch2 + " does exist");
+            }
+            else {
+               batch = batch2;
+            }
+         }
+
          batch = boost::filesystem::canonical(batch).string();
-         if (!boost::filesystem::exists(batch)) throw std::runtime_error(batch + " does not exist");
 
          auto cmd = "\"" + batch + "\" ";
 
@@ -121,15 +137,15 @@ namespace ToolChain {
          bin += "../../VC/bin";
 
          if (platform == "x64") {
-            if (boost::filesystem::exists(bin + "/amd64")) cmd += "amd64";
+            if (batch.find("Community") != std::string::npos || boost::filesystem::exists(bin + "/amd64")) cmd += "amd64"; // Fucking Hell :(
             else cmd += "x86_amd64";
          }
          else {
-            if (boost::filesystem::exists(bin + "/amd64_x86")) cmd += "amd64_x86";
+            if (batch.find("Community") != std::string::npos || boost::filesystem::exists(bin + "/amd64_x86")) cmd += "amd64_x86";
             else cmd += "x86";
          }
 
-         return "CALL " + cmd;
+         return "CALL " + cmd + " >nul";   // vcvarsall.bat spews out redundant crap -> nul    
       }
       else if (tchain == "EMSCRIPTEN") {
          const char* emscriptenEnv = std::getenv("EMSCRIPTEN");
@@ -137,7 +153,7 @@ namespace ToolChain {
 
          std::string batchfile = emscriptenEnv;
          for (auto&& ch : batchfile) if (ch == '/') ch = '\\';  // 1.35 writes it's Environment-Variable with Slashes. Previous Versions used Backslashes (at least the 1.34.1 that's on their webpage did).
-         auto pos = batchfile.rfind('\\');      // The environment holds the path to enscripten
+         auto pos = batchfile.rfind('\\');      // The environment holds the path to emscripten
          pos = batchfile.rfind('\\', pos - 1);  // plus the string "\emscripten\<version>", where version ist the version, eg 1.34.1
          batchfile.erase(pos);                  // We have to erase the information after the actual path.
 
