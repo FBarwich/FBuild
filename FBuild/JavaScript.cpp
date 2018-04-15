@@ -156,8 +156,13 @@ void JavaScript::ExecuteFile (const boost::filesystem::path& script)
    boost::filesystem::path file = boost::filesystem::canonical(script);
    file.make_preferred();
 
-   std::string str = file.string();
-   if (duk_peval_file(duktapeContext, str.c_str())) {
+   std::stringstream contents;
+   {
+      std::ifstream str{file.string()};
+       contents << str.rdbuf();
+   }
+
+   if (duk_peval_string(duktapeContext, contents.str().c_str())) {
       std::string error = duk_safe_to_string(duktapeContext, -1);
       throw std::runtime_error(error);
    }
@@ -217,8 +222,13 @@ duk_ret_t JavaScript::JsExecuteFile(duk_context* duktapeContext)
    boost::filesystem::path file = boost::filesystem::canonical(script);
    file.make_preferred();
 
-   std::string str = file.string();
-   duk_eval_file_noresult(duktapeContext, str.c_str());
+   std::stringstream contents;
+   {
+      std::ifstream str{file.string()};
+      contents << str.rdbuf();
+   }
+
+   duk_eval_string_noresult(duktapeContext, contents.str().c_str());
 
    return 0;
 }
@@ -380,8 +390,12 @@ duk_ret_t JavaScript::JsBuild(duk_context* duktapeContext)
       boost::filesystem::path file = boost::filesystem::canonical("FBuild.js");
       file.make_preferred();
 
-      const std::string str = file.string();
-      duk_eval_file_noresult(duktapeContext, str.c_str());
+      std::stringstream contents;
+      {
+         std::ifstream str{file.string()};
+         contents << str.rdbuf();
+      }
+      duk_eval_string_noresult(duktapeContext, contents.str().c_str());
    }
    catch (std::exception& e) {
       boost::filesystem::current_path(current);
