@@ -9,14 +9,14 @@
 
 #include "../Duktape/duktape.h"
 
-#include <boost/utility/string_ref.hpp> 
+#include <string_view> 
 
 #include <boost/lexical_cast.hpp>
 
 
 namespace JavaScriptHelper {
 
-   inline void Throw(duk_context* duktapeContext, boost::string_ref what)
+   inline void Throw(duk_context* duktapeContext, std::string_view what)
    {
       duk_push_error_object(duktapeContext, DUK_ERR_ERROR, what.data());
       duk_throw(duktapeContext);
@@ -29,7 +29,7 @@ namespace JavaScriptHelper {
       if (args == -1) args = duk_get_top(duktapeContext);
 
       for (int i = 0; i < args; ++i) {
-         if (result.size()) result += ' ';
+         if (!result.empty()) result += ' ';
          result += duk_to_string(duktapeContext, i);
       }
 

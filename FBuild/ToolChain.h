@@ -8,17 +8,17 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 
-#include <boost/utility/string_ref.hpp>
 
 namespace ToolChain {
 
-   void        ToolChain(boost::string_ref newToolchain);
-   std::string ToolChain();
+   void        ToolChain (std::string_view newToolchain);
+   std::string ToolChain ();
 
-   void        Platform(boost::string_ref newPlatform);
-   std::string Platform();
+   void        Platform (std::string_view newPlatform);
+   std::string Platform ();
 
-   std::string SetEnvBatchCall();
+   std::string SetEnvBatchCall ();
 }
 

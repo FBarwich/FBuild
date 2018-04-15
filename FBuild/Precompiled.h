@@ -14,6 +14,7 @@
 #include <fstream>
 #include <unordered_map>
 #include <iterator>
+#include <string_view>
 
 #include <cstdlib>
 #include <ctime>

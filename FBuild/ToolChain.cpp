@@ -46,7 +46,7 @@ namespace ToolChain {
    }
    
 
-   void ToolChain(boost::string_ref newToolchain)
+   void ToolChain(std::string_view newToolchain)
    {
       if (newToolchain == "MSVC") {
          CurrentFromEnvironment();
@@ -63,22 +63,22 @@ namespace ToolChain {
          ToolChain::toolchain.assign(newToolchain.begin(), newToolchain.end());
       }
       else {
-         throw std::runtime_error("Unknown ToolChain " + newToolchain.to_string());
+         throw std::runtime_error("Unknown ToolChain " + std::string{newToolchain});
       }
    }
 
    std::string ToolChain()
    {
-      if (toolchain.size()) return toolchain;
+      if (!toolchain.empty()) return toolchain;
       CurrentFromEnvironment();
-      if (toolchain.size()) return toolchain;
+      if (!toolchain.empty()) return toolchain;
       LatestInstalledVersion();
-      if (toolchain.size()) return toolchain;
+      if (!toolchain.empty()) return toolchain;
 
       throw std::runtime_error("Unable to deduce Toolchain");
    }
 
-   void Platform(boost::string_ref newPlatform)
+   void Platform(std::string_view newPlatform)
    {
       if (newPlatform != "x86" && newPlatform != "x64") throw std::runtime_error("Only x86 and x64 platforms are supported");
       ToolChain::platform.assign(newPlatform.begin(), newPlatform.end());
@@ -102,7 +102,7 @@ namespace ToolChain {
 
          auto commtoolsPathEnv = std::getenv(envname.c_str());
          if (!commtoolsPathEnv) {
-            commtoolsPathEnv = std::getenv("VSAPPIDDIR"); // Aaaaargh. This points to the IDE-Directory. VS2017 no longer sets an COMTOOLSxxx Env. Except if you're building from the VS2017 commandline, then COMTOOLSxxx is set. So... Yeah...
+            commtoolsPathEnv = std::getenv("VSAPPIDDIR"); // Aaaaargh. This points to the IDE-Directory. VS2017 no longer sets an COMNTOOLSxxx Env. Except if you're building from the VS2017 commandline, then COMNTOOLSxxx is set. So... Yeah...
 
             if (!commtoolsPathEnv) throw std::runtime_error("Environmentvariable " + envname + " not found");
          }

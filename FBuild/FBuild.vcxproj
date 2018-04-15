@@ -47,7 +47,7 @@
     <NMakeOutput>$(SolutionDir)$(Configuration)\FBuild.exe</NMakeOutput>
     <NMakeIncludeSearchPath />
     <NMakeReBuildCommandLine>..\FBuild.exe build=$(Configuration) rebuild=true</NMakeReBuildCommandLine>
-    <AdditionalOptions>-I../Boost</AdditionalOptions>
+    <AdditionalOptions>-I../Boost -std:c++latest</AdditionalOptions>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -55,7 +55,7 @@
     <NMakeOutput>$(SolutionDir)$(Configuration)\FBuild.exe</NMakeOutput>
     <NMakeIncludeSearchPath />
     <NMakeReBuildCommandLine>..\FBuild.exe build=$(Configuration) rebuild=true</NMakeReBuildCommandLine>
-    <AdditionalOptions>-I../Boost</AdditionalOptions>
+    <AdditionalOptions>-I../Boost -std:c++latest</AdditionalOptions>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

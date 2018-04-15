@@ -14,6 +14,7 @@ exe.CRT("Static");
 exe.Includes("../Boost");
 exe.Defines("_CRT_SECURE_NO_WARNINGS");
 exe.PrecompiledHeader("Precompiled.h", "Precompiled.cpp");
+exe.CompileArgs("-std:c++latest");
 exe.WarningLevel(4).WarningAsError(true);
 
 exe.Output("../" + args.build + "/FBuild.exe");
