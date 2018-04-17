@@ -67,8 +67,9 @@ void ActualLinkerVisualStudio::Link ()
 
    linker.DoBeforeLink();
 
-   if (boost::filesystem::exists(linker.Output())) boost::filesystem::remove(linker.Output());
-   if (linker.ImportLib().size() && boost::filesystem::exists(linker.ImportLib())) boost::filesystem::remove(linker.ImportLib());
+   // There was some problem with VS2012. But what the actual problem was? Can't remember... Let's hope it's gone now.
+   //if (boost::filesystem::exists(linker.Output())) boost::filesystem::remove(linker.Output());
+   //if (linker.ImportLib().size() && boost::filesystem::exists(linker.ImportLib())) boost::filesystem::remove(linker.ImportLib());
 
    boost::filesystem::create_directories(boost::filesystem::path(linker.Output()).remove_filename());
 

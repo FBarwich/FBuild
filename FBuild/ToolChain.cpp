@@ -31,26 +31,10 @@ namespace ToolChain {
       for (char ch : version) if (ch != '.') toolchain += ch;
    }
 
-   static void LatestInstalledVersion()
-   {
-      std::string envString;
-      for (size_t i = 20; i >= 8; --i) {
-         envString = "VS" + std::to_string(i) + "0COMNTOOLS";
-
-         const char* env = std::getenv(envString.c_str());
-         if (env) {
-            toolchain = "MSVC" + std::to_string(i) + "0";
-            break;
-         }
-      }
-   }
-   
-
    void ToolChain(std::string_view newToolchain)
    {
       if (newToolchain == "MSVC") {
          CurrentFromEnvironment();
-         if (toolchain.empty()) LatestInstalledVersion();
          if (toolchain.empty()) throw std::runtime_error("Unable to deduce MSVC-Version");
       }
       else if (newToolchain.substr(0, 4) == "MSVC") {
@@ -71,8 +55,6 @@ namespace ToolChain {
    {
       if (!toolchain.empty()) return toolchain;
       CurrentFromEnvironment();
-      if (!toolchain.empty()) return toolchain;
-      LatestInstalledVersion();
       if (!toolchain.empty()) return toolchain;
 
       throw std::runtime_error("Unable to deduce Toolchain");
@@ -112,7 +94,7 @@ namespace ToolChain {
 
          if (!boost::filesystem::exists(batch)) {
             auto batch2 = std::string{commtoolsPathEnv};
-            batch2 += "../../VC/Auxiliary/Build/vcvarsall.bat";  // New path in VC2017
+            batch2 += "../../VC/Auxiliary/Build/vcvarsall.bat";  // New path in VS2017
             if (!boost::filesystem::exists(batch2)) {
                throw std::runtime_error("Neither\n" + batch + "\nor\n" + batch2 + " does exist");
             }
@@ -128,14 +110,8 @@ namespace ToolChain {
          auto bin = std::string{commtoolsPathEnv};
          bin += "../../VC/bin";
 
-         if (platform == "x64") {
-            if (batch.find("Community") != std::string::npos || boost::filesystem::exists(bin + "/amd64")) cmd += "amd64"; // Fucking Hell :(
-            else cmd += "x86_amd64";
-         }
-         else {
-            if (batch.find("Community") != std::string::npos || boost::filesystem::exists(bin + "/amd64_x86")) cmd += "amd64_x86";
-            else cmd += "x86";
-         }
+         if (platform == "x64") cmd += "amd64";
+         else cmd += "amd64_x86";
 
          return "CALL " + cmd + " >nul";   // vcvarsall.bat spews out redundant crap -> nul    
       }

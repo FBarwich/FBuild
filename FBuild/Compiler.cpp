@@ -101,7 +101,7 @@ std::string ActualCompilerVisualStudio::CommandLine ()
 {
    bool debug = compiler.Build() == "Debug";
 
-   std::string command = "-nologo -c -EHa -GF -Gm- -FC -MP1 -FS -DWIN32 -DWINDOWS -D_SCL_SECURE_NO_WARNINGS ";
+   std::string command = "-nologo -c -EHa -GF -Gm- -FC -MP1 -FS -Zc:inline -DWIN32 -DWINDOWS -D_SCL_SECURE_NO_WARNINGS ";
    
 
    if (debug) command += "-D_DEBUG ";
