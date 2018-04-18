@@ -12,4 +12,5 @@ lib.Files(Glob("*.c"));
 lib.DependencyCheck(!args.rebuild);
 lib.Output("../" + args.build + "/Duktape.lib");
 lib.CRT("Static");
+lib.Defines("DUK_USE_DATE_NOW_WINDOWS");
 lib.Create();
