@@ -7,17 +7,17 @@
 
 #include "FileOutOfDate.h"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 
 bool FileOutOfDate::Go () const
 {
-   if (!boost::filesystem::exists(parent)) return true;
+   if (!std::filesystem::exists(parent)) return true;
 
-   std::time_t parentTime = boost::filesystem::last_write_time(parent);
+   const auto parentTime = std::filesystem::last_write_time(parent);
 
    for (size_t i = 0; i < files.size(); ++i) {
-      if (boost::filesystem::last_write_time(files[i]) > parentTime) return true;
+      if (std::filesystem::last_write_time(files[i]) > parentTime) return true;
    }
 
    return false;

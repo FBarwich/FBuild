@@ -11,14 +11,13 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 
 
 inline bool Exe (const std::string& filename)
 {
-   boost::filesystem::path file(filename);
+   std::filesystem::path file(filename);
    std::string ext = file.extension().string();
    boost::to_upper(ext);
    if (ext == ".EXE") return true;
@@ -31,19 +30,19 @@ inline bool Exe (const std::string& filename)
 bool ActualLinker::NeedsRebuild () const
 {
    if (!linker.DependencyCheck()) return true;
-   if (!boost::filesystem::exists(linker.Output())) return true;
+   if (!std::filesystem::exists(linker.Output())) return true;
 
-   std::time_t parentTime = boost::filesystem::last_write_time(linker.Output());
+   const auto parentTime = std::filesystem::last_write_time(linker.Output());
 
    for (auto&& file : linker.Files()) {
-      if (boost::filesystem::last_write_time(file) > parentTime) return true;
+      if (std::filesystem::last_write_time(file) > parentTime) return true;
    }
 
    for (auto&& lib : linker.Libs()) {
       for (auto&& path : linker.Libpath()) {
          const auto file = path + "/" + lib;
-         if (boost::filesystem::exists(file)) {
-            if (boost::filesystem::last_write_time(file) > parentTime) return true;
+         if (std::filesystem::exists(file)) {
+            if (std::filesystem::last_write_time(file) > parentTime) return true;
          }
       }
    }
@@ -71,7 +70,7 @@ void ActualLinkerVisualStudio::Link ()
    //if (boost::filesystem::exists(linker.Output())) boost::filesystem::remove(linker.Output());
    //if (linker.ImportLib().size() && boost::filesystem::exists(linker.ImportLib())) boost::filesystem::remove(linker.ImportLib());
 
-   boost::filesystem::create_directories(boost::filesystem::path(linker.Output()).remove_filename());
+   std::filesystem::create_directories(std::filesystem::path(linker.Output()).remove_filename());
 
    bool debug = linker.Build() == "Debug";
 
@@ -100,7 +99,7 @@ void ActualLinkerVisualStudio::Link ()
    }
 
    if (command.size() > 8000) {
-      auto rsp = boost::filesystem::temp_directory_path() / boost::filesystem::path(linker.Output()).filename();
+      auto rsp = std::filesystem::temp_directory_path() / std::filesystem::path(linker.Output()).filename();
       rsp.replace_extension(".rsp");
       std::ofstream responseFile(rsp.string(), std::fstream::trunc);
       responseFile << command;
@@ -131,7 +130,7 @@ std::vector<std::string> ActualLinkerEmscripten::LibsWithPath () const
       bool gotIt = false;
 
       for (auto&& path : linker.Libpath()) {
-         if (boost::filesystem::exists(path + "/" + lib)) {
+         if (std::filesystem::exists(path + "/" + lib)) {
             result.push_back(path + "/" + lib);
             gotIt = true;
          }
@@ -154,9 +153,9 @@ void ActualLinkerEmscripten::Link ()
 
    linker.DoBeforeLink();
 
-   if (boost::filesystem::exists(linker.Output())) boost::filesystem::remove(linker.Output());
+   if (std::filesystem::exists(linker.Output())) std::filesystem::remove(linker.Output());
 
-   boost::filesystem::create_directories(boost::filesystem::path(linker.Output()).remove_filename());
+   std::filesystem::create_directories(std::filesystem::path(linker.Output()).remove_filename());
 
    bool debug = linker.Build() == "Debug";
 

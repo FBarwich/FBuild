@@ -11,8 +11,7 @@
 
 #include <algorithm>
 #include <cstdlib>
-
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 
 inline std::string Inc(const std::vector<std::string>& includes)
@@ -26,12 +25,17 @@ inline std::string Inc(const std::vector<std::string>& includes)
    return ret;
 }
 
+inline uint64_t LastWriteTime (const std::filesystem::path& file)
+{
+   return std::chrono::duration_cast<std::chrono::seconds>(std::filesystem::last_write_time(file).time_since_epoch()).count();
+}
+
 
 std::string ResourceCompiler::Outfile (const std::string& infile) const
 {
-   boost::filesystem::path rc(infile);
+   std::filesystem::path rc(infile);
    rc.replace_extension(".res");
-   boost::filesystem::path out(outdir);
+   std::filesystem::path out(outdir);
    auto outfile = out / rc.filename();
    return outfile.string();
 }
@@ -39,10 +43,10 @@ std::string ResourceCompiler::Outfile (const std::string& infile) const
 bool ResourceCompiler::NeedsRebuild (const std::string& infile, const std::string& outfile) const
 {
    if (!dependencyCheck) return true;
-   if (!boost::filesystem::exists(outfile)) return true;
+   if (!std::filesystem::exists(outfile)) return true;
 
    CppDepends dep(infile);
-   return boost::filesystem::last_write_time(outfile) < dep.MaxTime(); 
+   return LastWriteTime(outfile) < dep.MaxTime(); 
 }
 
 void ResourceCompiler::Compile () const
@@ -50,7 +54,7 @@ void ResourceCompiler::Compile () const
    if (files.empty()) return;
    if (outdir.empty()) throw std::runtime_error("Mising 'Outdir'");
 
-   if (!boost::filesystem::exists(outdir)) boost::filesystem::create_directories(outdir);
+   if (!std::filesystem::exists(outdir)) std::filesystem::create_directories(outdir);
 
    size_t count = 0;
 
@@ -58,7 +62,7 @@ void ResourceCompiler::Compile () const
       std::string outfile = Outfile(file);
       if (NeedsRebuild(file, outfile)) {
          if (++count) std::cout << "\nCompiling Resources (" << ToolChain::ToolChain() << " " << ToolChain::Platform() << ")" << std::endl;
-         if (boost::filesystem::exists(outfile)) boost::filesystem::remove(outfile);
+         if (std::filesystem::exists(outfile)) std::filesystem::remove(outfile);
          std::string command = "RC -nologo " + Inc(includes) + " -fo\"" + outfile + "\" " + file;
 
          std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;

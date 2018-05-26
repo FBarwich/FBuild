@@ -22,19 +22,20 @@
 
 
 static boost::mutex lastWriteTimeMutex;
-static std::unordered_map<std::string, std::time_t> lastWriteTimeCache;
+static std::unordered_map<std::string, uint64_t> lastWriteTimeCache;
 static std::string precompiledHeader;
 
-std::time_t LastWriteTime (const std::string& file)
+uint64_t LastWriteTime (const std::string& file)
 {
    boost::lock_guard<boost::mutex> lock(lastWriteTimeMutex);
 
    auto it = lastWriteTimeCache.find(file);
    if (it != lastWriteTimeCache.end()) return it->second;
 
-   std::time_t ts = 0;
+   uint64_t ts = 0;
    try {
-      ts = boost::filesystem::last_write_time(file);
+      const std::filesystem::file_time_type timestamp = std::filesystem::last_write_time(file);
+      ts = std::chrono::duration_cast<std::chrono::seconds>(timestamp.time_since_epoch()).count();
    }
    catch (...) { }
    
@@ -50,9 +51,9 @@ std::time_t LastWriteTime (const std::string& file)
 
 static const std::string includeString = "include";
 
-static std::vector<boost::filesystem::path>& IncludePaths ()
+static std::vector<std::filesystem::path>& IncludePaths ()
 {
-   static std::vector<boost::filesystem::path> includes;
+   static std::vector<std::filesystem::path> includes;
    return includes;
 }
 
@@ -60,24 +61,24 @@ static std::vector<boost::filesystem::path>& IncludePaths ()
 
 
 
-CppDepends::CppDepends (const boost::filesystem::path& file, bool ignoreCache)
+CppDepends::CppDepends (const std::filesystem::path& file, bool ignoreCache)
 {
    maxTime = 0;
 
-   boost::filesystem::path f = boost::filesystem::canonical(file);
+   std::filesystem::path f = std::filesystem::canonical(file);
    f.make_preferred();
 
    if (!ignoreCache && CheckCache(f)) return;
 
    dependencies.clear();
 
-   if (precompiledHeader.size()) DoFile(boost::filesystem::canonical(precompiledHeader));
+   if (precompiledHeader.size()) DoFile(std::filesystem::canonical(precompiledHeader));
    DoFile(f);
 
    WriteCache(f);
 }
 
-void CppDepends::DoFile (boost::filesystem::path file)
+void CppDepends::DoFile (std::filesystem::path file)
 {
    file.make_preferred();
 
@@ -94,35 +95,35 @@ void CppDepends::DoFile (boost::filesystem::path file)
    });
 }
 
-void CppDepends::IncludeQuoted (const boost::filesystem::path& path, const boost::filesystem::path& file)
+void CppDepends::IncludeQuoted (const std::filesystem::path& path, const std::filesystem::path& file)
 {
-   boost::filesystem::path include = path / file;
+   std::filesystem::path include = path / file;
 
-   if (boost::filesystem::exists(include) && boost::filesystem::is_regular_file(include)) DoFile(include);
+   if (std::filesystem::exists(include) && std::filesystem::is_regular_file(include)) DoFile(include);
    else IncludeAnglebracketed(path, file);
 }
 
-void CppDepends::IncludeAnglebracketed (const boost::filesystem::path& path, const boost::filesystem::path& file)
+void CppDepends::IncludeAnglebracketed (const std::filesystem::path& path, const std::filesystem::path& file)
 {
    const auto& includes = IncludePaths();
    for (size_t i = 0; i < includes.size(); ++i) {
-      boost::filesystem::path include = includes[i] / file;
-      if (boost::filesystem::exists(include) && boost::filesystem::is_regular_file(include)) {
+      std::filesystem::path include = includes[i] / file;
+      if (std::filesystem::exists(include) && std::filesystem::is_regular_file(include)) {
          DoFile(include);
          return;
       }
    }
 
-   boost::filesystem::path include = path / file;
+   std::filesystem::path include = path / file;
 
-   if (boost::filesystem::exists(include) && boost::filesystem::is_regular_file(include)) DoFile(include);
+   if (std::filesystem::exists(include) && std::filesystem::is_regular_file(include)) DoFile(include);
 }
 
 
 static boost::mutex includesMutex;
 static std::unordered_map<std::string, std::vector<std::pair<char, std::string>>> includesCache;
 
-std::vector<std::pair<char, std::string>> CppDepends::Includes (const boost::filesystem::path& file)
+std::vector<std::pair<char, std::string>> CppDepends::Includes (const std::filesystem::path& file)
 {
    {
       boost::lock_guard<boost::mutex> lock(includesMutex);
@@ -132,7 +133,7 @@ std::vector<std::pair<char, std::string>> CppDepends::Includes (const boost::fil
 
    std::vector<std::pair<char, std::string>> includes;
 
-   size_t size = static_cast<size_t>(boost::filesystem::file_size(file));
+   size_t size = static_cast<size_t>(std::filesystem::file_size(file));
 
    boost::interprocess::file_mapping mapping(file.string().c_str(), boost::interprocess::read_only);
    boost::interprocess::mapped_region region(mapping, boost::interprocess::read_only, 0, size);
@@ -169,22 +170,22 @@ std::vector<std::pair<char, std::string>> CppDepends::Includes (const boost::fil
    return std::move(includes);
 }
 
-bool CppDepends::CheckCache (const boost::filesystem::path& file)
+bool CppDepends::CheckCache (const std::filesystem::path& file)
 {
-   std::ifstream stream(file.string() + ":CppDepends_Cache4", std::ofstream::in | std::ofstream::ate | std::ofstream::binary);
+   std::ifstream stream(file.string() + ":CppDepends_Cache5", std::ofstream::in | std::ofstream::ate | std::ofstream::binary);
    if (!stream.good()) return false;
    if (stream.tellg() < sizeof(size_t)) return false;
    stream.seekg(0);
 
    std::string tmp;
-   std::time_t ts;
+   uint64_t ts;
 
    stream > tmp;
    if (tmp != file.string()) return false;
 
-   size_t count = 0;
+   uint32_t count = 0;
    stream > count;
-   for (size_t i = 0; i < count; ++i) {
+   for (uint32_t i = 0; i < count; ++i) {
       stream > tmp > ts;
       if (LastWriteTime(tmp) != ts) return false;
       dependencies.insert(tmp);
@@ -194,16 +195,16 @@ bool CppDepends::CheckCache (const boost::filesystem::path& file)
    return true;
 }
 
-void CppDepends::WriteCache (const boost::filesystem::path& file)
+void CppDepends::WriteCache (const std::filesystem::path& file)
 {
    std::string writeMe;
 
    {
       std::stringstream ss;
       ss < file.string();
-      ss < dependencies.size();
+      ss < static_cast<uint32_t>(dependencies.size());
       for (auto&& dep : dependencies) {
-         std::time_t ts = LastWriteTime(dep);
+         uint64_t ts = LastWriteTime(dep);
          ss < dep < ts;
          if (ts > maxTime) maxTime = ts;
       }
@@ -211,10 +212,10 @@ void CppDepends::WriteCache (const boost::filesystem::path& file)
       writeMe = ss.str();
    }
 
-   std::time_t ts = boost::filesystem::last_write_time(file);
+   const auto ts = std::filesystem::last_write_time(file);
 
    {
-      std::ofstream stream(file.string() + ":CppDepends_Cache4", std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
+      std::ofstream stream(file.string() + ":CppDepends_Cache5", std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
       if (!stream.good()) {
          std::cerr << "Error on writing cache for " << file << std::endl;
          return;
@@ -223,7 +224,7 @@ void CppDepends::WriteCache (const boost::filesystem::path& file)
       stream.write(writeMe.c_str(), writeMe.size());
    }
 
-   boost::filesystem::last_write_time(file, ts);
+   std::filesystem::last_write_time(file, ts);
 }
 
 
@@ -233,13 +234,13 @@ void CppDepends::ClearIncludePath ()
    IncludePaths().clear();
 }
 
-void CppDepends::AddIncludePath (const boost::filesystem::path& path)
+void CppDepends::AddIncludePath (const std::filesystem::path& path)
 {
-   auto p = boost::filesystem::canonical(path);
+   auto p = std::filesystem::canonical(path);
    p.make_preferred();
 
-   if (!boost::filesystem::exists(p)) std::cout << "Include-Path " << p << " does not exist. Ignored.";
-   else if (!boost::filesystem::is_directory(p)) std::cout << "Include-Path " << p << "is invalid. It's not a directory. Ignored";
+   if (!std::filesystem::exists(p)) std::cout << "Include-Path " << p << " does not exist. Ignored.";
+   else if (!std::filesystem::is_directory(p)) std::cout << "Include-Path " << p << "is invalid. It's not a directory. Ignored";
    else IncludePaths().push_back(p);
 }
 
@@ -247,20 +248,3 @@ void CppDepends::PrecompiledHeader (const std::string& prec)
 {
    precompiledHeader = prec;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

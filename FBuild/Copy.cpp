@@ -15,27 +15,27 @@
 #include "JavaScript.h"
 
 
-static std::vector<boost::filesystem::path> CollectSourceFiles (const std::string& p)
+static std::vector<std::filesystem::path> CollectSourceFiles (const std::string& p)
 {
-   std::vector<boost::filesystem::path> result;
+   std::vector<std::filesystem::path> result;
 
-   if (boost::filesystem::exists(p)) {
-      if (boost::filesystem::is_regular_file(p)) result.push_back(p);
+   if (std::filesystem::exists(p)) {
+      if (std::filesystem::is_regular_file(p)) result.push_back(p);
       else {
-         std::for_each(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), [&] (const boost::filesystem::directory_entry& entry) {
-            if (boost::filesystem::is_regular_file(entry.path())) {
+         std::for_each(std::filesystem::directory_iterator(p), std::filesystem::directory_iterator(), [&] (const std::filesystem::directory_entry& entry) {
+            if (std::filesystem::is_regular_file(entry.path())) {
                result.push_back(entry.path());
             }
          });
       }
    }
    else {
-      boost::filesystem::path path(p);
+      std::filesystem::path path(p);
       std::string pattern = path.filename().string();
       path.remove_filename();
 
-      std::for_each(boost::filesystem::directory_iterator(path), boost::filesystem::directory_iterator(), [&] (const boost::filesystem::directory_entry& entry) {
-         if (boost::filesystem::is_regular_file(entry.path())) {
+      std::for_each(std::filesystem::directory_iterator(path), std::filesystem::directory_iterator(), [&] (const std::filesystem::directory_entry& entry) {
+         if (std::filesystem::is_regular_file(entry.path())) {
             if (PathMatchSpec(entry.path().filename().string().c_str(), pattern.c_str())) {
                result.push_back(entry.path());
             }
@@ -46,14 +46,14 @@ static std::vector<boost::filesystem::path> CollectSourceFiles (const std::strin
    return result;
 }
 
-void Copy::DoFile (boost::filesystem::path sourceFile, boost::filesystem::path destFile)
+void Copy::DoFile (std::filesystem::path sourceFile, std::filesystem::path destFile)
 {
    sourceFile.make_preferred();
    destFile.make_preferred();
 
-   if (boost::filesystem::exists(destFile) && !ignoreTimestamp) {
-      std::time_t sourceTime = boost::filesystem::last_write_time(sourceFile);
-      std::time_t destTime = boost::filesystem::last_write_time(destFile);
+   if (std::filesystem::exists(destFile) && !ignoreTimestamp) {
+      const auto sourceTime = std::filesystem::last_write_time(sourceFile);
+      const auto destTime = std::filesystem::last_write_time(destFile);
 
       if (destTime >= sourceTime) return;
    }
@@ -66,8 +66,8 @@ void Copy::DoFile (boost::filesystem::path sourceFile, boost::filesystem::path d
       out << in.rdbuf();
    }
 
-   std::time_t sourceTime = boost::filesystem::last_write_time(sourceFile);
-   boost::filesystem::last_write_time(destFile, sourceTime);
+   const auto sourceTime = std::filesystem::last_write_time(sourceFile);
+   std::filesystem::last_write_time(destFile, sourceTime);
 
    ++copied;
 
@@ -78,27 +78,27 @@ int Copy::Go ()
 {
    CheckParams();
 
-   boost::filesystem::create_directories(dest);
+   std::filesystem::create_directories(dest);
 
    auto sourceFiles = CollectSourceFiles(source);
 
-   boost::filesystem::path destPath(dest);
+   std::filesystem::path destPath(dest);
 
-   std::for_each(sourceFiles.begin(), sourceFiles.end(), [&] (const boost::filesystem::path& file) {
+   std::for_each(sourceFiles.begin(), sourceFiles.end(), [&] (const std::filesystem::path& file) {
       this->DoFile(file, destPath / file.filename());
    });
 
    return copied;
 }
 
-static bool NeedsCopy (boost::filesystem::path source, boost::filesystem::path dest)
+static bool NeedsCopy (std::filesystem::path source, std::filesystem::path dest)
 {
    source.make_preferred();
    dest.make_preferred();
 
-   if (boost::filesystem::exists(dest)) {
-      std::time_t sourceTime = boost::filesystem::last_write_time(source);
-      std::time_t destTime = boost::filesystem::last_write_time(dest);
+   if (std::filesystem::exists(dest)) {
+      const auto sourceTime = std::filesystem::last_write_time(source);
+      const auto destTime = std::filesystem::last_write_time(dest);
 
       if (destTime >= sourceTime) return false;
    }
@@ -113,10 +113,10 @@ bool Copy::NeedsCopy () const
    if (ignoreTimestamp) return true;
 
    auto sourceFiles = CollectSourceFiles(source);
-   boost::filesystem::path destPath(dest);
+   std::filesystem::path destPath(dest);
 
    for (size_t i = 0; i < sourceFiles.size(); ++i) {
-      const boost::filesystem::path& file = sourceFiles[i];
+      const std::filesystem::path& file = sourceFiles[i];
       if (::NeedsCopy(file, destPath / file.filename())) return true;
    }
 

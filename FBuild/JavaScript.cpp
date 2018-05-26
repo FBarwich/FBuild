@@ -25,8 +25,6 @@
 
 #include <Shlwapi.h>
 
-#include <filesystem>
-
 
 JavaScript::JavaScript (const std::vector<std::string>& args)
 {
@@ -149,11 +147,11 @@ void JavaScript::ExecuteString (const std::string& code, const std::string& name
 }
 
 
-void JavaScript::ExecuteFile (const boost::filesystem::path& script)
+void JavaScript::ExecuteFile (const std::filesystem::path& script)
 {
-   if (!boost::filesystem::exists(script)) throw std::runtime_error("File " + script.string() + " does not exist");
+   if (!std::filesystem::exists(script)) throw std::runtime_error("File " + script.string() + " does not exist");
 
-   boost::filesystem::path file = boost::filesystem::canonical(script);
+   std::filesystem::path file = std::filesystem::canonical(script);
    file.make_preferred();
 
    std::stringstream contents;
@@ -217,9 +215,9 @@ duk_ret_t JavaScript::JsExecuteFile(duk_context* duktapeContext)
 
    std::string script = duk_require_string(duktapeContext, 0);
 
-   if (!boost::filesystem::exists(script)) JavaScriptHelper::Throw(duktapeContext, "File " + script + " does not exist");
+   if (!std::filesystem::exists(script)) JavaScriptHelper::Throw(duktapeContext, "File " + script + " does not exist");
 
-   boost::filesystem::path file = boost::filesystem::canonical(script);
+   std::filesystem::path file = std::filesystem::canonical(script);
    file.make_preferred();
 
    std::stringstream contents;
@@ -251,7 +249,7 @@ duk_ret_t JavaScript::JsFullPath(duk_context* duktapeContext)
 
    std::string path = duk_require_string(duktapeContext, 0);
 
-   auto full = boost::filesystem::canonical(path);
+   auto full = std::filesystem::canonical(path);
    full.make_preferred();
 
    std::string str = full.string();
@@ -268,8 +266,8 @@ duk_ret_t JavaScript::JsDelete(duk_context* duktapeContext)
 
    try {
       for (const auto& file : files) {
-         boost::system::error_code rc;
-         boost::filesystem::remove_all(file, rc);
+         std::error_code rc;
+         std::filesystem::remove_all(file, rc);
       }
    }
    catch (std::exception& e) {
@@ -286,7 +284,7 @@ duk_ret_t JavaScript::JsRun(duk_context* duktapeContext)
    std::string command = duk_require_string(duktapeContext, 0);
    bool catchOutput = duk_to_boolean(duktapeContext, 1) != false;
 
-   auto tmpfile = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
+   auto tmpfile = std::filesystem::temp_directory_path() / std::filesystem::path{std::tmpnam(nullptr)};
 
    if (catchOutput) command += " 1>" + tmpfile.string() + " 2>&1";
 
@@ -306,7 +304,7 @@ duk_ret_t JavaScript::JsRun(duk_context* duktapeContext)
          duk_push_string(duktapeContext, r.c_str());
       }
 
-      boost::filesystem::remove(tmpfile);
+      std::filesystem::remove(tmpfile);
       return 1;
    }
    else {
@@ -323,9 +321,10 @@ duk_ret_t JavaScript::JsTouch(duk_context* duktapeContext)
 
    try {
       for (const auto& filename : files) {
-         if (!boost::filesystem::exists(filename)) throw std::exception(std::string("File " + filename + " does not exist").c_str());
-         if (!boost::filesystem::is_regular_file(filename)) throw std::exception(std::string(filename + " is not a file").c_str());
-         boost::filesystem::last_write_time(filename, std::time(nullptr));
+         if (!std::filesystem::exists(filename)) throw std::exception(std::string("File " + filename + " does not exist").c_str());
+         if (!std::filesystem::is_regular_file(filename)) throw std::exception(std::string(filename + " is not a file").c_str());
+
+         std::filesystem::last_write_time(filename, std::filesystem::file_time_type::clock::now());
       }
    }
    catch (std::exception& e) {
@@ -359,9 +358,9 @@ duk_ret_t JavaScript::JsGlob(duk_context* duktapeContext)
 
    char buffer[8192];
 
-   if (boost::filesystem::exists(path)) {
-      std::for_each(std::experimental::filesystem::directory_iterator(path), std::experimental::filesystem::directory_iterator(), [&] (const std::experimental::filesystem::directory_entry& entry) {
-         if (std::experimental::filesystem::is_regular_file(entry.path())) {
+   if (std::filesystem::exists(path)) {
+      std::for_each(std::filesystem::directory_iterator(path), std::filesystem::directory_iterator(), [&] (const std::filesystem::directory_entry& entry) {
+         if (std::filesystem::is_regular_file(entry.path())) {
             if (PathMatchSpec(entry.path().filename().string().c_str(), pattern.c_str())) {
                char* fullpath = _fullpath(buffer, entry.path().string().c_str(), sizeof(buffer));
                if (!fullpath) JavaScriptHelper::Throw(duktapeContext, "Error getting full path for " + entry.path().string());
@@ -383,11 +382,11 @@ duk_ret_t JavaScript::JsBuild(duk_context* duktapeContext)
 
    if (duk_get_top(duktapeContext) != 1) JavaScriptHelper::Throw(duktapeContext, "One argument for Build() expected");
 
-   const auto current = boost::filesystem::current_path();
-   boost::filesystem::current_path(duk_require_string(duktapeContext, 0));
+   const auto current = std::filesystem::current_path();
+   std::filesystem::current_path(duk_require_string(duktapeContext, 0));
 
    try {
-      boost::filesystem::path file = boost::filesystem::canonical("FBuild.js");
+      std::filesystem::path file = std::filesystem::canonical("FBuild.js");
       file.make_preferred();
 
       std::stringstream contents;
@@ -398,11 +397,11 @@ duk_ret_t JavaScript::JsBuild(duk_context* duktapeContext)
       duk_eval_string_noresult(duktapeContext, contents.str().c_str());
    }
    catch (std::exception& e) {
-      boost::filesystem::current_path(current);
+      std::filesystem::current_path(current);
       JavaScriptHelper::Throw(duktapeContext, e.what());
    }
 
-   boost::filesystem::current_path(current);
+   std::filesystem::current_path(current);
 
    return 0;
 }
@@ -431,7 +430,7 @@ duk_ret_t JavaScript::JsChangeDirectory(duk_context* duktapeContext)
 
    if (duk_get_top(duktapeContext) != 1) JavaScriptHelper::Throw(duktapeContext, "One arguments for ChangeDirectory() expected");
 
-   boost::filesystem::current_path(duk_require_string(duktapeContext, 0));
+   std::filesystem::current_path(duk_require_string(duktapeContext, 0));
    return 0;
 }
 

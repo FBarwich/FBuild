@@ -9,8 +9,7 @@
 
 #include <string>
 #include <vector>
-
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include "../Duktape/duktape.h"
 
@@ -43,5 +42,5 @@ public:
    ~JavaScript ();
 
    void ExecuteString (const std::string& script, const std::string& = "string");
-   void ExecuteFile (const boost::filesystem::path& script);
+   void ExecuteFile (const std::filesystem::path& script);
 };

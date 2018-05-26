@@ -11,20 +11,19 @@
 #include <cstdlib>
 #include <algorithm>
 #include <iostream>
-
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 
 
 bool ActualLibrarian::NeedsRebuild () const
 {
    if (!librarian.DependencyCheck()) return true;
-   if (!boost::filesystem::exists(librarian.Output())) return true;
+   if (!std::filesystem::exists(librarian.Output())) return true;
 
-   std::time_t parentTime = boost::filesystem::last_write_time(librarian.Output());
+   const auto parentTime = std::filesystem::last_write_time(librarian.Output());
 
    for (auto&& f : librarian.Files()) {
-      if (boost::filesystem::last_write_time(f) > parentTime) return true;
+      if (std::filesystem::last_write_time(f) > parentTime) return true;
    }
 
    return false;
@@ -44,9 +43,9 @@ void ActualLibrarianVisualStudio::Create ()
 
    librarian.DoBeforeLink();
 
-   if (boost::filesystem::exists(librarian.Output())) boost::filesystem::remove(librarian.Output());
+   if (std::filesystem::exists(librarian.Output())) std::filesystem::remove(librarian.Output());
 
-   boost::filesystem::create_directories(boost::filesystem::path(librarian.Output()).remove_filename());
+   std::filesystem::create_directories(std::filesystem::path(librarian.Output()).remove_filename());
 
    std::string command = "Lib -NOLOGO ";
    command += "-OUT:\"" + librarian.Output() + "\" ";
@@ -73,9 +72,9 @@ void ActualLibrarianEmscripten::Create ()
 
    librarian.DoBeforeLink();
 
-   if (boost::filesystem::exists(librarian.Output())) boost::filesystem::remove(librarian.Output());
+   if (std::filesystem::exists(librarian.Output())) std::filesystem::remove(librarian.Output());
 
-   boost::filesystem::create_directories(boost::filesystem::path(librarian.Output()).remove_filename());
+   std::filesystem::create_directories(std::filesystem::path(librarian.Output()).remove_filename());
 
    std::string command = "emcc -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 --memory-init-file 0 ";
 

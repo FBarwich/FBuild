@@ -9,8 +9,7 @@
 
 #include <string>
 #include <vector>
-
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 class Copy {
    std::string source;
@@ -19,13 +18,13 @@ class Copy {
    int         copied;
 
    struct CopyMe {
-      boost::filesystem::path source;
-      boost::filesystem::path dest;
+      std::filesystem::path source;
+      std::filesystem::path dest;
    };
 
    std::vector<CopyMe> copyMe;
 
-   void DoFile (boost::filesystem::path sourceFile, boost::filesystem::path destFile);
+   void DoFile (std::filesystem::path sourceFile, std::filesystem::path destFile);
 
    void CheckParams () const;
 

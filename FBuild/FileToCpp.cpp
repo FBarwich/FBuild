@@ -9,8 +9,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 
-#include <boost/filesystem.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
@@ -24,14 +24,14 @@ void FileToCpp::CheckParams ()
    if (nameForArray.empty()) nameForArray = nameForPtr + "Array";
    if (nameForPtr.empty()) nameForPtr = nameForArray + "Ptr";
 
-   if (!boost::filesystem::exists(infile)) throw std::runtime_error("Missing Infile '" + infile + "' for FileToCpp(). File does not exist.");
+   if (!std::filesystem::exists(infile)) throw std::runtime_error("Missing Infile '" + infile + "' for FileToCpp(). File does not exist.");
 }
 
 bool FileToCpp::NeedsRebuild ()
 {
    if (!dependencyCheck) return true;
-   if (!boost::filesystem::exists(outfile)) return true;
-   return boost::filesystem::last_write_time(infile) > boost::filesystem::last_write_time(outfile);
+   if (!std::filesystem::exists(outfile)) return true;
+   return std::filesystem::last_write_time(infile) > std::filesystem::last_write_time(outfile);
 }
 
 void FileToCpp::Create ()
@@ -51,7 +51,7 @@ void FileToCpp::Create ()
    out << "char " << nameForArray << "[] = {\n";
 
    {
-      size_t size = static_cast<size_t>(boost::filesystem::file_size(infile));
+      size_t size = static_cast<size_t>(std::filesystem::file_size(infile));
 
       boost::interprocess::file_mapping mapping(infile.c_str(), boost::interprocess::read_only);
       boost::interprocess::mapped_region region(mapping, boost::interprocess::read_only, 0, size);

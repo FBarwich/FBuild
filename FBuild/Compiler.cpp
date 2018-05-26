@@ -15,8 +15,8 @@
 #include <fstream>
 #include <thread>
 #include <mutex>
+#include <filesystem>
 
-#include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 
 
@@ -26,12 +26,12 @@
 
 std::vector<std::string> ActualCompiler::ObjFiles (const std::string& extension)
 {
-   boost::filesystem::path outpath{compiler.ObjDir()};
+   std::filesystem::path outpath{compiler.ObjDir()};
 
    std::vector<std::string> result{};
 
    for (auto&& file : compiler.Files()) {
-      boost::filesystem::path f{file};
+      std::filesystem::path f{file};
       auto outfile = outpath / f.filename();
       outfile.replace_extension(extension);
       result.push_back(outfile.string());
@@ -42,12 +42,12 @@ std::vector<std::string> ActualCompiler::ObjFiles (const std::string& extension)
 
 std::vector<std::string> ActualCompiler::CompiledObjFiles (const std::string& extension)
 {
-   boost::filesystem::path outpath{compiler.ObjDir()};
+   std::filesystem::path outpath{compiler.ObjDir()};
 
    std::vector<std::string> result{};
 
    for (auto&& file : outOfDate) {
-      boost::filesystem::path f {file};
+      std::filesystem::path f{file};
       auto outfile = outpath / f.filename();
       outfile.replace_extension(extension);
       result.push_back(outfile.string());
@@ -94,7 +94,7 @@ void ActualCompilerVisualStudio::DeleteOutOfDateObjectFiles ()
 {
    const auto files = CompiledObjFiles();
 
-   for (auto&& file : files) boost::filesystem::remove(file);
+   for (auto&& file : files) std::filesystem::remove(file);
 }
 
 std::string ActualCompilerVisualStudio::CommandLine ()
@@ -147,8 +147,8 @@ std::string ActualCompilerVisualStudio::CommandLine ()
    command += compiler.Args() + " ";
 
 
-   boost::filesystem::path out(compiler.ObjDir());
-   if (!boost::filesystem::exists(out)) boost::filesystem::create_directories(out);
+   std::filesystem::path out(compiler.ObjDir());
+   if (!std::filesystem::exists(out)) std::filesystem::create_directories(out);
 
    command += "-Fo\"" + out.string() + "/\" ";
 
@@ -176,22 +176,22 @@ void ActualCompilerVisualStudio::CompilePrecompiledHeaders ()
    if (outOfDate.empty()) return;
    if (compiler.PrecompiledCPP().empty()) return;
 
-   boost::filesystem::path cpp = boost::filesystem::canonical(compiler.PrecompiledCPP());
+   std::filesystem::path cpp = std::filesystem::canonical(compiler.PrecompiledCPP());
    cpp.make_preferred();
 
    auto it = std::find_if(outOfDate.cbegin(), outOfDate.cend(), [&cpp] (const std::string& f) -> bool {
-      return boost::filesystem::equivalent(cpp, f);
+      return std::filesystem::equivalent(cpp, f);
    });
 
    if (it == outOfDate.cend()) return;
 
    outOfDate.erase(it);
 
-   boost::filesystem::path pch = boost::filesystem::path(compiler.ObjDir()) / "PrecompiledHeader.pch";
-   if (boost::filesystem::exists(pch)) boost::filesystem::remove(pch);
+   std::filesystem::path pch = std::filesystem::path(compiler.ObjDir()) / "PrecompiledHeader.pch";
+   if (std::filesystem::exists(pch)) std::filesystem::remove(pch);
 
    std::string command =  "CL " + CommandLine();
-   command += "-Yc\"" + boost::filesystem::path{compiler.PrecompiledH()}.filename().string() + "\" ";
+   command += "-Yc\"" + std::filesystem::path{compiler.PrecompiledH()}.filename().string() + "\" ";
    command += cpp.string();
 
    std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
@@ -287,7 +287,7 @@ void ActualCompilerVisualStudio::Compile ()
 void ActualCompilerEmscripten::CheckParams ()
 {
    if (compiler.ObjDir().empty()) compiler.ObjDir(compiler.Build());
-   if (!boost::filesystem::exists(compiler.ObjDir())) boost::filesystem::create_directories(compiler.ObjDir());
+   if (!std::filesystem::exists(compiler.ObjDir())) std::filesystem::create_directories(compiler.ObjDir());
 }
 
 bool ActualCompilerEmscripten::NeedsRebuild ()
@@ -317,7 +317,7 @@ void ActualCompilerEmscripten::DeleteOutOfDateObjectFiles ()
 {
    const auto files = CompiledObjFiles();
 
-   for (auto&& file : files) boost::filesystem::remove(file);
+   for (auto&& file : files) std::filesystem::remove(file);
 }
 
 void ActualCompilerEmscripten::CompilePrecompiledHeaders ()
@@ -325,18 +325,18 @@ void ActualCompilerEmscripten::CompilePrecompiledHeaders ()
    if (outOfDate.empty()) return;
    if (compiler.PrecompiledCPP().empty()) return;
 
-   boost::filesystem::path cpp = boost::filesystem::canonical(compiler.PrecompiledCPP());
+   std::filesystem::path cpp = std::filesystem::canonical(compiler.PrecompiledCPP());
    cpp.make_preferred();
 
    auto it = std::find_if(outOfDate.cbegin(), outOfDate.cend(), [&cpp] (const std::string& f) -> bool {
-      return boost::filesystem::equivalent(cpp, f);
+      return std::filesystem::equivalent(cpp, f);
    });
 
    if (it == outOfDate.cend()) return;
 
    outOfDate.erase(it);
 
-   boost::filesystem::path hpp = boost::filesystem::canonical(compiler.PrecompiledH());
+   std::filesystem::path hpp = std::filesystem::canonical(compiler.PrecompiledH());
    hpp.make_preferred();
 
    std::cout << hpp.string() << std::endl;
@@ -355,7 +355,7 @@ void ActualCompilerEmscripten::CompileFiles ()
 
    std::string commandLine = CommandLine(false);
    if (compiler.PrecompiledH().size()) {
-      boost::filesystem::path hpp = boost::filesystem::canonical(compiler.PrecompiledH());
+      std::filesystem::path hpp = std::filesystem::canonical(compiler.PrecompiledH());
       hpp.make_preferred();
 
       commandLine += " -include \"" + hpp.string() + "\" ";

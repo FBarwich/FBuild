@@ -13,6 +13,7 @@
 #include <ctime>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #include <boost/thread.hpp>
 
@@ -23,7 +24,7 @@ class CppOutOfDate {
    boost::mutex        filesMutex;
    boost::mutex        outOfDateMutex;
    size_t              current;
-   time_t              scriptTime;
+   uint64_t            scriptTime;
    std::string         objectFileExtension;
 
    std::string              outdir;
@@ -32,7 +33,12 @@ class CppOutOfDate {
    std::vector<std::string> files;
    std::vector<std::string> outOfDate;
 
-   bool GetFile (boost::filesystem::path& result)
+   inline uint64_t LastWriteTime (const std::filesystem::path& file)
+   {
+      return std::chrono::duration_cast<std::chrono::seconds>(std::filesystem::last_write_time(file).time_since_epoch()).count();
+   }
+
+   bool GetFile (std::filesystem::path& result)
    {
       boost::lock_guard<boost::mutex> lock(filesMutex);
       if (current == files.size()) return false;
@@ -56,8 +62,8 @@ class CppOutOfDate {
 
    void Thread ()
    {
-      boost::filesystem::path objdir(outdir);
-      boost::filesystem::path file;
+      std::filesystem::path objdir(outdir);
+      std::filesystem::path file;
 
       for (;;) {
          if (!GetFile(file)) break;
@@ -66,9 +72,9 @@ class CppOutOfDate {
          auto obj = objdir / file.filename();
          obj.replace_extension(objectFileExtension);
 
-         if (!boost::filesystem::exists(obj)) AddOutOfDate(file.string());
-         else if (boost::filesystem::last_write_time(obj) < dep.MaxTime()) AddOutOfDate(file.string());
-         else if (boost::filesystem::last_write_time(obj) < scriptTime) AddOutOfDate(file.string());
+         if (!std::filesystem::exists(obj)) AddOutOfDate(file.string());
+         else if (LastWriteTime(obj) < dep.MaxTime()) AddOutOfDate(file.string());
+         else if (LastWriteTime(obj) < scriptTime) AddOutOfDate(file.string());
       }
    }
 
@@ -79,7 +85,7 @@ public:
       current = 0;
       ignoreCache = false;
       threads = 0;
-      scriptTime = boost::filesystem::last_write_time("FBuild.js");
+      scriptTime = LastWriteTime("FBuild.js");
       files.reserve(1000);
 
       CppDepends::ClearIncludePath();

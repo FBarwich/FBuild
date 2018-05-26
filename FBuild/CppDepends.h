@@ -11,14 +11,13 @@
 #include <unordered_set>
 #include <ctime>
 #include <iostream>
-
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 
 
 class CppDepends {
 public:
-   CppDepends (const boost::filesystem::path& file, bool ignoreCache = false);
+   CppDepends (const std::filesystem::path& file, bool ignoreCache = false);
 
    typedef std::unordered_set<std::string>::const_iterator Iterator;
 
@@ -27,25 +26,25 @@ public:
 
    size_t Size () const { return dependencies.size(); }
 
-   std::time_t MaxTime () const { return maxTime; }
+   uint64_t MaxTime () const { return maxTime; }
 
    // Beware. These functions are NOT threadsafe
    static void ClearIncludePath ();
-   static void AddIncludePath (const boost::filesystem::path& path);
+   static void AddIncludePath (const std::filesystem::path& path);
    static void PrecompiledHeader (const std::string& prec);
 
 private:
-   std::unordered_set<std::string> dependencies;
-   std::time_t maxTime;
+   std::unordered_set<std::string> dependencies{};
+   uint64_t maxTime{0};
 
-   void DoFile (boost::filesystem::path file);
-   std::vector<std::pair<char, std::string>> Includes (const boost::filesystem::path& file);
+   void DoFile (std::filesystem::path file);
+   std::vector<std::pair<char, std::string>> Includes (const std::filesystem::path& file);
 
-   void IncludeQuoted (const boost::filesystem::path& path, const boost::filesystem::path& file);
-   void IncludeAnglebracketed (const boost::filesystem::path& path, const boost::filesystem::path& file);
+   void IncludeQuoted (const std::filesystem::path& path, const std::filesystem::path& file);
+   void IncludeAnglebracketed (const std::filesystem::path& path, const std::filesystem::path& file);
 
-   bool CheckCache (const boost::filesystem::path& file);
-   void WriteCache (const boost::filesystem::path& file);
+   bool CheckCache (const std::filesystem::path& file);
+   void WriteCache (const std::filesystem::path& file);
 };
 
 

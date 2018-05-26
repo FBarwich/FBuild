@@ -1,19 +1,19 @@
 #pragma once
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 class DirectorySync {
-   boost::filesystem::path source;
-   boost::filesystem::path dest;
+   std::filesystem::path source;
+   std::filesystem::path dest;
 
    void CheckSourceAndDest();
    void Copy();
-   void Copy(const boost::filesystem::path& sourceFile, const boost::filesystem::path& destFile);
-   bool NeedsCopy(const boost::filesystem::path& sourceFile, const boost::filesystem::path& destFile);
+   void Copy(const std::filesystem::path& sourceFile, const std::filesystem::path& destFile);
+   bool NeedsCopy(const std::filesystem::path& sourceFile, const std::filesystem::path& destFile);
    void Delete();
 
 public:
-   DirectorySync(const boost::filesystem::path& source, const boost::filesystem::path& dest) : source(source), dest(dest) { }
+   DirectorySync(const std::filesystem::path& source, const std::filesystem::path& dest) : source(source), dest(dest) { }
 
    void Go();
 };

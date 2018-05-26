@@ -8,9 +8,9 @@
 #include "JsLib.h"
 
 #include <iostream>
+#include <filesystem>
 
 #include <boost/lexical_cast.hpp>
-#include <boost/filesystem.hpp>
 
 
 duk_ret_t JsLib::Constructor(duk_context* duktapeContext)
@@ -423,7 +423,7 @@ duk_ret_t JsLib::Create(duk_context* duktapeContext)
 
       std::vector<std::string> objFiles;
       for (auto&& f : obj->compiler.ObjFiles()) {
-         if (boost::filesystem::file_size(f) != 0) objFiles.push_back(f);
+         if (std::filesystem::file_size(f) != 0) objFiles.push_back(f);
       }
       obj->librarian.Files(objFiles);
 

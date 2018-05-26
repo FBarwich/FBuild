@@ -7,8 +7,7 @@
 
 #include "ToolChain.h"
 
-#include <boost/filesystem.hpp>
-
+#include <filesystem>
 #include <iostream>
 
 
@@ -92,10 +91,10 @@ namespace ToolChain {
          auto batch = std::string{commtoolsPathEnv};
          batch += "../../VC/vcvarsall.bat";
 
-         if (!boost::filesystem::exists(batch)) {
+         if (!std::filesystem::exists(batch)) {
             auto batch2 = std::string{commtoolsPathEnv};
             batch2 += "../../VC/Auxiliary/Build/vcvarsall.bat";  // New path in VS2017
-            if (!boost::filesystem::exists(batch2)) {
+            if (!std::filesystem::exists(batch2)) {
                throw std::runtime_error("Neither\n" + batch + "\nor\n" + batch2 + " does exist");
             }
             else {
@@ -103,7 +102,7 @@ namespace ToolChain {
             }
          }
 
-         batch = boost::filesystem::canonical(batch).string();
+         batch = std::filesystem::canonical(batch).string();
 
          auto cmd = "\"" + batch + "\" ";
 
@@ -127,13 +126,13 @@ namespace ToolChain {
 
          batchfile += "\\emsdk_env.bat";
 
-         if (!boost::filesystem::exists(batchfile)) throw std::runtime_error(batchfile + " does not exist");
+         if (!std::filesystem::exists(batchfile)) throw std::runtime_error(batchfile + " does not exist");
 
          return "CALL \"" + batchfile + "\" >nul ";
       }
       else {
          throw std::runtime_error("Unknown ToolChain " + tchain);
       }
-
    }
+
 }
