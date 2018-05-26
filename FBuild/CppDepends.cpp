@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <vector>
 #include <unordered_map>
+#include <mutex>
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
@@ -21,13 +22,13 @@
 
 
 
-static boost::mutex lastWriteTimeMutex;
+static std::mutex lastWriteTimeMutex;
 static std::unordered_map<std::string, uint64_t> lastWriteTimeCache;
 static std::string precompiledHeader;
 
 uint64_t LastWriteTime (const std::string& file)
 {
-   boost::lock_guard<boost::mutex> lock(lastWriteTimeMutex);
+   std::lock_guard lock(lastWriteTimeMutex);
 
    auto it = lastWriteTimeCache.find(file);
    if (it != lastWriteTimeCache.end()) return it->second;
@@ -120,13 +121,13 @@ void CppDepends::IncludeAnglebracketed (const std::filesystem::path& path, const
 }
 
 
-static boost::mutex includesMutex;
+static std::mutex includesMutex;
 static std::unordered_map<std::string, std::vector<std::pair<char, std::string>>> includesCache;
 
 std::vector<std::pair<char, std::string>> CppDepends::Includes (const std::filesystem::path& file)
 {
    {
-      boost::lock_guard<boost::mutex> lock(includesMutex);
+      std::lock_guard lock(includesMutex);
       auto it = includesCache.find(file.string());
       if (it != includesCache.end()) return it->second;
    }
@@ -164,7 +165,7 @@ std::vector<std::pair<char, std::string>> CppDepends::Includes (const std::files
       it = std::find(it, end, '#');
    }
 
-   boost::lock_guard<boost::mutex> lock(includesMutex);
+   std::lock_guard lock(includesMutex);
    includesCache[file.string()] = includes;
 
    return std::move(includes);

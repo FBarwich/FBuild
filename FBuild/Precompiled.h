@@ -18,7 +18,6 @@
 #include <filesystem>
 
 #include <cstdlib>
-#include <ctime>
 
 #include <boost/lexical_cast.hpp>
 #include <boost/thread.hpp>

@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <mutex>
 
 #include <boost/thread.hpp>
 
@@ -21,8 +22,8 @@
 class CppOutOfDate {
 
    boost::thread_group threadGroup;
-   boost::mutex        filesMutex;
-   boost::mutex        outOfDateMutex;
+   std::mutex          filesMutex;
+   std::mutex          outOfDateMutex;
    size_t              current;
    uint64_t            scriptTime;
    std::string         objectFileExtension;
@@ -40,7 +41,7 @@ class CppOutOfDate {
 
    bool GetFile (std::filesystem::path& result)
    {
-      boost::lock_guard<boost::mutex> lock(filesMutex);
+      std::lock_guard lock(filesMutex);
       if (current == files.size()) return false;
 
       result = files[current];
@@ -50,13 +51,13 @@ class CppOutOfDate {
 
    bool Done ()
    {
-      boost::lock_guard<boost::mutex> lock(filesMutex);
+      std::lock_guard lock(filesMutex);
       return current == files.size();
    }
 
    void AddOutOfDate (const std::string& file)
    {
-      boost::lock_guard<boost::mutex> lock(outOfDateMutex);
+      std::lock_guard lock(outOfDateMutex);
       outOfDate.push_back(file);
    }
 
