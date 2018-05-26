@@ -19,14 +19,12 @@ static std::vector<std::filesystem::path> CollectSourceFiles (const std::string&
 {
    std::vector<std::filesystem::path> result;
 
-   if (std::filesystem::exists(p)) {
+   if (p.find_first_of("*?") == std::string::npos && std::filesystem::exists(p)) {
       if (std::filesystem::is_regular_file(p)) result.push_back(p);
       else {
-         std::for_each(std::filesystem::directory_iterator(p), std::filesystem::directory_iterator(), [&] (const std::filesystem::directory_entry& entry) {
-            if (std::filesystem::is_regular_file(entry.path())) {
-               result.push_back(entry.path());
-            }
-         });
+         for (auto&& entry : std::filesystem::directory_iterator{p}) {
+            if (std::filesystem::is_regular_file(entry.path())) result.push_back(entry.path());
+         }
       }
    }
    else {
@@ -34,13 +32,13 @@ static std::vector<std::filesystem::path> CollectSourceFiles (const std::string&
       std::string pattern = path.filename().string();
       path.remove_filename();
 
-      std::for_each(std::filesystem::directory_iterator(path), std::filesystem::directory_iterator(), [&] (const std::filesystem::directory_entry& entry) {
+      for (auto&& entry : std::filesystem::directory_iterator{path}) {
          if (std::filesystem::is_regular_file(entry.path())) {
-            if (PathMatchSpec(entry.path().filename().string().c_str(), pattern.c_str())) {
+            if (::PathMatchSpec(entry.path().filename().string().c_str(), pattern.c_str())) {
                result.push_back(entry.path());
             }
          }
-      });
+      }
    }
 
    return result;
