@@ -8,6 +8,7 @@
 #include "CppDepends.h"
 #include "Parser.h"
 #include "BinaryStream.h"
+#include "MemoryMappedFile.h"
 
 #include <fstream>
 #include <iostream>
@@ -16,8 +17,6 @@
 #include <unordered_map>
 #include <mutex>
 
-#include <boost/interprocess/file_mapping.hpp>
-#include <boost/interprocess/mapped_region.hpp>
 #include <boost/thread.hpp>
 
 
@@ -86,9 +85,9 @@ void CppDepends::DoFile (std::filesystem::path file)
    if (dependencies.find(file.string()) != dependencies.end()) return;
    dependencies.insert(file.string());
 
-   auto todo = Includes(file);
+   const auto todo = Includes(file);
 
-   auto parentPath = file.parent_path();
+   const auto parentPath = file.parent_path();
 
    std::for_each(todo.cbegin(), todo.cend(), [&] (const std::pair<char, std::string>& v) {
       if (v.first == '<') IncludeAnglebracketed(parentPath, v.second);
@@ -134,13 +133,9 @@ std::vector<std::pair<char, std::string>> CppDepends::Includes (const std::files
 
    std::vector<std::pair<char, std::string>> includes;
 
-   size_t size = static_cast<size_t>(std::filesystem::file_size(file));
-
-   boost::interprocess::file_mapping mapping(file.string().c_str(), boost::interprocess::read_only);
-   boost::interprocess::mapped_region region(mapping, boost::interprocess::read_only, 0, size);
-
-   const char* it = static_cast<const char*>(region.get_address());
-   const char* end = it + size;
+   const MemoryMappedFile mmf{file};
+   const char* it = mmf.CBegin();
+   const char* end = mmf.CEnd();
 
    it = std::find(it, end, '#');
    while (it != end) {
@@ -154,11 +149,11 @@ std::vector<std::pair<char, std::string>> CppDepends::Includes (const std::files
          auto itStart = it + 1;
          if (*it == '\"') {
             it = ConsumeUntil(itStart, end, '\"');
-            if (it != itStart) includes.push_back(std::pair<char, std::string>('\"', std::string(itStart, it)));
+            if (it != itStart) includes.emplace_back(std::pair<char, std::string>('\"', std::string(itStart, it)));
          }
          else if (*it == '<') {
             it = ConsumeUntil(itStart, end, '>');
-            if (it != itStart) includes.push_back(std::pair<char, std::string>('<', std::string(itStart, it)));
+            if (it != itStart) includes.emplace_back(std::pair<char, std::string>('<', std::string(itStart, it)));
          }
       }
 

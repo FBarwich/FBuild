@@ -133,6 +133,7 @@
     <ClCompile Include="JsResourceCompiler.cpp" />
     <ClCompile Include="Librarian.cpp" />
     <ClCompile Include="Linker.cpp" />
+    <ClCompile Include="MemoryMappedFile.cpp" />
     <ClCompile Include="ResourceCompiler.cpp" />
     <ClCompile Include="ToolChain.cpp" />
   </ItemGroup>
@@ -157,6 +158,7 @@
     <ClInclude Include="JsResourceCompiler.h" />
     <ClInclude Include="Librarian.h" />
     <ClInclude Include="Linker.h" />
+    <ClInclude Include="MemoryMappedFile.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Precompiled.h" />
     <ClInclude Include="ResourceCompiler.h" />

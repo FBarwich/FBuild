@@ -6,13 +6,12 @@
  */
 
 #include "FileToCpp.h"
+#include "MemoryMappedFile.h"
 
 #include <iostream>
 #include <fstream>
 #include <filesystem>
 
-#include <boost/interprocess/file_mapping.hpp>
-#include <boost/interprocess/mapped_region.hpp>
 
 
 void FileToCpp::CheckParams ()
@@ -51,13 +50,9 @@ void FileToCpp::Create ()
    out << "char " << nameForArray << "[] = {\n";
 
    {
-      size_t size = static_cast<size_t>(std::filesystem::file_size(infile));
-
-      boost::interprocess::file_mapping mapping(infile.c_str(), boost::interprocess::read_only);
-      boost::interprocess::mapped_region region(mapping, boost::interprocess::read_only, 0, size);
-
-      const char* it = static_cast<const char*>(region.get_address());
-      const char* end = it + size;
+      const MemoryMappedFile mmf{infile};
+      const char* it = mmf.CBegin();
+      const char* end = mmf.CEnd();
 
       out << "      ";
 
