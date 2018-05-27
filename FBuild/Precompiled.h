@@ -16,10 +16,14 @@
 #include <iterator>
 #include <string_view>
 #include <filesystem>
+#include <sstream>
+#include <functional>
+#include <mutex>
+#include <thread>
+#include <memory>
 
 #include <cstdlib>
 
-#include <boost/thread.hpp>
 
 #include "../Duktape/duktape.h"
 

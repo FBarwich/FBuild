@@ -11,6 +11,7 @@
 #include <vector>
 #include <iterator>
 #include <memory>
+#include <functional>
 
 
 
