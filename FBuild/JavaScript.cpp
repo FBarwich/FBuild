@@ -13,6 +13,7 @@
 #include "FileOutOfDate.h"
 #include "DirectorySync.h"
 #include "ToolChain.h"
+#include "MemoryMappedFile.h"
 
 #include "JsCopy.h"
 #include "JsLib.h"
@@ -294,14 +295,13 @@ duk_ret_t JavaScript::JsRun(duk_context* duktapeContext)
 
    if (catchOutput) {
       {
-         std::ifstream in(tmpfile.string());
-         std::stringstream ss;
-         ss << in.rdbuf();
+         const MemoryMappedFile mmf{tmpfile};
+         std::string result{mmf.CBegin(), mmf.CEnd()};
 
-         std::string r = ss.str();
-         boost::trim_right(r);
+         auto pos = result.find_last_not_of(" \t\r\n", std::string::npos);
+         if (pos != std::string::npos) result.erase(pos + 1);
 
-         duk_push_string(duktapeContext, r.c_str());
+         duk_push_string(duktapeContext, result.c_str());
       }
 
       std::filesystem::remove(tmpfile);
