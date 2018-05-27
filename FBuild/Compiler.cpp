@@ -17,7 +17,6 @@
 #include <mutex>
 #include <filesystem>
 
-#include <boost/lexical_cast.hpp>
 
 
 
@@ -138,10 +137,10 @@ std::string ActualCompilerVisualStudio::CommandLine ()
    for (auto&& include : compiler.Includes()) command += "-I\"" + include + "\" ";
 
 
-   command += "-W" + boost::lexical_cast<std::string>(compiler.WarnLevel()) + " ";
+   command += "-W" + std::to_string(compiler.WarnLevel()) + " ";
    if (compiler.WarningAsError()) command += "-WX ";
 
-   for (auto&& disabledWarning : compiler.WarningDisable()) command += "-wd" + boost::lexical_cast<std::string>(disabledWarning) + " ";
+   for (auto&& disabledWarning : compiler.WarningDisable()) command += "-wd" + std::to_string(disabledWarning) + " ";
 
 
    command += compiler.Args() + " ";
@@ -442,7 +441,7 @@ std::string ActualCompilerEmscripten::CommandLine (bool omitObjDir)
 
    if (compiler.WarningAsError()) command += "-Werror ";
 
-   for (auto&& disabledWarning : compiler.WarningDisable()) command += "-Wno-" + boost::lexical_cast<std::string>(disabledWarning) + " ";
+   for (auto&& disabledWarning : compiler.WarningDisable()) command += "-Wno-" + std::to_string(disabledWarning) + " ";
 
 
    command += compiler.Args() + " ";

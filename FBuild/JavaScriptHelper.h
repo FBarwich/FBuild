@@ -11,8 +11,6 @@
 
 #include <string_view> 
 
-#include <boost/lexical_cast.hpp>
-
 
 namespace JavaScriptHelper {
 
@@ -122,7 +120,7 @@ namespace JavaScriptHelper {
    {
       if (!duk_is_function(duktapeContext, index)) JavaScriptHelper::Throw(duktapeContext, "Function expected");
 
-      std::string k = key + boost::lexical_cast<std::string>((size_t)obj);
+      std::string k = key + std::to_string((size_t)obj);
       duk_push_global_stash(duktapeContext);
       duk_dup(duktapeContext, index);
       duk_put_prop_string(duktapeContext, -2, k.c_str());
@@ -131,7 +129,7 @@ namespace JavaScriptHelper {
 
    inline void PushStashedCallback(duk_context* duktapeContext, const std::string& key, void* obj)
    {
-      std::string k = key + boost::lexical_cast<std::string>((size_t)obj);
+      std::string k = key + std::to_string((size_t)obj);
       duk_push_global_stash(duktapeContext);
       duk_get_prop_string(duktapeContext, -1, k.c_str());
    }
@@ -140,7 +138,7 @@ namespace JavaScriptHelper {
    {
       int top = duk_get_top(duktapeContext);
 
-      std::string k = key + boost::lexical_cast<std::string>((size_t)obj);
+      std::string k = key + std::to_string((size_t)obj);
       duk_push_global_stash(duktapeContext);
       duk_get_prop_string(duktapeContext, -1, k.c_str());
       duk_call(duktapeContext, 0);

@@ -19,7 +19,6 @@
 
 #include <cstdlib>
 
-#include <boost/lexical_cast.hpp>
 #include <boost/thread.hpp>
 #include <boost/algorithm/string.hpp>
 
