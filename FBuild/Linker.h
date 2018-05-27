@@ -12,7 +12,6 @@
 #include <iterator>
 #include <memory>
 
-#include <boost/algorithm/string.hpp>
 
 
 class Linker;
@@ -81,7 +80,8 @@ public:
 
    void Build (std::string v)
    {
-      boost::to_lower(v);
+      for (char& ch : v) ch = static_cast<char>(tolower(ch));
+
       if (v == "release") debug = false;
       else if (v == "debug") debug = true;
       else throw std::runtime_error("Excpected <Release> or <Debug> for Build");

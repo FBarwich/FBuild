@@ -20,7 +20,6 @@
 #include <cstdlib>
 
 #include <boost/thread.hpp>
-#include <boost/algorithm/string.hpp>
 
 #include "../Duktape/duktape.h"
 

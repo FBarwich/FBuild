@@ -13,15 +13,14 @@
 #include <iostream>
 #include <filesystem>
 
-
-
 inline bool Exe (const std::string& filename)
 {
    std::filesystem::path file(filename);
    std::string ext = file.extension().string();
-   boost::to_upper(ext);
-   if (ext == ".EXE") return true;
-   else return false;
+
+   for (char& ch : ext) ch = static_cast<char>(tolower(ch));
+
+   return ext == ".exe";
 }
 
 

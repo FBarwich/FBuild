@@ -11,7 +11,6 @@
 #include <vector>
 #include <memory>
 
-#include <boost/algorithm/string.hpp>
 
 
 
@@ -112,7 +111,8 @@ public:
 
    void Build (std::string build) 
    {
-      boost::to_lower(build);
+      for (char& ch : build) ch = static_cast<char>(tolower(ch));
+
       if (build == "release") debug = false;
       else if (build == "debug") debug = true;
       else throw std::runtime_error("Excpected <Release> or <Debug> for Build");
