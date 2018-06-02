@@ -130,10 +130,12 @@
     <ClCompile Include="JsLib.cpp" />
     <ClCompile Include="JsLibrarian.cpp" />
     <ClCompile Include="JsLinker.cpp" />
+    <ClCompile Include="JsMoc.cpp" />
     <ClCompile Include="JsResourceCompiler.cpp" />
     <ClCompile Include="Librarian.cpp" />
     <ClCompile Include="Linker.cpp" />
     <ClCompile Include="MemoryMappedFile.cpp" />
+    <ClCompile Include="Moc.cpp" />
     <ClCompile Include="ResourceCompiler.cpp" />
     <ClCompile Include="ToolChain.cpp" />
   </ItemGroup>
@@ -155,10 +157,12 @@
     <ClInclude Include="JsLib.h" />
     <ClInclude Include="JsLibrarian.h" />
     <ClInclude Include="JsLinker.h" />
+    <ClInclude Include="JsMoc.h" />
     <ClInclude Include="JsResourceCompiler.h" />
     <ClInclude Include="Librarian.h" />
     <ClInclude Include="Linker.h" />
     <ClInclude Include="MemoryMappedFile.h" />
+    <ClInclude Include="Moc.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Precompiled.h" />
     <ClInclude Include="ResourceCompiler.h" />

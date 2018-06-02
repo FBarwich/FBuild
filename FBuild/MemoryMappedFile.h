@@ -57,3 +57,9 @@ private:
    void CreateMemoryMapping();
 };
 
+
+inline char* begin (MemoryMappedFile& mmf) { return mmf.begin(); }
+inline const char* begin (const MemoryMappedFile& mmf) { return mmf.begin(); }
+
+inline char* end (MemoryMappedFile& mmf) { return mmf.end(); }
+inline const char* end (const MemoryMappedFile& mmf) { return mmf.end(); }

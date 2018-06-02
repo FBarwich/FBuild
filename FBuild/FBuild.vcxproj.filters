@@ -74,6 +74,12 @@
     <ClCompile Include="MemoryMappedFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Moc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JsMoc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BinaryStream.h">
@@ -149,6 +155,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MemoryMappedFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Moc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsMoc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

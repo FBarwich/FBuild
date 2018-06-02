@@ -23,6 +23,7 @@
 #include "JsLinker.h"
 #include "JsFileToCpp.h"
 #include "JsResourceCompiler.h"
+#include "JsMoc.h"
 
 #include <Shlwapi.h>
 
@@ -100,6 +101,7 @@ JavaScript::JavaScript (const std::vector<std::string>& args)
    JsLinker::Register(duktapeContext);
    JsFileToCpp::Register(duktapeContext);
    JsResourceCompiler::Register(duktapeContext);
+   JsMoc::Register(duktapeContext);
 }
 
 JavaScript::~JavaScript ()
