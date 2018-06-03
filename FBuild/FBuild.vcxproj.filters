@@ -80,6 +80,12 @@
     <ClCompile Include="JsMoc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Uic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JsUic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BinaryStream.h">
@@ -161,6 +167,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="JsMoc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Uic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JsUic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

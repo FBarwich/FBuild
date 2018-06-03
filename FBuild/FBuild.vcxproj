@@ -132,12 +132,14 @@
     <ClCompile Include="JsLinker.cpp" />
     <ClCompile Include="JsMoc.cpp" />
     <ClCompile Include="JsResourceCompiler.cpp" />
+    <ClCompile Include="JsUic.cpp" />
     <ClCompile Include="Librarian.cpp" />
     <ClCompile Include="Linker.cpp" />
     <ClCompile Include="MemoryMappedFile.cpp" />
     <ClCompile Include="Moc.cpp" />
     <ClCompile Include="ResourceCompiler.cpp" />
     <ClCompile Include="ToolChain.cpp" />
+    <ClCompile Include="Uic.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BinaryStream.h" />
@@ -159,6 +161,7 @@
     <ClInclude Include="JsLinker.h" />
     <ClInclude Include="JsMoc.h" />
     <ClInclude Include="JsResourceCompiler.h" />
+    <ClInclude Include="JsUic.h" />
     <ClInclude Include="Librarian.h" />
     <ClInclude Include="Linker.h" />
     <ClInclude Include="MemoryMappedFile.h" />
@@ -167,6 +170,7 @@
     <ClInclude Include="Precompiled.h" />
     <ClInclude Include="ResourceCompiler.h" />
     <ClInclude Include="ToolChain.h" />
+    <ClInclude Include="Uic.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FBuild.js" />

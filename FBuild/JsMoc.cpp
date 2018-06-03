@@ -155,7 +155,6 @@ duk_ret_t JsMoc::Compile(duk_context* duktapeContext)
    catch (std::exception& e) {
       JavaScriptHelper::Throw(duktapeContext, e.what());
    }
-
 }
 
 duk_ret_t JsMoc::OutFiles(duk_context* duktapeContext)
