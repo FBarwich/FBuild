@@ -10,6 +10,7 @@
 
 #include <cstdlib>
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <filesystem>
 
@@ -47,10 +48,21 @@ void ActualLibrarianVisualStudio::Create ()
 
    std::filesystem::create_directories(std::filesystem::path(librarian.Output()).remove_filename());
 
-   std::string command = "Lib -NOLOGO ";
+   std::string command = "-NOLOGO ";
    command += "-OUT:\"" + librarian.Output() + "\" ";
    
    for (auto&& f : librarian.Files()) command += "\"" + f + "\" ";
+
+   if (command.size() > 8000) {
+      auto rsp = std::filesystem::temp_directory_path() / std::filesystem::path(librarian.Output()).filename();
+      rsp.replace_extension(".rsp");
+      std::ofstream responseFile(rsp.string(), std::fstream::trunc);
+      responseFile << command;
+      command = "Lib @" + rsp.string();
+   }
+   else {
+      command.insert(0, "Lib ");
+   }
 
    std::string cmd = ToolChain::SetEnvBatchCall() + " & " + command;
    int rc = std::system(cmd.c_str());
